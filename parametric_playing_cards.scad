@@ -4,15 +4,21 @@
  * This script generates customizable 3D-printable playing cards for OpenSCAD.
  * Supports both SVG (vector) and PNG (raster/heightmap) image formats.
  *
- * QUICK START:
+ * QUICK START - Desktop OpenSCAD:
  * 1. Open in OpenSCAD and open Customizer (Window > Customizer)
  * 2. Adjust card dimensions, select suit, and choose which cards to generate
  * 3. Render (F6) and export to STL
  *
- * TO USE CUSTOM IMAGES (EASIEST METHOD):
+ * QUICK START - Web-Based OpenSCAD (Thingiverse Customizer, etc.):
+ * 1. Each filename parameter will have an "Upload" button next to it
+ * 2. Click the upload button to select and upload your custom image
+ * 3. The tool will automatically fill in the filename for you
+ * 4. Leave as "default" to use the standard card images
+ *
+ * TO USE CUSTOM IMAGES - Desktop Method:
  * 1. Save your image files (SVG or PNG) in the SAME FOLDER as this .scad file
  * 2. In Customizer, set useCustomImageFiles = true
- * 3. Update filename parameters (e.g., aceImageFilename = "my_ace.svg")
+ * 3. Type the filename in the parameter (e.g., aceImageFilename = "my_ace.svg")
  * 4. Any files left as "default" will use the standard folder structure
  *
  * See full usage instructions at the end of this file.
@@ -103,9 +109,14 @@ pngInvert = false;
 pngConvexity = 10; // [1:20]
 
 /* [Image Files - Use Defaults or Specify Custom] */
-// To use custom images: Save your image files in the same folder as this .scad file
-// Then update the filename parameters below (just the filename, not full path)
-// Leave as "default" to use the standard folder structure
+// NOTE FOR WEB USERS: In web-based OpenSCAD tools (Thingiverse Customizer, etc.),
+// you'll see an "Upload" button next to each filename parameter below.
+// Click the button to upload your image - the filename will be filled automatically!
+//
+// NOTE FOR DESKTOP USERS: Save your image files in the same folder as this .scad file,
+// then type the filename in the parameters below (e.g., "my_ace.svg")
+//
+// Leave any filename as "default" to use the standard folder structure instead
 
 // Use custom image files instead of folder structure
 useCustomImageFiles = false;
@@ -714,13 +725,21 @@ module loadImageKeepXY(imageFile, thickness) {
 //   - Adjust "cardWidth" and "cardHeight" in [Card Physical Dimensions]
 //   - Scale other elements proportionally in [Design Element Sizes]
 //
-// To use custom images - METHOD 1 (Custom Files - Easiest):
+// To use custom images - METHOD 1 (Web-Based Tools - Easiest):
+//   Web tools like Thingiverse Customizer automatically add upload buttons!
+//   1. Set "useCustomImageFiles" = true
+//   2. Click the "Upload" button next to any filename parameter
+//   3. Select your image file - the filename will be filled automatically
+//   4. Leave as "default" for images you want to use from the standard folder
+//   5. Render and download your customized cards!
+//
+// To use custom images - METHOD 2 (Desktop OpenSCAD):
 //   1. Save your image files in the SAME FOLDER as this .scad file
 //   2. Set "useCustomImageFiles" = true
-//   3. Update the filename parameters (e.g., aceImageFilename = "my_ace.svg")
+//   3. Type the filename in the parameter (e.g., aceImageFilename = "my_ace.svg")
 //   4. Leave as "default" for any images you want to use from the standard folder structure
 //
-// To use custom images - METHOD 2 (Folder Structure):
+// To use custom images - METHOD 3 (Folder Structure):
 //   - Keep "useCustomImageFiles" = false
 //   - Create a folder structure matching the pattern below
 //   - Update "baseImageDirectory" in [Standard Image Paths] if needed
@@ -761,30 +780,44 @@ module loadImageKeepXY(imageFile, thickness) {
 //
 // CUSTOM IMAGE EXAMPLES:
 //
-// Example 1 - Custom ace of spades only:
+// Example 1 - Using web-based upload (Thingiverse Customizer, etc.):
+//   1. Open this file in a web-based OpenSCAD tool
+//   2. Set useCustomImageFiles = true
+//   3. Find the aceImageFilename parameter
+//   4. Click the "Upload" button next to it
+//   5. Select your custom ace image (SVG or PNG)
+//   6. The tool automatically uploads and sets the filename
+//   7. Render and download!
+//
+// Example 2 - Custom ace of spades only (Desktop):
 //   1. Save your image as "cool_ace.svg" in the same folder as this file
 //   2. Set useCustomImageFiles = true
 //   3. Set aceImageFilename = "cool_ace.svg"
 //   4. All other cards will use the default folder structure
 //
-// Example 2 - Custom pip for one suit (e.g., hearts):
+// Example 3 - Custom pip for one suit (e.g., hearts):
 //   1. Save your heart image as "my_heart.png" in the same folder
+//      (or upload via button in web tools)
 //   2. Set useCustomImageFiles = true
 //   3. Set pipImageFilename = "my_heart.png"
 //   4. Set cardSuit = "hearts"
 //   5. All hearts will now use your custom pip image
 //
-// Example 3 - Completely custom card ID numbers:
+// Example 4 - Completely custom card ID numbers:
 //   1. Save 14 images in the same folder (ace.svg, 2.svg, ..., king.svg, joker.svg)
+//      (or upload each via buttons in web tools)
 //   2. Set useCustomImageFiles = true
 //   3. Set each ID filename:
 //      idAFilename = "ace.svg"
 //      id2Filename = "2.svg"
 //      ... and so on
 //
-// Example 4 - Mix custom and default images:
-//   1. Save only the images you want to customize in the same folder
+// Example 5 - Mix custom and default images:
+//   1. Save/upload only the images you want to customize
 //   2. Set useCustomImageFiles = true
 //   3. Set filenames only for the images you're customizing
 //   4. Leave others as "default" to use the standard folder structure
+//
+// NOTE: Web-based tools handle all the file management for you - just click
+// upload buttons and the tool handles saving files and setting filenames!
 //
