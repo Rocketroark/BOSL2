@@ -13,7 +13,7 @@
  * 1. Each file parameter will have an "Upload" button next to it
  * 2. Click the upload button to select and upload your custom image
  * 3. The tool will automatically fill in the filename for you
- * 4. Leave empty ("") to use the standard card images
+ * 4. Leave as "default.svg" to use the standard card images
  *
  * TO USE CUSTOM IMAGES - Desktop Method:
  * 1. Save your image files (SVG or PNG) in the SAME FOLDER as this .scad file
@@ -116,56 +116,56 @@ pngConvexity = 10; // [1:20]
 // NOTE FOR DESKTOP USERS: Save your image files in the same folder as this .scad file,
 // then type the filename in the parameters below (e.g., "my_ace.svg")
 //
-// Leave empty ("") to use the standard folder structure instead
+// Leave as "default.svg" to use the standard folder structure instead
 
 // Use custom image files instead of folder structure
 useCustomImageFiles = false;
 
 // Pip/suit symbol image file (e.g., "my_heart.svg")
-pipImageFile = "";
+pipImageFile = "default.svg";
 
 // Ace center image file (e.g., "custom_ace.png")
-aceImageFile = "";
+aceImageFile = "default.svg";
 
 // Joker image file (e.g., "my_joker.svg")
-jokerImageFile = "";
+jokerImageFile = "default.svg";
 
 // Card back pattern file (e.g., "cool_back.png")
-backImageFile = "";
+backImageFile = "default.svg";
 
 // Card ID image files (A, 2-10, J, Q, K, joker)
-idAFile = "";
-id2File = "";
-id3File = "";
-id4File = "";
-id5File = "";
-id6File = "";
-id7File = "";
-id8File = "";
-id9File = "";
-id10File = "";
-idJFile = "";
-idQFile = "";
-idKFile = "";
-idJokerFile = "";
+idAFile = "default.svg";
+id2File = "default.svg";
+id3File = "default.svg";
+id4File = "default.svg";
+id5File = "default.svg";
+id6File = "default.svg";
+id7File = "default.svg";
+id8File = "default.svg";
+id9File = "default.svg";
+id10File = "default.svg";
+idJFile = "default.svg";
+idQFile = "default.svg";
+idKFile = "default.svg";
+idJokerFile = "default.svg";
 
 // Jack color layer files
-jackColor1ImageFile = "";
-jackColor2ImageFile = "";
-jackColor3ImageFile = "";
-jackColor4ImageFile = "";
+jackColor1ImageFile = "default.svg";
+jackColor2ImageFile = "default.svg";
+jackColor3ImageFile = "default.svg";
+jackColor4ImageFile = "default.svg";
 
 // Queen color layer files
-queenColor1ImageFile = "";
-queenColor2ImageFile = "";
-queenColor3ImageFile = "";
-queenColor4ImageFile = "";
+queenColor1ImageFile = "default.svg";
+queenColor2ImageFile = "default.svg";
+queenColor3ImageFile = "default.svg";
+queenColor4ImageFile = "default.svg";
 
 // King color layer files
-kingColor1ImageFile = "";
-kingColor2ImageFile = "";
-kingColor3ImageFile = "";
-kingColor4ImageFile = "";
+kingColor1ImageFile = "default.svg";
+kingColor2ImageFile = "default.svg";
+kingColor3ImageFile = "default.svg";
+kingColor4ImageFile = "default.svg";
 
 /* [Standard Image Paths] */
 // These settings are only used when useCustomImageFiles = false
@@ -263,70 +263,70 @@ idDirectory = str(baseImageDirectory, idSubdirectory);
 suitDirectory = str(baseImageDirectory, suitsSubdirectory, cardSuit, "/");
 
 // Choose between custom files and standard folder structure
-pipImagePath = useCustomImageFiles && pipImageFile != ""
+pipImagePath = useCustomImageFiles && pipImageFile != "default.svg"
     ? pipImageFile
     : str(suitDirectory, pipFilename, fileExtension);
 
-aceImagePath = useCustomImageFiles && aceImageFile != ""
+aceImagePath = useCustomImageFiles && aceImageFile != "default.svg"
     ? aceImageFile
     : str(suitDirectory, aceFilename, fileExtension);
 
-jokerImagePath = useCustomImageFiles && jokerImageFile != ""
+jokerImagePath = useCustomImageFiles && jokerImageFile != "default.svg"
     ? jokerImageFile
     : str(baseImageDirectory, jokerFilename, fileExtension);
 
-backPatternImagePath = useCustomImageFiles && backImageFile != ""
+backPatternImagePath = useCustomImageFiles && backImageFile != "default.svg"
     ? backImageFile
     : str(baseImageDirectory, backPatternFilename, fileExtension);
 
 // Jack color layer paths
-jackColor1Path = useCustomImageFiles && jackColor1ImageFile != ""
+jackColor1Path = useCustomImageFiles && jackColor1ImageFile != "default.svg"
     ? jackColor1ImageFile
     : str(suitDirectory, jackColor1Filename, fileExtension);
 
-jackColor2Path = useCustomImageFiles && jackColor2ImageFile != ""
+jackColor2Path = useCustomImageFiles && jackColor2ImageFile != "default.svg"
     ? jackColor2ImageFile
     : str(suitDirectory, jackColor2Filename, fileExtension);
 
-jackColor3Path = useCustomImageFiles && jackColor3ImageFile != ""
+jackColor3Path = useCustomImageFiles && jackColor3ImageFile != "default.svg"
     ? jackColor3ImageFile
     : str(suitDirectory, jackColor3Filename, fileExtension);
 
-jackColor4Path = useCustomImageFiles && jackColor4ImageFile != ""
+jackColor4Path = useCustomImageFiles && jackColor4ImageFile != "default.svg"
     ? jackColor4ImageFile
     : str(suitDirectory, jackColor4Filename, fileExtension);
 
 // Queen color layer paths
-queenColor1Path = useCustomImageFiles && queenColor1ImageFile != ""
+queenColor1Path = useCustomImageFiles && queenColor1ImageFile != "default.svg"
     ? queenColor1ImageFile
     : str(suitDirectory, queenColor1Filename, fileExtension);
 
-queenColor2Path = useCustomImageFiles && queenColor2ImageFile != ""
+queenColor2Path = useCustomImageFiles && queenColor2ImageFile != "default.svg"
     ? queenColor2ImageFile
     : str(suitDirectory, queenColor2Filename, fileExtension);
 
-queenColor3Path = useCustomImageFiles && queenColor3ImageFile != ""
+queenColor3Path = useCustomImageFiles && queenColor3ImageFile != "default.svg"
     ? queenColor3ImageFile
     : str(suitDirectory, queenColor3Filename, fileExtension);
 
-queenColor4Path = useCustomImageFiles && queenColor4ImageFile != ""
+queenColor4Path = useCustomImageFiles && queenColor4ImageFile != "default.svg"
     ? queenColor4ImageFile
     : str(suitDirectory, queenColor4Filename, fileExtension);
 
 // King color layer paths
-kingColor1Path = useCustomImageFiles && kingColor1ImageFile != ""
+kingColor1Path = useCustomImageFiles && kingColor1ImageFile != "default.svg"
     ? kingColor1ImageFile
     : str(suitDirectory, kingColor1Filename, fileExtension);
 
-kingColor2Path = useCustomImageFiles && kingColor2ImageFile != ""
+kingColor2Path = useCustomImageFiles && kingColor2ImageFile != "default.svg"
     ? kingColor2ImageFile
     : str(suitDirectory, kingColor2Filename, fileExtension);
 
-kingColor3Path = useCustomImageFiles && kingColor3ImageFile != ""
+kingColor3Path = useCustomImageFiles && kingColor3ImageFile != "default.svg"
     ? kingColor3ImageFile
     : str(suitDirectory, kingColor3Filename, fileExtension);
 
-kingColor4Path = useCustomImageFiles && kingColor4ImageFile != ""
+kingColor4Path = useCustomImageFiles && kingColor4ImageFile != "default.svg"
     ? kingColor4ImageFile
     : str(suitDirectory, kingColor4Filename, fileExtension);
 
@@ -351,7 +351,7 @@ function getCustomIdFile(value) =
 
 // Helper function to get ID image path
 function getIdImagePath(value) =
-    useCustomImageFiles && getCustomIdFile(value) != ""
+    useCustomImageFiles && getCustomIdFile(value) != "default.svg"
         ? getCustomIdFile(value)
         : str(idDirectory, value, fileExtension);
 
@@ -730,14 +730,14 @@ module loadImageKeepXY(imageFile, thickness) {
 //   1. Set "useCustomImageFiles" = true
 //   2. Click the "Upload" button next to any filename parameter
 //   3. Select your image file - the filename will be filled automatically
-//   4. Leave empty ("") for images you want to use from the standard folder
+//   4. Leave as "default.svg" for images you want to use from the standard folder
 //   5. Render and download your customized cards!
 //
 // To use custom images - METHOD 2 (Desktop OpenSCAD):
 //   1. Save your image files in the SAME FOLDER as this .scad file
 //   2. Set "useCustomImageFiles" = true
 //   3. Type the filename in the parameter (e.g., aceImageFile = "my_ace.svg")
-//   4. Leave empty ("") for any images you want to use from the standard folder structure
+//   4. Leave as "default.svg" for any images you want to use from the standard folder structure
 //
 // To use custom images - METHOD 3 (Folder Structure):
 //   - Keep "useCustomImageFiles" = false
@@ -816,7 +816,7 @@ module loadImageKeepXY(imageFile, thickness) {
 //   1. Save/upload only the images you want to customize
 //   2. Set useCustomImageFiles = true
 //   3. Set filenames only for the images you're customizing
-//   4. Leave others as "default" to use the standard folder structure
+//   4. Leave others as "default.svg" to use the standard folder structure
 //
 // NOTE: Web-based tools handle all the file management for you - just click
 // upload buttons and the tool handles saving files and setting filenames!
