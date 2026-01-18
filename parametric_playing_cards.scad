@@ -86,7 +86,62 @@ pngInvert = false;
 // For PNG: Convexity value for surface extrusion (increase if preview shows artifacts)
 pngConvexity = 10; // [1:20]
 
-/* [Image Paths] */
+/* [Image Path Mode] */
+// Use custom file paths instead of standard folder structure
+useCustomPaths = false;
+
+/* [Custom Image Paths] */
+// Specify full paths to your custom images (only used if useCustomPaths = true)
+// You can use absolute paths (e.g., "C:/Users/You/Cards/ace.svg") or relative paths
+
+// Path to pip/suit symbol image (include file extension)
+customPipPath = "";
+
+// Path to ace center image (include file extension)
+customAcePath = "";
+
+// Path to joker image (include file extension)
+customJokerPath = "";
+
+// Path to card back pattern (include file extension)
+customBackPath = "";
+
+// Paths to card ID images (A, 2-10, J, Q, K, joker) - leave blank to auto-generate from folder
+customIdAPath = "";
+customId2Path = "";
+customId3Path = "";
+customId4Path = "";
+customId5Path = "";
+customId6Path = "";
+customId7Path = "";
+customId8Path = "";
+customId9Path = "";
+customId10Path = "";
+customIdJPath = "";
+customIdQPath = "";
+customIdKPath = "";
+customIdJokerPath = "";
+
+// Paths to Jack color layers (include file extension)
+customJackColor1Path = "";
+customJackColor2Path = "";
+customJackColor3Path = "";
+customJackColor4Path = "";
+
+// Paths to Queen color layers (include file extension)
+customQueenColor1Path = "";
+customQueenColor2Path = "";
+customQueenColor3Path = "";
+customQueenColor4Path = "";
+
+// Paths to King color layers (include file extension)
+customKingColor1Path = "";
+customKingColor2Path = "";
+customKingColor3Path = "";
+customKingColor4Path = "";
+
+/* [Standard Image Paths] */
+// These settings are only used when useCustomPaths = false
 // Base directory for all image files (relative to this .scad file)
 baseImageDirectory = "classic/";
 
@@ -179,11 +234,55 @@ jokerColor = "red";
 fileExtension = str(".", imageFormat);
 idDirectory = str(baseImageDirectory, idSubdirectory);
 suitDirectory = str(baseImageDirectory, suitsSubdirectory, cardSuit, "/");
-pipImageFile = str(suitDirectory, pipFilename, fileExtension);
-aceImageFile = str(suitDirectory, aceFilename, fileExtension);
-jokerImageFile = str(baseImageDirectory, jokerFilename, fileExtension);
-backPatternImageFile = str(baseImageDirectory, backPatternFilename, fileExtension);
+
+// Choose between custom paths and standard folder structure
+pipImageFile = useCustomPaths && customPipPath != "" ? customPipPath : str(suitDirectory, pipFilename, fileExtension);
+aceImageFile = useCustomPaths && customAcePath != "" ? customAcePath : str(suitDirectory, aceFilename, fileExtension);
+jokerImageFile = useCustomPaths && customJokerPath != "" ? customJokerPath : str(baseImageDirectory, jokerFilename, fileExtension);
+backPatternImageFile = useCustomPaths && customBackPath != "" ? customBackPath : str(baseImageDirectory, backPatternFilename, fileExtension);
+
+// Jack color layer paths
+jackColor1File = useCustomPaths && customJackColor1Path != "" ? customJackColor1Path : str(suitDirectory, jackColor1Filename, fileExtension);
+jackColor2File = useCustomPaths && customJackColor2Path != "" ? customJackColor2Path : str(suitDirectory, jackColor2Filename, fileExtension);
+jackColor3File = useCustomPaths && customJackColor3Path != "" ? customJackColor3Path : str(suitDirectory, jackColor3Filename, fileExtension);
+jackColor4File = useCustomPaths && customJackColor4Path != "" ? customJackColor4Path : str(suitDirectory, jackColor4Filename, fileExtension);
+
+// Queen color layer paths
+queenColor1File = useCustomPaths && customQueenColor1Path != "" ? customQueenColor1Path : str(suitDirectory, queenColor1Filename, fileExtension);
+queenColor2File = useCustomPaths && customQueenColor2Path != "" ? customQueenColor2Path : str(suitDirectory, queenColor2Filename, fileExtension);
+queenColor3File = useCustomPaths && customQueenColor3Path != "" ? customQueenColor3Path : str(suitDirectory, queenColor3Filename, fileExtension);
+queenColor4File = useCustomPaths && customQueenColor4Path != "" ? customQueenColor4Path : str(suitDirectory, queenColor4Filename, fileExtension);
+
+// King color layer paths
+kingColor1File = useCustomPaths && customKingColor1Path != "" ? customKingColor1Path : str(suitDirectory, kingColor1Filename, fileExtension);
+kingColor2File = useCustomPaths && customKingColor2Path != "" ? customKingColor2Path : str(suitDirectory, kingColor2Filename, fileExtension);
+kingColor3File = useCustomPaths && customKingColor3Path != "" ? customKingColor3Path : str(suitDirectory, kingColor3Filename, fileExtension);
+kingColor4File = useCustomPaths && customKingColor4Path != "" ? customKingColor4Path : str(suitDirectory, kingColor4Filename, fileExtension);
+
 handednessMultiplier = isRightHanded ? 1 : -1;
+
+// Helper function to get custom ID path by card value
+function getCustomIdPath(value) =
+    value == "A" ? customIdAPath :
+    value == "2" ? customId2Path :
+    value == "3" ? customId3Path :
+    value == "4" ? customId4Path :
+    value == "5" ? customId5Path :
+    value == "6" ? customId6Path :
+    value == "7" ? customId7Path :
+    value == "8" ? customId8Path :
+    value == "9" ? customId9Path :
+    value == "10" ? customId10Path :
+    value == "J" ? customIdJPath :
+    value == "Q" ? customIdQPath :
+    value == "K" ? customIdKPath :
+    value == "joker" ? customIdJokerPath : "";
+
+// Helper function to get ID image file path
+function getIdImageFile(value) =
+    useCustomPaths && getCustomIdPath(value) != "" ?
+        getCustomIdPath(value) :
+        str(idDirectory, value, fileExtension);
 
 // Dynamic Card Positions and Values
 cardPositions = [
@@ -240,7 +339,7 @@ for (i = [0:cardCount-1]) {
 
 // All Corner IDs
 for (i = [0:cardCount-1]) {
-    idImageFile = str(idDirectory, cardValues[i], fileExtension);
+    idImageFile = getIdImageFile(cardValues[i]);
     if (currentValues[i] == 0) {
         translate(cardPositions[i]) ucard_id(idImageFile, jokerIdHeight);
         translate(cardPositions[i]) dcard_id(idImageFile, jokerIdHeight);
@@ -346,13 +445,13 @@ for (i = [0:cardCount-1]) {
 for (i = [0:cardCount-1]) {
     position = cardPositions[i];
     if (currentValues[i] == 11) {
-        translate(position) royalty_part(str(suitDirectory, jackColor1Filename, fileExtension), royaltyColor1, jackColor1XOffset, jackColor1YOffset);
+        translate(position) royalty_part(jackColor1File, royaltyColor1, jackColor1XOffset, jackColor1YOffset);
     }
     else if (currentValues[i] == 12) {
-        translate(position) royalty_part(str(suitDirectory, queenColor1Filename, fileExtension), royaltyColor1, queenColor1XOffset, queenColor1YOffset);
+        translate(position) royalty_part(queenColor1File, royaltyColor1, queenColor1XOffset, queenColor1YOffset);
     }
     else if (currentValues[i] == 13) {
-        translate(position) royalty_part(str(suitDirectory, kingColor1Filename, fileExtension), royaltyColor1, kingColor1XOffset, kingColor1YOffset);
+        translate(position) royalty_part(kingColor1File, royaltyColor1, kingColor1XOffset, kingColor1YOffset);
     }
 }
 
@@ -360,13 +459,13 @@ for (i = [0:cardCount-1]) {
 for (i = [0:cardCount-1]) {
     position = cardPositions[i];
     if (currentValues[i] == 11) {
-        translate(position) royalty_part(str(suitDirectory, jackColor2Filename, fileExtension), royaltyColor2, jackColor2XOffset, jackColor2YOffset);
+        translate(position) royalty_part(jackColor2File, royaltyColor2, jackColor2XOffset, jackColor2YOffset);
     }
     else if (currentValues[i] == 12) {
-        translate(position) royalty_part(str(suitDirectory, queenColor2Filename, fileExtension), royaltyColor2, queenColor2XOffset, queenColor2YOffset);
+        translate(position) royalty_part(queenColor2File, royaltyColor2, queenColor2XOffset, queenColor2YOffset);
     }
     else if (currentValues[i] == 13) {
-        translate(position) royalty_part(str(suitDirectory, kingColor2Filename, fileExtension), royaltyColor2, kingColor2XOffset, kingColor2YOffset);
+        translate(position) royalty_part(kingColor2File, royaltyColor2, kingColor2XOffset, kingColor2YOffset);
     }
 }
 
@@ -374,13 +473,13 @@ for (i = [0:cardCount-1]) {
 for (i = [0:cardCount-1]) {
     position = cardPositions[i];
     if (currentValues[i] == 11) {
-        translate(position) royalty_part(str(suitDirectory, jackColor3Filename, fileExtension), royaltyColor3, jackColor3XOffset, jackColor3YOffset);
+        translate(position) royalty_part(jackColor3File, royaltyColor3, jackColor3XOffset, jackColor3YOffset);
     }
     else if (currentValues[i] == 12) {
-        translate(position) royalty_part(str(suitDirectory, queenColor3Filename, fileExtension), royaltyColor3, queenColor3XOffset, queenColor3YOffset);
+        translate(position) royalty_part(queenColor3File, royaltyColor3, queenColor3XOffset, queenColor3YOffset);
     }
     else if (currentValues[i] == 13) {
-        translate(position) royalty_part(str(suitDirectory, kingColor3Filename, fileExtension), royaltyColor3, kingColor3XOffset, kingColor3YOffset);
+        translate(position) royalty_part(kingColor3File, royaltyColor3, kingColor3XOffset, kingColor3YOffset);
     }
 }
 
@@ -388,13 +487,13 @@ for (i = [0:cardCount-1]) {
 for (i = [0:cardCount-1]) {
     position = cardPositions[i];
     if (currentValues[i] == 11) {
-        translate(position) royalty_part(str(suitDirectory, jackColor4Filename, fileExtension), royaltyColor4, jackColor4XOffset, jackColor4YOffset);
+        translate(position) royalty_part(jackColor4File, royaltyColor4, jackColor4XOffset, jackColor4YOffset);
     }
     else if (currentValues[i] == 12) {
-        translate(position) royalty_part(str(suitDirectory, queenColor4Filename, fileExtension), royaltyColor4, queenColor4XOffset, queenColor4YOffset);
+        translate(position) royalty_part(queenColor4File, royaltyColor4, queenColor4XOffset, queenColor4YOffset);
     }
     else if (currentValues[i] == 13) {
-        translate(position) royalty_part(str(suitDirectory, kingColor4Filename, fileExtension), royaltyColor4, kingColor4XOffset, kingColor4YOffset);
+        translate(position) royalty_part(kingColor4File, royaltyColor4, kingColor4XOffset, kingColor4YOffset);
     }
 }
 
@@ -555,11 +654,19 @@ module loadImageKeepXY(imageFile, thickness) {
 //   - Adjust "cardWidth" and "cardHeight" in [Card Physical Dimensions]
 //   - Scale other elements proportionally in [Design Element Sizes]
 //
-// To use custom images:
+// To use custom images - METHOD 1 (Custom Paths - Easiest):
+//   - Set "useCustomPaths" = true in [Image Path Mode]
+//   - In [Custom Image Paths], paste the full path to each image file
+//   - Paths can be absolute (C:/Users/You/mycard.svg) or relative (../images/ace.png)
+//   - Include file extensions in the custom paths
+//   - Only specify paths for images you want to customize (leave others blank for defaults)
+//
+// To use custom images - METHOD 2 (Folder Structure):
+//   - Keep "useCustomPaths" = false
 //   - Choose your image format in [Image Format] (svg or png)
 //   - Create a new folder structure matching the pattern below
 //   - Place your image files following the naming convention
-//   - Update "baseImageDirectory" and filenames in [Image Paths]
+//   - Update "baseImageDirectory" and filenames in [Standard Image Paths]
 //   - Note: Filenames should NOT include extensions (they're added automatically)
 //
 // IMAGE FORMAT NOTES:
@@ -595,4 +702,22 @@ module loadImageKeepXY(imageFile, thickness) {
 // - To convert PNG to SVG: Use tools like Inkscape (Path > Trace Bitmap)
 // - To convert SVG to PNG: Use Inkscape or online converters
 // - For best PNG results: Use high-contrast black & white images
+//
+// CUSTOM PATH EXAMPLES:
+// Example 1 - Using your own ace of spades image:
+//   1. Set useCustomPaths = true
+//   2. Set customAcePath = "C:/MyCards/custom_ace.svg"
+//   3. Leave other paths blank to use defaults
+//
+// Example 2 - Using images from your Desktop (relative path):
+//   1. Set useCustomPaths = true
+//   2. Set customPipPath = "../Desktop/my_heart.png"
+//   3. Set imageFormat = "png" (since you're using PNG files)
+//   4. All other images will use the default folder structure
+//
+// Example 3 - Completely custom deck:
+//   1. Set useCustomPaths = true
+//   2. Fill in all custom path fields with your image locations
+//   3. Can mix SVG and PNG by setting paths to different file types
+//      (though imageFormat setting applies to blank/default paths)
 //
