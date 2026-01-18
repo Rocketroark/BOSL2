@@ -76,9 +76,19 @@ royaltyScale = 0.35; // [0.1:0.05:1]
 // Right-handed players fan cards left-to-right, left-handed fan right-to-left
 isRightHanded = true;
 
+/* [Image Format] */
+// Image format for card designs (SVG for vector graphics, PNG for raster images)
+imageFormat = "svg"; // [svg, png]
+
+// For PNG: Invert brightness (true = white areas raised, false = black areas raised)
+pngInvert = false;
+
+// For PNG: Convexity value for surface extrusion (increase if preview shows artifacts)
+pngConvexity = 10; // [1:20]
+
 /* [Image Paths] */
-// Base directory for all SVG files (relative to this .scad file)
-baseSvgDirectory = "classic/";
+// Base directory for all image files (relative to this .scad file)
+baseImageDirectory = "classic/";
 
 // Subdirectory for card ID images (A, 2-10, J, Q, K)
 idSubdirectory = "ids/";
@@ -86,36 +96,36 @@ idSubdirectory = "ids/";
 // Subdirectory structure for suit images
 suitsSubdirectory = "suits/";
 
-// Filename for suit pip SVG (in each suit folder)
-pipFilename = "pip.svg";
+// Filename for suit pip image (in each suit folder) - without extension
+pipFilename = "pip";
 
-// Filename for ace center SVG (in each suit folder)
-aceFilename = "ace.svg";
+// Filename for ace center image (in each suit folder) - without extension
+aceFilename = "ace";
 
-// Filename for joker SVG (in base directory)
-jokerFilename = "joker.svg";
+// Filename for joker image (in base directory) - without extension
+jokerFilename = "joker";
 
-// Filename for card back pattern SVG (in base directory)
-backPatternFilename = "back.svg";
+// Filename for card back pattern image (in base directory) - without extension
+backPatternFilename = "back";
 
 /* [Royalty Card Image Files] */
-// Filenames for Jack color layers (in suit folder)
-jackColor1Filename = "jack_color_1.svg";
-jackColor2Filename = "jack_color_2.svg";
-jackColor3Filename = "jack_color_3.svg";
-jackColor4Filename = "jack_color_4.svg";
+// Filenames for Jack color layers (in suit folder) - without extension
+jackColor1Filename = "jack_color_1";
+jackColor2Filename = "jack_color_2";
+jackColor3Filename = "jack_color_3";
+jackColor4Filename = "jack_color_4";
 
-// Filenames for Queen color layers (in suit folder)
-queenColor1Filename = "queen_color_1.svg";
-queenColor2Filename = "queen_color_2.svg";
-queenColor3Filename = "queen_color_3.svg";
-queenColor4Filename = "queen_color_4.svg";
+// Filenames for Queen color layers (in suit folder) - without extension
+queenColor1Filename = "queen_color_1";
+queenColor2Filename = "queen_color_2";
+queenColor3Filename = "queen_color_3";
+queenColor4Filename = "queen_color_4";
 
-// Filenames for King color layers (in suit folder)
-kingColor1Filename = "king_color_1.svg";
-kingColor2Filename = "king_color_2.svg";
-kingColor3Filename = "king_color_3.svg";
-kingColor4Filename = "king_color_4.svg";
+// Filenames for King color layers (in suit folder) - without extension
+kingColor1Filename = "king_color_1";
+kingColor2Filename = "king_color_2";
+kingColor3Filename = "king_color_3";
+kingColor4Filename = "king_color_4";
 
 /* [Royalty Color Alignment - Jack] */
 // X/Y offsets for Jack color layers (adjust if SVG layers don't align)
@@ -166,12 +176,13 @@ jokerColor = "red";
 
 /* [Hidden] */
 // Derived Parameters (automatically calculated - do not modify)
-idDirectory = str(baseSvgDirectory, idSubdirectory);
-suitDirectory = str(baseSvgDirectory, suitsSubdirectory, cardSuit, "/");
-pipSvgFile = str(suitDirectory, pipFilename);
-aceSvgFile = str(suitDirectory, aceFilename);
-jokerSvgFile = str(baseSvgDirectory, jokerFilename);
-backPatternSvgFile = str(baseSvgDirectory, backPatternFilename);
+fileExtension = str(".", imageFormat);
+idDirectory = str(baseImageDirectory, idSubdirectory);
+suitDirectory = str(baseImageDirectory, suitsSubdirectory, cardSuit, "/");
+pipImageFile = str(suitDirectory, pipFilename, fileExtension);
+aceImageFile = str(suitDirectory, aceFilename, fileExtension);
+jokerImageFile = str(baseImageDirectory, jokerFilename, fileExtension);
+backPatternImageFile = str(baseImageDirectory, backPatternFilename, fileExtension);
 handednessMultiplier = isRightHanded ? 1 : -1;
 
 // Dynamic Card Positions and Values
@@ -229,13 +240,13 @@ for (i = [0:cardCount-1]) {
 
 // All Corner IDs
 for (i = [0:cardCount-1]) {
-    idSvgFile = str(idDirectory, cardValues[i], ".svg");
+    idImageFile = str(idDirectory, cardValues[i], fileExtension);
     if (currentValues[i] == 0) {
-        translate(cardPositions[i]) ucard_id(idSvgFile, jokerIdHeight);
-        translate(cardPositions[i]) dcard_id(idSvgFile, jokerIdHeight);
+        translate(cardPositions[i]) ucard_id(idImageFile, jokerIdHeight);
+        translate(cardPositions[i]) dcard_id(idImageFile, jokerIdHeight);
     } else {
-        translate(cardPositions[i]) ucard_id(idSvgFile, idHeight);
-        translate(cardPositions[i]) dcard_id(idSvgFile, idHeight);
+        translate(cardPositions[i]) ucard_id(idImageFile, idHeight);
+        translate(cardPositions[i]) dcard_id(idImageFile, idHeight);
     }
 }
 
@@ -335,13 +346,13 @@ for (i = [0:cardCount-1]) {
 for (i = [0:cardCount-1]) {
     position = cardPositions[i];
     if (currentValues[i] == 11) {
-        translate(position) royalty_part(str(suitDirectory, jackColor1Filename), royaltyColor1, jackColor1XOffset, jackColor1YOffset);
+        translate(position) royalty_part(str(suitDirectory, jackColor1Filename, fileExtension), royaltyColor1, jackColor1XOffset, jackColor1YOffset);
     }
     else if (currentValues[i] == 12) {
-        translate(position) royalty_part(str(suitDirectory, queenColor1Filename), royaltyColor1, queenColor1XOffset, queenColor1YOffset);
+        translate(position) royalty_part(str(suitDirectory, queenColor1Filename, fileExtension), royaltyColor1, queenColor1XOffset, queenColor1YOffset);
     }
     else if (currentValues[i] == 13) {
-        translate(position) royalty_part(str(suitDirectory, kingColor1Filename), royaltyColor1, kingColor1XOffset, kingColor1YOffset);
+        translate(position) royalty_part(str(suitDirectory, kingColor1Filename, fileExtension), royaltyColor1, kingColor1XOffset, kingColor1YOffset);
     }
 }
 
@@ -349,13 +360,13 @@ for (i = [0:cardCount-1]) {
 for (i = [0:cardCount-1]) {
     position = cardPositions[i];
     if (currentValues[i] == 11) {
-        translate(position) royalty_part(str(suitDirectory, jackColor2Filename), royaltyColor2, jackColor2XOffset, jackColor2YOffset);
+        translate(position) royalty_part(str(suitDirectory, jackColor2Filename, fileExtension), royaltyColor2, jackColor2XOffset, jackColor2YOffset);
     }
     else if (currentValues[i] == 12) {
-        translate(position) royalty_part(str(suitDirectory, queenColor2Filename), royaltyColor2, queenColor2XOffset, queenColor2YOffset);
+        translate(position) royalty_part(str(suitDirectory, queenColor2Filename, fileExtension), royaltyColor2, queenColor2XOffset, queenColor2YOffset);
     }
     else if (currentValues[i] == 13) {
-        translate(position) royalty_part(str(suitDirectory, kingColor2Filename), royaltyColor2, kingColor2XOffset, kingColor2YOffset);
+        translate(position) royalty_part(str(suitDirectory, kingColor2Filename, fileExtension), royaltyColor2, kingColor2XOffset, kingColor2YOffset);
     }
 }
 
@@ -363,13 +374,13 @@ for (i = [0:cardCount-1]) {
 for (i = [0:cardCount-1]) {
     position = cardPositions[i];
     if (currentValues[i] == 11) {
-        translate(position) royalty_part(str(suitDirectory, jackColor3Filename), royaltyColor3, jackColor3XOffset, jackColor3YOffset);
+        translate(position) royalty_part(str(suitDirectory, jackColor3Filename, fileExtension), royaltyColor3, jackColor3XOffset, jackColor3YOffset);
     }
     else if (currentValues[i] == 12) {
-        translate(position) royalty_part(str(suitDirectory, queenColor3Filename), royaltyColor3, queenColor3XOffset, queenColor3YOffset);
+        translate(position) royalty_part(str(suitDirectory, queenColor3Filename, fileExtension), royaltyColor3, queenColor3XOffset, queenColor3YOffset);
     }
     else if (currentValues[i] == 13) {
-        translate(position) royalty_part(str(suitDirectory, kingColor3Filename), royaltyColor3, kingColor3XOffset, kingColor3YOffset);
+        translate(position) royalty_part(str(suitDirectory, kingColor3Filename, fileExtension), royaltyColor3, kingColor3XOffset, kingColor3YOffset);
     }
 }
 
@@ -377,13 +388,13 @@ for (i = [0:cardCount-1]) {
 for (i = [0:cardCount-1]) {
     position = cardPositions[i];
     if (currentValues[i] == 11) {
-        translate(position) royalty_part(str(suitDirectory, jackColor4Filename), royaltyColor4, jackColor4XOffset, jackColor4YOffset);
+        translate(position) royalty_part(str(suitDirectory, jackColor4Filename, fileExtension), royaltyColor4, jackColor4XOffset, jackColor4YOffset);
     }
     else if (currentValues[i] == 12) {
-        translate(position) royalty_part(str(suitDirectory, queenColor4Filename), royaltyColor4, queenColor4XOffset, queenColor4YOffset);
+        translate(position) royalty_part(str(suitDirectory, queenColor4Filename, fileExtension), royaltyColor4, queenColor4XOffset, queenColor4YOffset);
     }
     else if (currentValues[i] == 13) {
-        translate(position) royalty_part(str(suitDirectory, kingColor4Filename), royaltyColor4, kingColor4XOffset, kingColor4YOffset);
+        translate(position) royalty_part(str(suitDirectory, kingColor4Filename, fileExtension), royaltyColor4, kingColor4XOffset, kingColor4YOffset);
     }
 }
 
@@ -414,21 +425,21 @@ module back_pattern() {
     zOffset = frontThickness/2 + blockerThickness + backThickness/2;
     color(backPatternColor)
     translate([0, 0, zOffset])
-    loadSvg(backPatternSvgFile, backPatternHeight, backThickness);
+    loadImage(backPatternImageFile, backPatternHeight, backThickness);
 }
 
-module dcard_id(svgFile, height=idHeight) {
+module dcard_id(imageFile, height=idHeight) {
     rotate([0, 0, 180])
-    ucard_id(svgFile, height);
+    ucard_id(imageFile, height);
 }
 
-module ucard_id(svgFile, height=idHeight) {
+module ucard_id(imageFile, height=idHeight) {
     xOffset = (cardWidth/2 - height/2 - idBorderSpacing + idXOffset) * handednessMultiplier;
     yOffset = cardHeight/2 - height/2 - idBorderSpacing;
     color(pipColor)
     translate([xOffset, yOffset, 0])
     rotate([0, 180, 0])
-    loadSvg(svgFile, height, frontThickness);
+    loadImage(imageFile, height, frontThickness);
 }
 
 module dcard_id_pip() {
@@ -442,7 +453,7 @@ module ucard_id_pip() {
     color(pipColor)
     translate([xOffset, yOffset, 0])
     rotate([0, 180, 0])
-    loadSvg(pipSvgFile, idPipHeight, frontThickness);
+    loadImage(pipImageFile, idPipHeight, frontThickness);
 }
 
 module dpip(xOffset, yOffset) {
@@ -454,27 +465,27 @@ module upip(xOffset, yOffset) {
     color(pipColor)
     translate([xOffset, yOffset, 0])
     rotate([0, 180, 0])
-    loadSvg(pipSvgFile, pipHeight, frontThickness);
+    loadImage(pipImageFile, pipHeight, frontThickness);
 }
 
-module royalty_part(svgFile, partColor, xOffset=0, yOffset=0) {
+module royalty_part(imageFile, partColor, xOffset=0, yOffset=0) {
     color(partColor)
     translate([xOffset, yOffset, 0])
     rotate([0, 180, 0])
     scale([royaltyScale, royaltyScale, 1])
-    loadSvgKeepXY(svgFile, frontThickness);
+    loadImageKeepXY(imageFile, frontThickness);
 }
 
 module ace() {
     color(pipColor)
     rotate([0, 180, 0])
-    loadSvg(aceSvgFile, aceHeight, frontThickness);
+    loadImage(aceImageFile, aceHeight, frontThickness);
 }
 
 module joker() {
     color(jokerColor)
     rotate([0, 180, 0])
-    loadSvg(jokerSvgFile, jokerHeight, frontThickness);
+    loadImage(jokerImageFile, jokerHeight, frontThickness);
 }
 
 // ============================================================================
@@ -490,15 +501,34 @@ module round_rect_3D(width, height, radius, thickness) {
     }
 }
 
-module loadSvgKeepXY(svgFile, thickness) {
-    linear_extrude(height=thickness, center=true)
-    import(svgFile, center=true);
+// Flexible image loader - handles both SVG and PNG formats
+module loadImage(imageFile, height, thickness) {
+    if (imageFormat == "svg") {
+        // SVG: Import as vector, resize by height, and extrude
+        resize([0, height, 0], [true, false, false])
+        linear_extrude(height=thickness, center=true)
+        import(imageFile, center=true);
+    } else if (imageFormat == "png") {
+        // PNG: Create embossed/raised design from image brightness
+        resize([0, height, 0], [true, false, false])
+        scale([1, 1, thickness])
+        translate([0, 0, -0.5])
+        surface(file=imageFile, center=true, invert=pngInvert, convexity=pngConvexity);
+    }
 }
 
-module loadSvg(svgFile, height, thickness) {
-    resize([0, height, 0], [true, false, false])
-    linear_extrude(height=thickness, center=true)
-    import(svgFile, center=true);
+// Flexible image loader that preserves original X/Y dimensions
+module loadImageKeepXY(imageFile, thickness) {
+    if (imageFormat == "svg") {
+        // SVG: Import as vector and extrude
+        linear_extrude(height=thickness, center=true)
+        import(imageFile, center=true);
+    } else if (imageFormat == "png") {
+        // PNG: Create embossed/raised design from image brightness
+        scale([1, 1, thickness])
+        translate([0, 0, -0.5])
+        surface(file=imageFile, center=true, invert=pngInvert, convexity=pngConvexity);
+    }
 }
 
 // ============================================================================
@@ -526,9 +556,18 @@ module loadSvg(svgFile, height, thickness) {
 //   - Scale other elements proportionally in [Design Element Sizes]
 //
 // To use custom images:
-//   - Create a new folder structure matching: basedir/suits/suitname/
-//   - Place your SVG files following the naming convention
-//   - Update "baseSvgDirectory" and filenames in [Image Paths]
+//   - Choose your image format in [Image Format] (svg or png)
+//   - Create a new folder structure matching the pattern below
+//   - Place your image files following the naming convention
+//   - Update "baseImageDirectory" and filenames in [Image Paths]
+//   - Note: Filenames should NOT include extensions (they're added automatically)
+//
+// IMAGE FORMAT NOTES:
+// - SVG (vector): Crisp at any size, recommended for clean designs
+// - PNG (raster): Creates embossed/raised effect based on brightness
+//   - For PNG: White areas = raised (or set pngInvert=true to reverse)
+//   - PNG files should be grayscale for best results
+//   - Higher resolution PNGs = smoother surfaces but slower rendering
 //
 // PRINTING TIPS:
 // - Generate cards in batches that fit your build plate
@@ -538,17 +577,22 @@ module loadSvg(svgFile, height, thickness) {
 //
 // FILE STRUCTURE FOR CUSTOM IMAGES:
 // your_folder/
-//   ├── ids/                    (A.svg, 2.svg, 3.svg, ..., J.svg, Q.svg, K.svg, joker.svg)
+//   ├── ids/                    (A.svg/.png, 2.svg/.png, ..., J.svg/.png, Q.svg/.png, K.svg/.png, joker.svg/.png)
 //   ├── suits/
 //   │   ├── hearts/
-//   │   │   ├── pip.svg
-//   │   │   ├── ace.svg
-//   │   │   ├── jack_color_1.svg through jack_color_4.svg
-//   │   │   ├── queen_color_1.svg through queen_color_4.svg
-//   │   │   └── king_color_1.svg through king_color_4.svg
+//   │   │   ├── pip.svg/.png
+//   │   │   ├── ace.svg/.png
+//   │   │   ├── jack_color_1.svg/.png through jack_color_4.svg/.png
+//   │   │   ├── queen_color_1.svg/.png through queen_color_4.svg/.png
+//   │   │   └── king_color_1.svg/.png through king_color_4.svg/.png
 //   │   ├── diamonds/ (same structure)
 //   │   ├── spades/   (same structure)
 //   │   └── clubs/    (same structure)
-//   ├── joker.svg
-//   └── back.svg
+//   ├── joker.svg/.png
+//   └── back.svg/.png
+//
+// CONVERTING IMAGES:
+// - To convert PNG to SVG: Use tools like Inkscape (Path > Trace Bitmap)
+// - To convert SVG to PNG: Use Inkscape or online converters
+// - For best PNG results: Use high-contrast black & white images
 //
