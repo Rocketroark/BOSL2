@@ -1,6 +1,28 @@
-// Parametric Playing Cards Generator
-// This script generates customizable 3D-printable playing cards for OpenSCAD
-// Use the Customizer panel (Window > Customizer) to easily modify parameters
+/*
+ * Parametric Playing Cards Generator
+ *
+ * This script generates customizable 3D-printable playing cards for OpenSCAD.
+ * Supports both SVG (vector) and PNG (raster/heightmap) image formats.
+ *
+ * QUICK START - Desktop OpenSCAD:
+ * 1. Open in OpenSCAD and open Customizer (Window > Customizer)
+ * 2. Adjust card dimensions, select suit, and choose which cards to generate
+ * 3. Render (F6) and export to STL
+ *
+ * QUICK START - Web-Based OpenSCAD (Thingiverse Customizer, etc.):
+ * 1. Each filename parameter will have an "Upload" button next to it
+ * 2. Click the upload button to select and upload your custom image
+ * 3. The tool will automatically fill in the filename for you
+ * 4. Leave as "default" to use the standard card images
+ *
+ * TO USE CUSTOM IMAGES - Desktop Method:
+ * 1. Save your image files (SVG or PNG) in the SAME FOLDER as this .scad file
+ * 2. In Customizer, set useCustomImageFiles = true
+ * 3. Type the filename in the parameter (e.g., aceImageFilename = "my_ace.svg")
+ * 4. Any files left as "default" will use the standard folder structure
+ *
+ * See full usage instructions at the end of this file.
+ */
 
 /* [Card Selection] */
 // Which suit to render (hearts, diamonds, spades, clubs)
@@ -86,62 +108,67 @@ pngInvert = false;
 // For PNG: Convexity value for surface extrusion (increase if preview shows artifacts)
 pngConvexity = 10; // [1:20]
 
-/* [Image Path Mode] */
-// Use custom file paths instead of standard folder structure
-useCustomPaths = false;
+/* [Image Files - Use Defaults or Specify Custom] */
+// NOTE FOR WEB USERS: In web-based OpenSCAD tools (Thingiverse Customizer, etc.),
+// you'll see an "Upload" button next to each filename parameter below.
+// Click the button to upload your image - the filename will be filled automatically!
+//
+// NOTE FOR DESKTOP USERS: Save your image files in the same folder as this .scad file,
+// then type the filename in the parameters below (e.g., "my_ace.svg")
+//
+// Leave any filename as "default" to use the standard folder structure instead
 
-/* [Custom Image Paths] */
-// Specify full paths to your custom images (only used if useCustomPaths = true)
-// You can use absolute paths (e.g., "C:/Users/You/Cards/ace.svg") or relative paths
+// Use custom image files instead of folder structure
+useCustomImageFiles = false;
 
-// Path to pip/suit symbol image (include file extension)
-customPipPath = "";
+// Pip/suit symbol image filename (e.g., "my_heart.svg")
+pipImageFilename = "default";
 
-// Path to ace center image (include file extension)
-customAcePath = "";
+// Ace center image filename (e.g., "custom_ace.png")
+aceImageFilename = "default";
 
-// Path to joker image (include file extension)
-customJokerPath = "";
+// Joker image filename (e.g., "my_joker.svg")
+jokerImageFilename = "default";
 
-// Path to card back pattern (include file extension)
-customBackPath = "";
+// Card back pattern filename (e.g., "cool_back.png")
+backImageFilename = "default";
 
-// Paths to card ID images (A, 2-10, J, Q, K, joker) - leave blank to auto-generate from folder
-customIdAPath = "";
-customId2Path = "";
-customId3Path = "";
-customId4Path = "";
-customId5Path = "";
-customId6Path = "";
-customId7Path = "";
-customId8Path = "";
-customId9Path = "";
-customId10Path = "";
-customIdJPath = "";
-customIdQPath = "";
-customIdKPath = "";
-customIdJokerPath = "";
+// Card ID image filenames (A, 2-10, J, Q, K, joker)
+idAFilename = "default";
+id2Filename = "default";
+id3Filename = "default";
+id4Filename = "default";
+id5Filename = "default";
+id6Filename = "default";
+id7Filename = "default";
+id8Filename = "default";
+id9Filename = "default";
+id10Filename = "default";
+idJFilename = "default";
+idQFilename = "default";
+idKFilename = "default";
+idJokerFilename = "default";
 
-// Paths to Jack color layers (include file extension)
-customJackColor1Path = "";
-customJackColor2Path = "";
-customJackColor3Path = "";
-customJackColor4Path = "";
+// Jack color layer filenames
+jackColor1ImageFilename = "default";
+jackColor2ImageFilename = "default";
+jackColor3ImageFilename = "default";
+jackColor4ImageFilename = "default";
 
-// Paths to Queen color layers (include file extension)
-customQueenColor1Path = "";
-customQueenColor2Path = "";
-customQueenColor3Path = "";
-customQueenColor4Path = "";
+// Queen color layer filenames
+queenColor1ImageFilename = "default";
+queenColor2ImageFilename = "default";
+queenColor3ImageFilename = "default";
+queenColor4ImageFilename = "default";
 
-// Paths to King color layers (include file extension)
-customKingColor1Path = "";
-customKingColor2Path = "";
-customKingColor3Path = "";
-customKingColor4Path = "";
+// King color layer filenames
+kingColor1ImageFilename = "default";
+kingColor2ImageFilename = "default";
+kingColor3ImageFilename = "default";
+kingColor4ImageFilename = "default";
 
 /* [Standard Image Paths] */
-// These settings are only used when useCustomPaths = false
+// These settings are only used when useCustomImageFiles = false
 // Base directory for all image files (relative to this .scad file)
 baseImageDirectory = "classic/";
 
@@ -235,54 +262,98 @@ fileExtension = str(".", imageFormat);
 idDirectory = str(baseImageDirectory, idSubdirectory);
 suitDirectory = str(baseImageDirectory, suitsSubdirectory, cardSuit, "/");
 
-// Choose between custom paths and standard folder structure
-pipImageFile = useCustomPaths && customPipPath != "" ? customPipPath : str(suitDirectory, pipFilename, fileExtension);
-aceImageFile = useCustomPaths && customAcePath != "" ? customAcePath : str(suitDirectory, aceFilename, fileExtension);
-jokerImageFile = useCustomPaths && customJokerPath != "" ? customJokerPath : str(baseImageDirectory, jokerFilename, fileExtension);
-backPatternImageFile = useCustomPaths && customBackPath != "" ? customBackPath : str(baseImageDirectory, backPatternFilename, fileExtension);
+// Choose between custom filenames and standard folder structure
+pipImageFile = useCustomImageFiles && pipImageFilename != "default"
+    ? pipImageFilename
+    : str(suitDirectory, pipFilename, fileExtension);
 
-// Jack color layer paths
-jackColor1File = useCustomPaths && customJackColor1Path != "" ? customJackColor1Path : str(suitDirectory, jackColor1Filename, fileExtension);
-jackColor2File = useCustomPaths && customJackColor2Path != "" ? customJackColor2Path : str(suitDirectory, jackColor2Filename, fileExtension);
-jackColor3File = useCustomPaths && customJackColor3Path != "" ? customJackColor3Path : str(suitDirectory, jackColor3Filename, fileExtension);
-jackColor4File = useCustomPaths && customJackColor4Path != "" ? customJackColor4Path : str(suitDirectory, jackColor4Filename, fileExtension);
+aceImageFile = useCustomImageFiles && aceImageFilename != "default"
+    ? aceImageFilename
+    : str(suitDirectory, aceFilename, fileExtension);
 
-// Queen color layer paths
-queenColor1File = useCustomPaths && customQueenColor1Path != "" ? customQueenColor1Path : str(suitDirectory, queenColor1Filename, fileExtension);
-queenColor2File = useCustomPaths && customQueenColor2Path != "" ? customQueenColor2Path : str(suitDirectory, queenColor2Filename, fileExtension);
-queenColor3File = useCustomPaths && customQueenColor3Path != "" ? customQueenColor3Path : str(suitDirectory, queenColor3Filename, fileExtension);
-queenColor4File = useCustomPaths && customQueenColor4Path != "" ? customQueenColor4Path : str(suitDirectory, queenColor4Filename, fileExtension);
+jokerImageFile = useCustomImageFiles && jokerImageFilename != "default"
+    ? jokerImageFilename
+    : str(baseImageDirectory, jokerFilename, fileExtension);
 
-// King color layer paths
-kingColor1File = useCustomPaths && customKingColor1Path != "" ? customKingColor1Path : str(suitDirectory, kingColor1Filename, fileExtension);
-kingColor2File = useCustomPaths && customKingColor2Path != "" ? customKingColor2Path : str(suitDirectory, kingColor2Filename, fileExtension);
-kingColor3File = useCustomPaths && customKingColor3Path != "" ? customKingColor3Path : str(suitDirectory, kingColor3Filename, fileExtension);
-kingColor4File = useCustomPaths && customKingColor4Path != "" ? customKingColor4Path : str(suitDirectory, kingColor4Filename, fileExtension);
+backPatternImageFile = useCustomImageFiles && backImageFilename != "default"
+    ? backImageFilename
+    : str(baseImageDirectory, backPatternFilename, fileExtension);
+
+// Jack color layer files
+jackColor1File = useCustomImageFiles && jackColor1ImageFilename != "default"
+    ? jackColor1ImageFilename
+    : str(suitDirectory, jackColor1Filename, fileExtension);
+
+jackColor2File = useCustomImageFiles && jackColor2ImageFilename != "default"
+    ? jackColor2ImageFilename
+    : str(suitDirectory, jackColor2Filename, fileExtension);
+
+jackColor3File = useCustomImageFiles && jackColor3ImageFilename != "default"
+    ? jackColor3ImageFilename
+    : str(suitDirectory, jackColor3Filename, fileExtension);
+
+jackColor4File = useCustomImageFiles && jackColor4ImageFilename != "default"
+    ? jackColor4ImageFilename
+    : str(suitDirectory, jackColor4Filename, fileExtension);
+
+// Queen color layer files
+queenColor1File = useCustomImageFiles && queenColor1ImageFilename != "default"
+    ? queenColor1ImageFilename
+    : str(suitDirectory, queenColor1Filename, fileExtension);
+
+queenColor2File = useCustomImageFiles && queenColor2ImageFilename != "default"
+    ? queenColor2ImageFilename
+    : str(suitDirectory, queenColor2Filename, fileExtension);
+
+queenColor3File = useCustomImageFiles && queenColor3ImageFilename != "default"
+    ? queenColor3ImageFilename
+    : str(suitDirectory, queenColor3Filename, fileExtension);
+
+queenColor4File = useCustomImageFiles && queenColor4ImageFilename != "default"
+    ? queenColor4ImageFilename
+    : str(suitDirectory, queenColor4Filename, fileExtension);
+
+// King color layer files
+kingColor1File = useCustomImageFiles && kingColor1ImageFilename != "default"
+    ? kingColor1ImageFilename
+    : str(suitDirectory, kingColor1Filename, fileExtension);
+
+kingColor2File = useCustomImageFiles && kingColor2ImageFilename != "default"
+    ? kingColor2ImageFilename
+    : str(suitDirectory, kingColor2Filename, fileExtension);
+
+kingColor3File = useCustomImageFiles && kingColor3ImageFilename != "default"
+    ? kingColor3ImageFilename
+    : str(suitDirectory, kingColor3Filename, fileExtension);
+
+kingColor4File = useCustomImageFiles && kingColor4ImageFilename != "default"
+    ? kingColor4ImageFilename
+    : str(suitDirectory, kingColor4Filename, fileExtension);
 
 handednessMultiplier = isRightHanded ? 1 : -1;
 
-// Helper function to get custom ID path by card value
-function getCustomIdPath(value) =
-    value == "A" ? customIdAPath :
-    value == "2" ? customId2Path :
-    value == "3" ? customId3Path :
-    value == "4" ? customId4Path :
-    value == "5" ? customId5Path :
-    value == "6" ? customId6Path :
-    value == "7" ? customId7Path :
-    value == "8" ? customId8Path :
-    value == "9" ? customId9Path :
-    value == "10" ? customId10Path :
-    value == "J" ? customIdJPath :
-    value == "Q" ? customIdQPath :
-    value == "K" ? customIdKPath :
-    value == "joker" ? customIdJokerPath : "";
+// Helper function to get custom ID filename by card value
+function getCustomIdFilename(value) =
+    value == "A" ? idAFilename :
+    value == "2" ? id2Filename :
+    value == "3" ? id3Filename :
+    value == "4" ? id4Filename :
+    value == "5" ? id5Filename :
+    value == "6" ? id6Filename :
+    value == "7" ? id7Filename :
+    value == "8" ? id8Filename :
+    value == "9" ? id9Filename :
+    value == "10" ? id10Filename :
+    value == "J" ? idJFilename :
+    value == "Q" ? idQFilename :
+    value == "K" ? idKFilename :
+    value == "joker" ? idJokerFilename : "default";
 
 // Helper function to get ID image file path
 function getIdImageFile(value) =
-    useCustomPaths && getCustomIdPath(value) != "" ?
-        getCustomIdPath(value) :
-        str(idDirectory, value, fileExtension);
+    useCustomImageFiles && getCustomIdFilename(value) != "default"
+        ? getCustomIdFilename(value)
+        : str(idDirectory, value, fileExtension);
 
 // Dynamic Card Positions and Values
 cardPositions = [
@@ -654,20 +725,24 @@ module loadImageKeepXY(imageFile, thickness) {
 //   - Adjust "cardWidth" and "cardHeight" in [Card Physical Dimensions]
 //   - Scale other elements proportionally in [Design Element Sizes]
 //
-// To use custom images - METHOD 1 (Custom Paths - Easiest):
-//   - Set "useCustomPaths" = true in [Image Path Mode]
-//   - In [Custom Image Paths], paste the full path to each image file
-//   - Paths can be absolute (C:/Users/You/mycard.svg) or relative (../images/ace.png)
-//   - Include file extensions in the custom paths
-//   - Only specify paths for images you want to customize (leave others blank for defaults)
+// To use custom images - METHOD 1 (Web-Based Tools - Easiest):
+//   Web tools like Thingiverse Customizer automatically add upload buttons!
+//   1. Set "useCustomImageFiles" = true
+//   2. Click the "Upload" button next to any filename parameter
+//   3. Select your image file - the filename will be filled automatically
+//   4. Leave as "default" for images you want to use from the standard folder
+//   5. Render and download your customized cards!
 //
-// To use custom images - METHOD 2 (Folder Structure):
-//   - Keep "useCustomPaths" = false
-//   - Choose your image format in [Image Format] (svg or png)
-//   - Create a new folder structure matching the pattern below
-//   - Place your image files following the naming convention
-//   - Update "baseImageDirectory" and filenames in [Standard Image Paths]
-//   - Note: Filenames should NOT include extensions (they're added automatically)
+// To use custom images - METHOD 2 (Desktop OpenSCAD):
+//   1. Save your image files in the SAME FOLDER as this .scad file
+//   2. Set "useCustomImageFiles" = true
+//   3. Type the filename in the parameter (e.g., aceImageFilename = "my_ace.svg")
+//   4. Leave as "default" for any images you want to use from the standard folder structure
+//
+// To use custom images - METHOD 3 (Folder Structure):
+//   - Keep "useCustomImageFiles" = false
+//   - Create a folder structure matching the pattern below
+//   - Update "baseImageDirectory" in [Standard Image Paths] if needed
 //
 // IMAGE FORMAT NOTES:
 // - SVG (vector): Crisp at any size, recommended for clean designs
@@ -703,21 +778,46 @@ module loadImageKeepXY(imageFile, thickness) {
 // - To convert SVG to PNG: Use Inkscape or online converters
 // - For best PNG results: Use high-contrast black & white images
 //
-// CUSTOM PATH EXAMPLES:
-// Example 1 - Using your own ace of spades image:
-//   1. Set useCustomPaths = true
-//   2. Set customAcePath = "C:/MyCards/custom_ace.svg"
-//   3. Leave other paths blank to use defaults
+// CUSTOM IMAGE EXAMPLES:
 //
-// Example 2 - Using images from your Desktop (relative path):
-//   1. Set useCustomPaths = true
-//   2. Set customPipPath = "../Desktop/my_heart.png"
-//   3. Set imageFormat = "png" (since you're using PNG files)
-//   4. All other images will use the default folder structure
+// Example 1 - Using web-based upload (Thingiverse Customizer, etc.):
+//   1. Open this file in a web-based OpenSCAD tool
+//   2. Set useCustomImageFiles = true
+//   3. Find the aceImageFilename parameter
+//   4. Click the "Upload" button next to it
+//   5. Select your custom ace image (SVG or PNG)
+//   6. The tool automatically uploads and sets the filename
+//   7. Render and download!
 //
-// Example 3 - Completely custom deck:
-//   1. Set useCustomPaths = true
-//   2. Fill in all custom path fields with your image locations
-//   3. Can mix SVG and PNG by setting paths to different file types
-//      (though imageFormat setting applies to blank/default paths)
+// Example 2 - Custom ace of spades only (Desktop):
+//   1. Save your image as "cool_ace.svg" in the same folder as this file
+//   2. Set useCustomImageFiles = true
+//   3. Set aceImageFilename = "cool_ace.svg"
+//   4. All other cards will use the default folder structure
+//
+// Example 3 - Custom pip for one suit (e.g., hearts):
+//   1. Save your heart image as "my_heart.png" in the same folder
+//      (or upload via button in web tools)
+//   2. Set useCustomImageFiles = true
+//   3. Set pipImageFilename = "my_heart.png"
+//   4. Set cardSuit = "hearts"
+//   5. All hearts will now use your custom pip image
+//
+// Example 4 - Completely custom card ID numbers:
+//   1. Save 14 images in the same folder (ace.svg, 2.svg, ..., king.svg, joker.svg)
+//      (or upload each via buttons in web tools)
+//   2. Set useCustomImageFiles = true
+//   3. Set each ID filename:
+//      idAFilename = "ace.svg"
+//      id2Filename = "2.svg"
+//      ... and so on
+//
+// Example 5 - Mix custom and default images:
+//   1. Save/upload only the images you want to customize
+//   2. Set useCustomImageFiles = true
+//   3. Set filenames only for the images you're customizing
+//   4. Leave others as "default" to use the standard folder structure
+//
+// NOTE: Web-based tools handle all the file management for you - just click
+// upload buttons and the tool handles saving files and setting filenames!
 //
