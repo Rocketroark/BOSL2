@@ -10,16 +10,16 @@
  * 3. Render (F6) and export to STL
  *
  * QUICK START - Web-Based OpenSCAD (Thingiverse Customizer, etc.):
- * 1. Each filename parameter will have an "Upload" button next to it
+ * 1. Each file parameter will have an "Upload" button next to it
  * 2. Click the upload button to select and upload your custom image
  * 3. The tool will automatically fill in the filename for you
- * 4. Leave as "default" to use the standard card images
+ * 4. Leave empty ("") to use the standard card images
  *
  * TO USE CUSTOM IMAGES - Desktop Method:
  * 1. Save your image files (SVG or PNG) in the SAME FOLDER as this .scad file
  * 2. In Customizer, set useCustomImageFiles = true
- * 3. Type the filename in the parameter (e.g., aceImageFilename = "my_ace.svg")
- * 4. Any files left as "default" will use the standard folder structure
+ * 3. Type the filename in the parameter (e.g., aceImageFile = "my_ace.svg")
+ * 4. Any files left empty will use the standard folder structure
  *
  * See full usage instructions at the end of this file.
  */
@@ -110,62 +110,62 @@ pngConvexity = 10; // [1:20]
 
 /* [Image Files - Use Defaults or Specify Custom] */
 // NOTE FOR WEB USERS: In web-based OpenSCAD tools (Thingiverse Customizer, etc.),
-// you'll see an "Upload" button next to each filename parameter below.
+// you'll see an "Upload" button next to each file parameter below.
 // Click the button to upload your image - the filename will be filled automatically!
 //
 // NOTE FOR DESKTOP USERS: Save your image files in the same folder as this .scad file,
 // then type the filename in the parameters below (e.g., "my_ace.svg")
 //
-// Leave any filename as "default" to use the standard folder structure instead
+// Leave empty ("") to use the standard folder structure instead
 
 // Use custom image files instead of folder structure
 useCustomImageFiles = false;
 
-// Pip/suit symbol image filename (e.g., "my_heart.svg")
-pipImageFilename = "default";
+// Pip/suit symbol image file (e.g., "my_heart.svg")
+pipImageFile = "";
 
-// Ace center image filename (e.g., "custom_ace.png")
-aceImageFilename = "default";
+// Ace center image file (e.g., "custom_ace.png")
+aceImageFile = "";
 
-// Joker image filename (e.g., "my_joker.svg")
-jokerImageFilename = "default";
+// Joker image file (e.g., "my_joker.svg")
+jokerImageFile = "";
 
-// Card back pattern filename (e.g., "cool_back.png")
-backImageFilename = "default";
+// Card back pattern file (e.g., "cool_back.png")
+backImageFile = "";
 
-// Card ID image filenames (A, 2-10, J, Q, K, joker)
-idAFilename = "default";
-id2Filename = "default";
-id3Filename = "default";
-id4Filename = "default";
-id5Filename = "default";
-id6Filename = "default";
-id7Filename = "default";
-id8Filename = "default";
-id9Filename = "default";
-id10Filename = "default";
-idJFilename = "default";
-idQFilename = "default";
-idKFilename = "default";
-idJokerFilename = "default";
+// Card ID image files (A, 2-10, J, Q, K, joker)
+idAFile = "";
+id2File = "";
+id3File = "";
+id4File = "";
+id5File = "";
+id6File = "";
+id7File = "";
+id8File = "";
+id9File = "";
+id10File = "";
+idJFile = "";
+idQFile = "";
+idKFile = "";
+idJokerFile = "";
 
-// Jack color layer filenames
-jackColor1ImageFilename = "default";
-jackColor2ImageFilename = "default";
-jackColor3ImageFilename = "default";
-jackColor4ImageFilename = "default";
+// Jack color layer files
+jackColor1ImageFile = "";
+jackColor2ImageFile = "";
+jackColor3ImageFile = "";
+jackColor4ImageFile = "";
 
-// Queen color layer filenames
-queenColor1ImageFilename = "default";
-queenColor2ImageFilename = "default";
-queenColor3ImageFilename = "default";
-queenColor4ImageFilename = "default";
+// Queen color layer files
+queenColor1ImageFile = "";
+queenColor2ImageFile = "";
+queenColor3ImageFile = "";
+queenColor4ImageFile = "";
 
-// King color layer filenames
-kingColor1ImageFilename = "default";
-kingColor2ImageFilename = "default";
-kingColor3ImageFilename = "default";
-kingColor4ImageFilename = "default";
+// King color layer files
+kingColor1ImageFile = "";
+kingColor2ImageFile = "";
+kingColor3ImageFile = "";
+kingColor4ImageFile = "";
 
 /* [Standard Image Paths] */
 // These settings are only used when useCustomImageFiles = false
@@ -262,97 +262,97 @@ fileExtension = str(".", imageFormat);
 idDirectory = str(baseImageDirectory, idSubdirectory);
 suitDirectory = str(baseImageDirectory, suitsSubdirectory, cardSuit, "/");
 
-// Choose between custom filenames and standard folder structure
-pipImageFile = useCustomImageFiles && pipImageFilename != "default"
-    ? pipImageFilename
+// Choose between custom files and standard folder structure
+pipImagePath = useCustomImageFiles && pipImageFile != ""
+    ? pipImageFile
     : str(suitDirectory, pipFilename, fileExtension);
 
-aceImageFile = useCustomImageFiles && aceImageFilename != "default"
-    ? aceImageFilename
+aceImagePath = useCustomImageFiles && aceImageFile != ""
+    ? aceImageFile
     : str(suitDirectory, aceFilename, fileExtension);
 
-jokerImageFile = useCustomImageFiles && jokerImageFilename != "default"
-    ? jokerImageFilename
+jokerImagePath = useCustomImageFiles && jokerImageFile != ""
+    ? jokerImageFile
     : str(baseImageDirectory, jokerFilename, fileExtension);
 
-backPatternImageFile = useCustomImageFiles && backImageFilename != "default"
-    ? backImageFilename
+backPatternImagePath = useCustomImageFiles && backImageFile != ""
+    ? backImageFile
     : str(baseImageDirectory, backPatternFilename, fileExtension);
 
-// Jack color layer files
-jackColor1File = useCustomImageFiles && jackColor1ImageFilename != "default"
-    ? jackColor1ImageFilename
+// Jack color layer paths
+jackColor1Path = useCustomImageFiles && jackColor1ImageFile != ""
+    ? jackColor1ImageFile
     : str(suitDirectory, jackColor1Filename, fileExtension);
 
-jackColor2File = useCustomImageFiles && jackColor2ImageFilename != "default"
-    ? jackColor2ImageFilename
+jackColor2Path = useCustomImageFiles && jackColor2ImageFile != ""
+    ? jackColor2ImageFile
     : str(suitDirectory, jackColor2Filename, fileExtension);
 
-jackColor3File = useCustomImageFiles && jackColor3ImageFilename != "default"
-    ? jackColor3ImageFilename
+jackColor3Path = useCustomImageFiles && jackColor3ImageFile != ""
+    ? jackColor3ImageFile
     : str(suitDirectory, jackColor3Filename, fileExtension);
 
-jackColor4File = useCustomImageFiles && jackColor4ImageFilename != "default"
-    ? jackColor4ImageFilename
+jackColor4Path = useCustomImageFiles && jackColor4ImageFile != ""
+    ? jackColor4ImageFile
     : str(suitDirectory, jackColor4Filename, fileExtension);
 
-// Queen color layer files
-queenColor1File = useCustomImageFiles && queenColor1ImageFilename != "default"
-    ? queenColor1ImageFilename
+// Queen color layer paths
+queenColor1Path = useCustomImageFiles && queenColor1ImageFile != ""
+    ? queenColor1ImageFile
     : str(suitDirectory, queenColor1Filename, fileExtension);
 
-queenColor2File = useCustomImageFiles && queenColor2ImageFilename != "default"
-    ? queenColor2ImageFilename
+queenColor2Path = useCustomImageFiles && queenColor2ImageFile != ""
+    ? queenColor2ImageFile
     : str(suitDirectory, queenColor2Filename, fileExtension);
 
-queenColor3File = useCustomImageFiles && queenColor3ImageFilename != "default"
-    ? queenColor3ImageFilename
+queenColor3Path = useCustomImageFiles && queenColor3ImageFile != ""
+    ? queenColor3ImageFile
     : str(suitDirectory, queenColor3Filename, fileExtension);
 
-queenColor4File = useCustomImageFiles && queenColor4ImageFilename != "default"
-    ? queenColor4ImageFilename
+queenColor4Path = useCustomImageFiles && queenColor4ImageFile != ""
+    ? queenColor4ImageFile
     : str(suitDirectory, queenColor4Filename, fileExtension);
 
-// King color layer files
-kingColor1File = useCustomImageFiles && kingColor1ImageFilename != "default"
-    ? kingColor1ImageFilename
+// King color layer paths
+kingColor1Path = useCustomImageFiles && kingColor1ImageFile != ""
+    ? kingColor1ImageFile
     : str(suitDirectory, kingColor1Filename, fileExtension);
 
-kingColor2File = useCustomImageFiles && kingColor2ImageFilename != "default"
-    ? kingColor2ImageFilename
+kingColor2Path = useCustomImageFiles && kingColor2ImageFile != ""
+    ? kingColor2ImageFile
     : str(suitDirectory, kingColor2Filename, fileExtension);
 
-kingColor3File = useCustomImageFiles && kingColor3ImageFilename != "default"
-    ? kingColor3ImageFilename
+kingColor3Path = useCustomImageFiles && kingColor3ImageFile != ""
+    ? kingColor3ImageFile
     : str(suitDirectory, kingColor3Filename, fileExtension);
 
-kingColor4File = useCustomImageFiles && kingColor4ImageFilename != "default"
-    ? kingColor4ImageFilename
+kingColor4Path = useCustomImageFiles && kingColor4ImageFile != ""
+    ? kingColor4ImageFile
     : str(suitDirectory, kingColor4Filename, fileExtension);
 
 handednessMultiplier = isRightHanded ? 1 : -1;
 
-// Helper function to get custom ID filename by card value
-function getCustomIdFilename(value) =
-    value == "A" ? idAFilename :
-    value == "2" ? id2Filename :
-    value == "3" ? id3Filename :
-    value == "4" ? id4Filename :
-    value == "5" ? id5Filename :
-    value == "6" ? id6Filename :
-    value == "7" ? id7Filename :
-    value == "8" ? id8Filename :
-    value == "9" ? id9Filename :
-    value == "10" ? id10Filename :
-    value == "J" ? idJFilename :
-    value == "Q" ? idQFilename :
-    value == "K" ? idKFilename :
-    value == "joker" ? idJokerFilename : "default";
+// Helper function to get custom ID file by card value
+function getCustomIdFile(value) =
+    value == "A" ? idAFile :
+    value == "2" ? id2File :
+    value == "3" ? id3File :
+    value == "4" ? id4File :
+    value == "5" ? id5File :
+    value == "6" ? id6File :
+    value == "7" ? id7File :
+    value == "8" ? id8File :
+    value == "9" ? id9File :
+    value == "10" ? id10File :
+    value == "J" ? idJFile :
+    value == "Q" ? idQFile :
+    value == "K" ? idKFile :
+    value == "joker" ? idJokerFile : "";
 
-// Helper function to get ID image file path
-function getIdImageFile(value) =
-    useCustomImageFiles && getCustomIdFilename(value) != "default"
-        ? getCustomIdFilename(value)
+// Helper function to get ID image path
+function getIdImagePath(value) =
+    useCustomImageFiles && getCustomIdFile(value) != ""
+        ? getCustomIdFile(value)
         : str(idDirectory, value, fileExtension);
 
 // Dynamic Card Positions and Values
@@ -410,7 +410,7 @@ for (i = [0:cardCount-1]) {
 
 // All Corner IDs
 for (i = [0:cardCount-1]) {
-    idImageFile = getIdImageFile(cardValues[i]);
+    idImageFile = getIdImagePath(cardValues[i]);
     if (currentValues[i] == 0) {
         translate(cardPositions[i]) ucard_id(idImageFile, jokerIdHeight);
         translate(cardPositions[i]) dcard_id(idImageFile, jokerIdHeight);
@@ -516,13 +516,13 @@ for (i = [0:cardCount-1]) {
 for (i = [0:cardCount-1]) {
     position = cardPositions[i];
     if (currentValues[i] == 11) {
-        translate(position) royalty_part(jackColor1File, royaltyColor1, jackColor1XOffset, jackColor1YOffset);
+        translate(position) royalty_part(jackColor1Path, royaltyColor1, jackColor1XOffset, jackColor1YOffset);
     }
     else if (currentValues[i] == 12) {
-        translate(position) royalty_part(queenColor1File, royaltyColor1, queenColor1XOffset, queenColor1YOffset);
+        translate(position) royalty_part(queenColor1Path, royaltyColor1, queenColor1XOffset, queenColor1YOffset);
     }
     else if (currentValues[i] == 13) {
-        translate(position) royalty_part(kingColor1File, royaltyColor1, kingColor1XOffset, kingColor1YOffset);
+        translate(position) royalty_part(kingColor1Path, royaltyColor1, kingColor1XOffset, kingColor1YOffset);
     }
 }
 
@@ -530,13 +530,13 @@ for (i = [0:cardCount-1]) {
 for (i = [0:cardCount-1]) {
     position = cardPositions[i];
     if (currentValues[i] == 11) {
-        translate(position) royalty_part(jackColor2File, royaltyColor2, jackColor2XOffset, jackColor2YOffset);
+        translate(position) royalty_part(jackColor2Path, royaltyColor2, jackColor2XOffset, jackColor2YOffset);
     }
     else if (currentValues[i] == 12) {
-        translate(position) royalty_part(queenColor2File, royaltyColor2, queenColor2XOffset, queenColor2YOffset);
+        translate(position) royalty_part(queenColor2Path, royaltyColor2, queenColor2XOffset, queenColor2YOffset);
     }
     else if (currentValues[i] == 13) {
-        translate(position) royalty_part(kingColor2File, royaltyColor2, kingColor2XOffset, kingColor2YOffset);
+        translate(position) royalty_part(kingColor2Path, royaltyColor2, kingColor2XOffset, kingColor2YOffset);
     }
 }
 
@@ -544,13 +544,13 @@ for (i = [0:cardCount-1]) {
 for (i = [0:cardCount-1]) {
     position = cardPositions[i];
     if (currentValues[i] == 11) {
-        translate(position) royalty_part(jackColor3File, royaltyColor3, jackColor3XOffset, jackColor3YOffset);
+        translate(position) royalty_part(jackColor3Path, royaltyColor3, jackColor3XOffset, jackColor3YOffset);
     }
     else if (currentValues[i] == 12) {
-        translate(position) royalty_part(queenColor3File, royaltyColor3, queenColor3XOffset, queenColor3YOffset);
+        translate(position) royalty_part(queenColor3Path, royaltyColor3, queenColor3XOffset, queenColor3YOffset);
     }
     else if (currentValues[i] == 13) {
-        translate(position) royalty_part(kingColor3File, royaltyColor3, kingColor3XOffset, kingColor3YOffset);
+        translate(position) royalty_part(kingColor3Path, royaltyColor3, kingColor3XOffset, kingColor3YOffset);
     }
 }
 
@@ -558,13 +558,13 @@ for (i = [0:cardCount-1]) {
 for (i = [0:cardCount-1]) {
     position = cardPositions[i];
     if (currentValues[i] == 11) {
-        translate(position) royalty_part(jackColor4File, royaltyColor4, jackColor4XOffset, jackColor4YOffset);
+        translate(position) royalty_part(jackColor4Path, royaltyColor4, jackColor4XOffset, jackColor4YOffset);
     }
     else if (currentValues[i] == 12) {
-        translate(position) royalty_part(queenColor4File, royaltyColor4, queenColor4XOffset, queenColor4YOffset);
+        translate(position) royalty_part(queenColor4Path, royaltyColor4, queenColor4XOffset, queenColor4YOffset);
     }
     else if (currentValues[i] == 13) {
-        translate(position) royalty_part(kingColor4File, royaltyColor4, kingColor4XOffset, kingColor4YOffset);
+        translate(position) royalty_part(kingColor4Path, royaltyColor4, kingColor4XOffset, kingColor4YOffset);
     }
 }
 
@@ -595,7 +595,7 @@ module back_pattern() {
     zOffset = frontThickness/2 + blockerThickness + backThickness/2;
     color(backPatternColor)
     translate([0, 0, zOffset])
-    loadImage(backPatternImageFile, backPatternHeight, backThickness);
+    loadImage(backPatternImagePath, backPatternHeight, backThickness);
 }
 
 module dcard_id(imageFile, height=idHeight) {
@@ -623,7 +623,7 @@ module ucard_id_pip() {
     color(pipColor)
     translate([xOffset, yOffset, 0])
     rotate([0, 180, 0])
-    loadImage(pipImageFile, idPipHeight, frontThickness);
+    loadImage(pipImagePath, idPipHeight, frontThickness);
 }
 
 module dpip(xOffset, yOffset) {
@@ -635,7 +635,7 @@ module upip(xOffset, yOffset) {
     color(pipColor)
     translate([xOffset, yOffset, 0])
     rotate([0, 180, 0])
-    loadImage(pipImageFile, pipHeight, frontThickness);
+    loadImage(pipImagePath, pipHeight, frontThickness);
 }
 
 module royalty_part(imageFile, partColor, xOffset=0, yOffset=0) {
@@ -649,13 +649,13 @@ module royalty_part(imageFile, partColor, xOffset=0, yOffset=0) {
 module ace() {
     color(pipColor)
     rotate([0, 180, 0])
-    loadImage(aceImageFile, aceHeight, frontThickness);
+    loadImage(aceImagePath, aceHeight, frontThickness);
 }
 
 module joker() {
     color(jokerColor)
     rotate([0, 180, 0])
-    loadImage(jokerImageFile, jokerHeight, frontThickness);
+    loadImage(jokerImagePath, jokerHeight, frontThickness);
 }
 
 // ============================================================================
@@ -730,14 +730,14 @@ module loadImageKeepXY(imageFile, thickness) {
 //   1. Set "useCustomImageFiles" = true
 //   2. Click the "Upload" button next to any filename parameter
 //   3. Select your image file - the filename will be filled automatically
-//   4. Leave as "default" for images you want to use from the standard folder
+//   4. Leave empty ("") for images you want to use from the standard folder
 //   5. Render and download your customized cards!
 //
 // To use custom images - METHOD 2 (Desktop OpenSCAD):
 //   1. Save your image files in the SAME FOLDER as this .scad file
 //   2. Set "useCustomImageFiles" = true
-//   3. Type the filename in the parameter (e.g., aceImageFilename = "my_ace.svg")
-//   4. Leave as "default" for any images you want to use from the standard folder structure
+//   3. Type the filename in the parameter (e.g., aceImageFile = "my_ace.svg")
+//   4. Leave empty ("") for any images you want to use from the standard folder structure
 //
 // To use custom images - METHOD 3 (Folder Structure):
 //   - Keep "useCustomImageFiles" = false
@@ -783,7 +783,7 @@ module loadImageKeepXY(imageFile, thickness) {
 // Example 1 - Using web-based upload (Thingiverse Customizer, etc.):
 //   1. Open this file in a web-based OpenSCAD tool
 //   2. Set useCustomImageFiles = true
-//   3. Find the aceImageFilename parameter
+//   3. Find the aceImageFile parameter
 //   4. Click the "Upload" button next to it
 //   5. Select your custom ace image (SVG or PNG)
 //   6. The tool automatically uploads and sets the filename
@@ -792,14 +792,14 @@ module loadImageKeepXY(imageFile, thickness) {
 // Example 2 - Custom ace of spades only (Desktop):
 //   1. Save your image as "cool_ace.svg" in the same folder as this file
 //   2. Set useCustomImageFiles = true
-//   3. Set aceImageFilename = "cool_ace.svg"
+//   3. Set aceImageFile = "cool_ace.svg"
 //   4. All other cards will use the default folder structure
 //
 // Example 3 - Custom pip for one suit (e.g., hearts):
 //   1. Save your heart image as "my_heart.png" in the same folder
 //      (or upload via button in web tools)
 //   2. Set useCustomImageFiles = true
-//   3. Set pipImageFilename = "my_heart.png"
+//   3. Set pipImageFile = "my_heart.png"
 //   4. Set cardSuit = "hearts"
 //   5. All hearts will now use your custom pip image
 //
@@ -808,8 +808,8 @@ module loadImageKeepXY(imageFile, thickness) {
 //      (or upload each via buttons in web tools)
 //   2. Set useCustomImageFiles = true
 //   3. Set each ID filename:
-//      idAFilename = "ace.svg"
-//      id2Filename = "2.svg"
+//      idAFile = "ace.svg"
+//      id2File = "2.svg"
 //      ... and so on
 //
 // Example 5 - Mix custom and default images:
