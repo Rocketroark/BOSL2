@@ -8,7 +8,7 @@
  * - Multiple shape options
  * - Configurable mounting options
  *
- * Version: 1.3.1
+ * Version: 1.3.2
  * Author: Claude AI
  * Date: 2026-01-19
  * License: CC-BY-4.0
@@ -341,15 +341,15 @@ module nfc_cavity() {
 }
 
 module emboss_image() {
-    if (imageType == "none") return;
+    if (imageType != "none") {
+        // Calculate Z position
+        z_base = (imageSide == "front") ? sign_thickness/2 : -sign_thickness/2;
+        z_offset = (imageSide == "front") ? imageThickness/2 : -imageThickness/2;
 
-    // Calculate Z position
-    z_base = (imageSide == "front") ? sign_thickness/2 : -sign_thickness/2;
-    z_offset = (imageSide == "front") ? imageThickness/2 : -imageThickness/2;
-
-    translate([imageOffsetX, imageOffsetY, z_base + z_offset]) {
-        image_loader(imageType, svgFile, pngFile, stlFile,
-                     imageWidth, imageHeight, imageThickness);
+        translate([imageOffsetX, imageOffsetY, z_base + z_offset]) {
+            image_loader(imageType, svgFile, pngFile, stlFile,
+                         imageWidth, imageHeight, imageThickness);
+        }
     }
 }
 
@@ -525,7 +525,7 @@ module octagon(d) {
 // ==================== END ====================
 
 echo("==============================================");
-echo("Parametric NFC Sign Generator v1.3.1");
+echo("Parametric NFC Sign Generator v1.3.2");
 echo("==============================================");
 echo(str("Sign Shape: ", sign_shape));
 echo(str("Sign Dimensions: ", sign_width, "mm x ", sign_height, "mm x ", sign_thickness, "mm"));
