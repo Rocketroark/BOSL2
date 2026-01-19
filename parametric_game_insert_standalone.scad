@@ -45,9 +45,10 @@ c1_comp_x = 2; // [1:1:12]
 c1_comp_y = 2; // [1:1:12]
 c1_divider = false;
 c1_cutout = 25; // [0:5:60]
-c1_lid = false;
-c1_lid_hex = false;
-c1_hex_floor = false;
+c1_lid = true;
+c1_lid_hex = true;
+c1_hex_floor = true;
+c1_hex_walls = false;
 c1_finger_grips = false;
 c1_stackable = false;
 
@@ -66,6 +67,7 @@ c2_divider = false;
 c2_cutout = 0; // [0:5:60]
 c2_lid = false;
 c2_lid_hex = false;
+c2_hex_walls = false;
 c2_hex_floor = false;
 c2_finger_grips = false;
 c2_stackable = false;
@@ -85,6 +87,7 @@ c3_divider = false;
 c3_cutout = 0; // [0:5:60]
 c3_lid = true;
 c3_lid_hex = false;
+c3_hex_walls = false;
 c3_hex_floor = true;
 c3_finger_grips = false;
 c3_stackable = false;
@@ -104,6 +107,7 @@ c4_divider = false;
 c4_cutout = 30; // [0:5:60]
 c4_lid = false;
 c4_lid_hex = false;
+c4_hex_walls = false;
 c4_hex_floor = false;
 c4_finger_grips = false;
 c4_stackable = false;
@@ -123,6 +127,7 @@ c5_divider = true;
 c5_cutout = 0; // [0:5:60]
 c5_lid = false;
 c5_lid_hex = false;
+c5_hex_walls = false;
 c5_hex_floor = true;
 c5_finger_grips = true;
 c5_stackable = false;
@@ -142,6 +147,7 @@ c6_divider = false;
 c6_cutout = 0; // [0:5:60]
 c6_lid = true;
 c6_lid_hex = false;
+c6_hex_walls = false;
 c6_hex_floor = true;
 c6_finger_grips = false;
 c6_stackable = false;
@@ -161,6 +167,7 @@ c7_divider = false;
 c7_cutout = 0; // [0:5:60]
 c7_lid = true;
 c7_lid_hex = false;
+c7_hex_walls = false;
 c7_hex_floor = true;
 c7_finger_grips = false;
 c7_stackable = true;
@@ -180,6 +187,7 @@ c8_divider = false;
 c8_cutout = 0; // [0:5:60]
 c8_lid = false;
 c8_lid_hex = false;
+c8_hex_walls = false;
 c8_hex_floor = true;
 c8_finger_grips = false;
 c8_stackable = false;
@@ -339,7 +347,7 @@ module friction_lid_standalone(width, depth, tolerance, thickness, use_hex) {
 }
 
 // Main container box - standalone
-module container_box_standalone(width, depth, height, finger_cutout, use_hex_floor, use_finger_grips, use_stackable) {
+module container_box_standalone(width, depth, height, finger_cutout, use_hex_floor, use_hex_walls, use_finger_grips, use_stackable) {
     difference() {
         // Outer box (walls + floor)
         translate([0, 0, height/2])
@@ -372,9 +380,42 @@ module container_box_standalone(width, depth, height, finger_cutout, use_hex_flo
             for (x = [-(width - 2*wall_thickness)/2 : hex_spacing : (width - 2*wall_thickness)/2]) {
                 for (y = [-(depth - 2*wall_thickness)/2 : hex_spacing : (depth - 2*wall_thickness)/2]) {
                     offset_y = (floor(x / hex_spacing) % 2 == 0) ? 0 : hex_spacing / 2;
-                    translate([x, y + offset_y, -0.5])
-                        linear_extrude(height=floor_thickness + 1)
+                    translate([x, y + offset_y, floor_thickness/2])
+                        linear_extrude(height=floor_thickness + 1, center=true)
                             circle(r=default_hex_floor_size - default_hex_floor_wall, $fn=6);
+                }
+            }
+        }
+
+        // Cut hex pattern into walls if enabled
+        if (use_hex_walls) {
+            hex_spacing = default_hex_floor_size * 1.732;
+            wall_hex_height = height - floor_thickness - 2; // Leave top and bottom solid
+
+            // Front and back walls
+            for (side = [0, 1]) {
+                y_pos = side == 0 ? -depth/2 : depth/2;
+                for (x = [-(width - 2*wall_thickness)/2 : hex_spacing : (width - 2*wall_thickness)/2]) {
+                    for (z = [floor_thickness + 3 : hex_spacing : height - 3]) {
+                        translate([x, y_pos, z])
+                            rotate([90, 0, 0])
+                                linear_extrude(height=wall_thickness + 1, center=true)
+                                    circle(r=default_hex_floor_size - default_hex_floor_wall, $fn=6);
+                    }
+                }
+            }
+
+            // Left and right walls
+            for (side = [0, 1]) {
+                x_pos = side == 0 ? -width/2 : width/2;
+                for (y = [-(depth - 2*wall_thickness)/2 : hex_spacing : (depth - 2*wall_thickness)/2]) {
+                    for (z = [floor_thickness + 3 : hex_spacing : height - 3]) {
+                        offset_y = (floor(z / hex_spacing) % 2 == 0) ? 0 : hex_spacing / 2;
+                        translate([x_pos, y + offset_y, z])
+                            rotate([90, 0, 90])
+                                linear_extrude(height=wall_thickness + 1, center=true)
+                                    circle(r=default_hex_floor_size - default_hex_floor_wall, $fn=6);
+                    }
                 }
             }
         }
@@ -406,13 +447,13 @@ module container_box_standalone(width, depth, height, finger_cutout, use_hex_flo
 }
 
 // Card holder
-module card_holder_standalone(w, d, h, cutout, hex_floor, grips, stackable) {
-    container_box_standalone(w, d, h, cutout, hex_floor, grips, stackable);
+module card_holder_standalone(w, d, h, cutout, hex_floor, hex_walls, grips, stackable) {
+    container_box_standalone(w, d, h, cutout, hex_floor, hex_walls, grips, stackable);
 }
 
 // Token tray with dividers
-module token_tray_standalone(w, d, h, comp_x, comp_y, hex_floor, grips, stackable) {
-    container_box_standalone(w, d, h, 0, hex_floor, grips, stackable);
+module token_tray_standalone(w, d, h, comp_x, comp_y, hex_floor, hex_walls, grips, stackable) {
+    container_box_standalone(w, d, h, 0, hex_floor, hex_walls, grips, stackable);
 
     int_width = w - 2*wall_thickness;
     int_depth = d - 2*wall_thickness;
@@ -435,8 +476,8 @@ module token_tray_standalone(w, d, h, comp_x, comp_y, hex_floor, grips, stackabl
 }
 
 // Component bin with types
-module component_bin_standalone(w, d, h, bin_type, num_slots, divider, hex_floor, grips, stackable) {
-    container_box_standalone(w, d, h, 0, hex_floor, grips, stackable);
+module component_bin_standalone(w, d, h, bin_type, num_slots, divider, hex_floor, hex_walls, grips, stackable) {
+    container_box_standalone(w, d, h, 0, hex_floor, hex_walls, grips, stackable);
 
     int_width = w - 2*wall_thickness;
     int_depth = d - 2*wall_thickness;
@@ -486,8 +527,8 @@ module component_bin_standalone(w, d, h, bin_type, num_slots, divider, hex_floor
 }
 
 // Dice tray
-module dice_tray_standalone(w, d, h, hex_floor, grips, stackable) {
-    container_box_standalone(w, d, h, 0, hex_floor, grips, stackable);
+module dice_tray_standalone(w, d, h, hex_floor, hex_walls, grips, stackable) {
+    container_box_standalone(w, d, h, 0, hex_floor, hex_walls, grips, stackable);
 }
 
 //====================================
@@ -500,35 +541,35 @@ function multi_layout() =
             if (c1_enable)
                 [c1_type, c1_pos_x, c1_pos_y, c1_width, c1_depth, c1_height,
                  c1_comp_x, c1_comp_y, c1_bin_type, c1_divider, c1_cutout, c1_lid, c1_lid_hex,
-                 c1_hex_floor, c1_finger_grips, c1_stackable],
+                 c1_hex_floor, c1_hex_walls, c1_finger_grips, c1_stackable],
             if (c2_enable)
                 [c2_type, c2_pos_x, c2_pos_y, c2_width, c2_depth, c2_height,
                  c2_comp_x, c2_comp_y, c2_bin_type, c2_divider, c2_cutout, c2_lid, c2_lid_hex,
-                 c2_hex_floor, c2_finger_grips, c2_stackable],
+                 c2_hex_floor, c2_hex_walls, c2_finger_grips, c2_stackable],
             if (c3_enable)
                 [c3_type, c3_pos_x, c3_pos_y, c3_width, c3_depth, c3_height,
                  c3_comp_x, c3_comp_y, c3_bin_type, c3_divider, c3_cutout, c3_lid, c3_lid_hex,
-                 c3_hex_floor, c3_finger_grips, c3_stackable],
+                 c3_hex_floor, c3_hex_walls, c3_finger_grips, c3_stackable],
             if (c4_enable)
                 [c4_type, c4_pos_x, c4_pos_y, c4_width, c4_depth, c4_height,
                  c4_comp_x, c4_comp_y, c4_bin_type, c4_divider, c4_cutout, c4_lid, c4_lid_hex,
-                 c4_hex_floor, c4_finger_grips, c4_stackable],
+                 c4_hex_floor, c4_hex_walls, c4_finger_grips, c4_stackable],
             if (c5_enable)
                 [c5_type, c5_pos_x, c5_pos_y, c5_width, c5_depth, c5_height,
                  c5_comp_x, c5_comp_y, c5_bin_type, c5_divider, c5_cutout, c5_lid, c5_lid_hex,
-                 c5_hex_floor, c5_finger_grips, c5_stackable],
+                 c5_hex_floor, c5_hex_walls, c5_finger_grips, c5_stackable],
             if (c6_enable)
                 [c6_type, c6_pos_x, c6_pos_y, c6_width, c6_depth, c6_height,
                  c6_comp_x, c6_comp_y, c6_bin_type, c6_divider, c6_cutout, c6_lid, c6_lid_hex,
-                 c6_hex_floor, c6_finger_grips, c6_stackable],
+                 c6_hex_floor, c6_hex_walls, c6_finger_grips, c6_stackable],
             if (c7_enable)
                 [c7_type, c7_pos_x, c7_pos_y, c7_width, c7_depth, c7_height,
                  c7_comp_x, c7_comp_y, c7_bin_type, c7_divider, c7_cutout, c7_lid, c7_lid_hex,
-                 c7_hex_floor, c7_finger_grips, c7_stackable],
+                 c7_hex_floor, c7_hex_walls, c7_finger_grips, c7_stackable],
             if (c8_enable)
                 [c8_type, c8_pos_x, c8_pos_y, c8_width, c8_depth, c8_height,
                  c8_comp_x, c8_comp_y, c8_bin_type, c8_divider, c8_cutout, c8_lid, c8_lid_hex,
-                 c8_hex_floor, c8_finger_grips, c8_stackable],
+                 c8_hex_floor, c8_hex_walls, c8_finger_grips, c8_stackable],
         ]
     )
     containers;
@@ -553,18 +594,19 @@ if (len(containers) > 0) {
         has_lid = c[11];
         lid_hex = c[12];
         hex_floor = c[13];
-        grips = c[14];
-        stackable = c[15];
+        hex_walls = c[14];
+        grips = c[15];
+        stackable = c[16];
 
         translate([x - box_width/2 + w/2, y - box_depth/2 + d/2, 0]) {
             if (type == "card_holder")
-                card_holder_standalone(w, d, h, cutout, hex_floor, grips, stackable);
+                card_holder_standalone(w, d, h, cutout, hex_floor, hex_walls, grips, stackable);
             else if (type == "component_bin")
-                component_bin_standalone(w, d, h, bin_type, comp_x, divider, hex_floor, grips, stackable);
+                component_bin_standalone(w, d, h, bin_type, comp_x, divider, hex_floor, hex_walls, grips, stackable);
             else if (type == "dice_tray")
-                dice_tray_standalone(w, d, h, hex_floor, grips, stackable);
+                dice_tray_standalone(w, d, h, hex_floor, hex_walls, grips, stackable);
             else if (type == "token_tray")
-                token_tray_standalone(w, d, h, comp_x, comp_y, hex_floor, grips, stackable);
+                token_tray_standalone(w, d, h, comp_x, comp_y, hex_floor, hex_walls, grips, stackable);
 
             // Lid
             if (has_lid) {
