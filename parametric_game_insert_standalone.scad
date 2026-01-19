@@ -33,7 +33,7 @@ default_lid_tolerance = 0.3; // [0.1:0.05:0.8]
 default_lid_thickness = 2.0; // [1.0:0.5:4.0]
 
 /* [Container Slot 1] */
-c1_enable = false;
+c1_enable = true;
 c1_type = "token_tray"; // [card_holder, component_bin, dice_tray, token_tray]
 c1_width = 70; // [30:5:200]
 c1_depth = 70; // [30:5:200]
@@ -230,52 +230,66 @@ module hex_floor_standalone(width, depth, hex_size, wall_thick) {
 
 // Snap lid - standalone
 module snap_lid_standalone(width, depth, tolerance, thickness) {
-    clip_height = 3;
-    clip_thick = 1.0;
+    clip_height = 4;
+    clip_thick = 1.2;
 
     difference() {
         union() {
-            // Main lid
+            // Main lid surface (top)
             translate([0, 0, thickness/2])
                 rcube([width - tolerance, depth - tolerance, thickness], r=corner_radius);
 
-            // Lip
-            translate([0, 0, thickness + clip_height/2])
+            // Downward lip that fits inside container walls
+            translate([0, 0, -clip_height/2])
                 difference() {
-                    rcube([width - 2*wall_thickness - tolerance*2,
-                           depth - 2*wall_thickness - tolerance*2,
+                    rcube([width - 2*wall_thickness - tolerance,
+                           depth - 2*wall_thickness - tolerance,
                            clip_height], r=max(0.5, corner_radius - wall_thickness));
 
-                    rcube([width - 2*wall_thickness - tolerance*2 - 2*clip_thick,
-                           depth - 2*wall_thickness - tolerance*2 - 2*clip_thick,
+                    // Hollow out interior
+                    rcube([width - 2*wall_thickness - tolerance - 2*clip_thick,
+                           depth - 2*wall_thickness - tolerance - 2*clip_thick,
                            clip_height + 1], r=max(0.5, corner_radius - wall_thickness - clip_thick));
                 }
 
-            // Snap clips
+            // Flexible snap clips on sides for secure attachment
             for (side = [0, 180]) {
                 rotate([0, 0, side])
-                    translate([0, (depth - 2*wall_thickness - tolerance*2) / 2, thickness + clip_height/2])
-                        difference() {
-                            cube([15, clip_thick + 0.3, clip_height], center=true);
-                            translate([0, -clip_thick/2, clip_height/2 - 0.5])
-                                rotate([0, 90, 0])
-                                    cylinder(d=1, h=20, center=true);
-                        }
+                    translate([0, (depth - 2*wall_thickness - tolerance) / 2 - clip_thick/2, -clip_height/2])
+                        cube([20, clip_thick, clip_height], center=true);
             }
         }
 
-        // Finger grip
+        // Finger grip cutout for easy removal
         translate([0, 0, thickness/2])
-            rcube([30, 12, thickness + 1], r=3);
+            rcube([35, 15, thickness + 1], r=4);
     }
 }
 
 // Friction lid - standalone
 module friction_lid_standalone(width, depth, tolerance, thickness) {
-    difference() {
-        translate([0, 0, thickness/2])
-            rcube([width - tolerance, depth - tolerance, thickness], r=corner_radius);
+    lip_height = 3;
 
+    difference() {
+        union() {
+            // Main lid surface
+            translate([0, 0, thickness/2])
+                rcube([width - tolerance, depth - tolerance, thickness], r=corner_radius);
+
+            // Downward friction-fit lip
+            translate([0, 0, -lip_height/2])
+                difference() {
+                    rcube([width - 2*wall_thickness - tolerance/2,
+                           depth - 2*wall_thickness - tolerance/2,
+                           lip_height], r=max(0.5, corner_radius - wall_thickness));
+
+                    rcube([width - 2*wall_thickness - tolerance/2 - 2.4,
+                           depth - 2*wall_thickness - tolerance/2 - 2.4,
+                           lip_height + 1], r=max(0.5, corner_radius - wall_thickness - 1.2));
+                }
+        }
+
+        // Finger grip cutout
         translate([0, 0, thickness/2])
             rcube([35, 15, thickness + 1], r=4);
     }
@@ -288,7 +302,7 @@ module container_box_standalone(width, depth, height, finger_cutout, use_hex_flo
         translate([0, 0, height/2])
             rcube([width, depth, height], r=corner_radius);
 
-        // Interior cavity
+        // Interior cavity - starts at floor_thickness (leave room for floor)
         translate([0, 0, floor_thickness + (height - floor_thickness)/2])
             rcube([width - 2*wall_thickness,
                    depth - 2*wall_thickness,
@@ -308,16 +322,19 @@ module container_box_standalone(width, depth, height, finger_cutout, use_hex_flo
                 rotate([90, 0, 0])
                     cylinder(d=finger_cutout, h=wall_thickness*3);
         }
-    }
 
-    // Floor - hex or solid
-    if (use_hex_floor) {
-        hex_floor_standalone(width - 2*wall_thickness, depth - 2*wall_thickness,
-                            default_hex_floor_size, default_hex_floor_wall);
-    } else {
-        // Solid floor
-        translate([0, 0, floor_thickness/2])
-            cube([width - 2*wall_thickness, depth - 2*wall_thickness, floor_thickness], center=true);
+        // Cut hex pattern into floor if enabled
+        if (use_hex_floor) {
+            hex_spacing = default_hex_floor_size * 1.732;
+            for (x = [-(width - 2*wall_thickness)/2 : hex_spacing : (width - 2*wall_thickness)/2]) {
+                for (y = [-(depth - 2*wall_thickness)/2 : hex_spacing : (depth - 2*wall_thickness)/2]) {
+                    offset_y = (floor(x / hex_spacing) % 2 == 0) ? 0 : hex_spacing / 2;
+                    translate([x, y + offset_y, floor_thickness/2])
+                        linear_extrude(height=floor_thickness + 1, center=true)
+                            circle(r=default_hex_floor_size - default_hex_floor_wall, $fn=6);
+                }
+            }
+        }
     }
 
     // Stackable rim
@@ -507,7 +524,7 @@ if (len(containers) > 0) {
 
             // Lid
             if (has_lid) {
-                translate([0, 0, h + 5 * exploded_view]) {
+                translate([0, 0, h]) {
                     if (default_lid_type == "snap")
                         snap_lid_standalone(w, d, default_lid_tolerance, default_lid_thickness);
                     else
