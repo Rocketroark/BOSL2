@@ -47,45 +47,50 @@ nfc_position = "back";        // [front, back, center]
 // ============================================================
 
 // Choose image type - this will appear as a DROPDOWN in OpenSCAD Customizer
-image_type = "svg"; // [none, svg, png, stl]
+imageType = "svg"; // [none, svg, png, stl]
 
 // Provide BOTH SVG and PNG file paths - OpenSCAD will use the correct one
-image_svg_file = "logo.svg";        // Path to your SVG file
-image_png_file = "image.png";       // Path to your PNG file (if using PNG)
-image_stl_file = "model.stl";       // Path to your STL file (if using STL)
+// Example: "my_logo.svg" or "company_logo.svg"
+svgFile = "default.svg";        // Path to your SVG file
+
+// Example: "my_photo.png" or "logo.png"
+pngFile = "default.png";        // Path to your PNG file (if using PNG)
+
+// Example: "my_model.stl"
+stlFile = "default.stl";        // Path to your STL file (if using STL)
 
 // Image settings
-image_width = 50;             // Size in mm
-image_height = 50;
-image_thickness = 1;          // How tall the embossed design is
-image_side = "front";         // [front, back]
-image_mode = "emboss";        // [emboss, deboss] - dropdown in customizer
-image_color = "#00FF00";      // color - for multi-color printing
+imageWidth = 50;              // Image width in mm
+imageHeight = 50;             // Image height in mm
+imageThickness = 1;           // How tall the embossed design is
+imageSide = "front";          // [front, back]
+imageMode = "emboss";         // [emboss, deboss] - dropdown in customizer
+imageColor = "#00FF00";       // color - for multi-color printing
 
 // Image position adjustments
-// image_offset_x = 0;        // Move left/right
-// image_offset_y = 0;        // Move up/down
+// imageOffsetX = 0;          // Move left/right
+// imageOffsetY = 0;          // Move up/down
 
 // ============================================================
 // QR CODE
 // ============================================================
 
-enable_qr_code = false;       // Set to true to add QR code
+enableQRCode = false;         // Set to true to add QR code
 
 // QR code settings (uncomment if using)
-// qr_code_type = "svg";      // [svg, png] - dropdown in customizer
-// qr_code_svg_file = "qrcode.svg"; // Path to QR code SVG
-// qr_code_png_file = "qrcode.png"; // Path to QR code PNG
-// qr_code_size = 25;          // Size in mm (square)
-// qr_code_thickness = 0.8;    // Relief depth
-// qr_code_side = "back";      // [front, back]
-// qr_code_corner = "bottom_right"; // [center, top_left, top_right, bottom_left, bottom_right]
-// qr_code_mode = "emboss";    // [emboss, deboss]
-// qr_code_color = "#000000";  // color
+// qrCodeType = "svg";        // [svg, png] - dropdown in customizer
+// qrCodeSvgFile = "default.svg"; // Path to QR code SVG (Example: "qrcode.svg")
+// qrCodePngFile = "default.png"; // Path to QR code PNG (Example: "qrcode.png")
+// qrCodeSize = 25;            // Size in mm (square)
+// qrCodeThickness = 0.8;      // Relief depth
+// qrCodeSide = "back";        // [front, back]
+// qrCodeCorner = "bottom_right"; // [center, top_left, top_right, bottom_left, bottom_right]
+// qrCodeMode = "emboss";      // [emboss, deboss]
+// qrCodeColor = "#000000";    // color
 
 // Fine-tune QR position if needed:
-// qr_code_offset_x = 0;
-// qr_code_offset_y = 0;
+// qrCodeOffsetX = 0;
+// qrCodeOffsetY = 0;
 
 // ============================================================
 // MOUNTING OPTIONS
@@ -176,23 +181,24 @@ GETTING STARTED:
 
 DROPDOWN FEATURES:
 - sign_shape: Select from rectangle, circle, oval, hexagon, octagon
-- image_type: Choose svg, png, stl, or none
-- image_mode: Toggle between emboss (raised) and deboss (carved)
+- imageType: Choose svg, png, stl, or none
+- imageMode: Toggle between emboss (raised) and deboss (carved)
 - mounting_type: Pick your mounting method from dropdown
 - render_part: Choose what to export
 
 FILE UPLOADS:
-- You can provide BOTH SVG and PNG file paths
-- Just set image_type dropdown to choose which one to use
+- Files use the pattern from nfc_tag_keychain.scad
+- Set svgFile = "my_logo.svg", pngFile = "my_logo.png", etc.
+- Use the imageType dropdown to choose which file to use
+- Default values ("default.svg", "default.png") are ignored
 - No need to delete unused file paths
-- Example: Keep both "logo.svg" and "logo.png" filled in
 
 CREATING QR CODES:
 1. Use online QR generator (qr-code-generator.com)
 2. Export as SVG or PNG
-3. Set qr_code_svg_file or qr_code_png_file to the file path
-4. Set enable_qr_code = true
-5. Use qr_code_type dropdown to select svg or png
+3. Set qrCodeSvgFile or qrCodePngFile to the file path
+4. Set enableQRCode = true
+5. Use qrCodeType dropdown to select svg or png
 
 FILE PATHS:
 - Relative paths: "images/logo.svg" (in subfolder)
