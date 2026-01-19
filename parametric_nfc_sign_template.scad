@@ -131,10 +131,14 @@ enable_border = false;
 // Text label
 enable_text = false;
 // text_string = "SCAN ME";
+// text_font = "Liberation Sans";        // Font name
+// text_style = "Bold";                  // [Regular, Bold, Italic, Bold Italic]
 // text_size = 6;
 // text_thickness = 0.8;
-// text_position = "bottom";  // [top, bottom, center]
-// text_color = "#FF0000";    // color
+// text_position = "bottom";             // [top, bottom, center, custom]
+// text_offset_x = 0;                    // Fine-tune horizontal position
+// text_offset_y = 0;                    // Fine-tune vertical position
+// text_color = "#FF0000";               // color
 
 // ============================================================
 // RENDER OPTIONS

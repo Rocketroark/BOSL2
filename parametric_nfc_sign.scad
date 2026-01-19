@@ -8,7 +8,7 @@
  * - Multiple shape options
  * - Configurable mounting options
  *
- * Version: 1.3.2
+ * Version: 1.4.0
  * Author: Claude AI
  * Date: 2026-01-19
  * License: CC-BY-4.0
@@ -179,14 +179,26 @@ enable_text = false;
 // Text to emboss
 text_string = "SCAN ME";
 
+// Font name (examples: "Liberation Sans", "Arial", "Times New Roman")
+text_font = "Liberation Sans";
+
+// Font style
+text_style = "Bold"; // [Regular, Bold, Italic, Bold Italic]
+
 // Text size
 text_size = 6; // [3:0.5:20]
 
 // Text thickness
 text_thickness = 0.8; // [0.3:0.1:3]
 
-// Text position
-text_position = "bottom"; // [top, bottom, center]
+// Text position preset
+text_position = "bottom"; // [top, bottom, center, custom]
+
+// Horizontal offset of text from center
+text_offset_x = 0; // [-100:1:100]
+
+// Vertical offset of text from center
+text_offset_y = 0; // [-100:1:100]
 
 // Text color
 text_color = "#FF0000";  // color
@@ -368,14 +380,23 @@ module emboss_qr_code() {
 }
 
 module emboss_text() {
-    text_y = (text_position == "top") ? sign_height/2 - text_size - 3 :
-             (text_position == "bottom") ? -sign_height/2 + 3 :
-             0;
+    // Calculate preset Y position
+    preset_y = (text_position == "top") ? sign_height/2 - text_size - 3 :
+               (text_position == "bottom") ? -sign_height/2 + 3 :
+               (text_position == "center") ? 0 :
+               0; // custom uses only offsets
 
-    translate([0, text_y, sign_thickness/2 + text_thickness/2])
+    // Apply offsets (for custom position or fine-tuning presets)
+    final_x = (text_position == "custom") ? text_offset_x : text_offset_x;
+    final_y = (text_position == "custom") ? text_offset_y : preset_y + text_offset_y;
+
+    // Build font string (format: "FontName:style=StyleName")
+    font_string = str(text_font, ":style=", text_style);
+
+    translate([final_x, final_y, sign_thickness/2 + text_thickness/2])
         linear_extrude(height=text_thickness, center=true)
             text(text_string, size=text_size, halign="center", valign="center",
-                 font="Liberation Sans:style=Bold");
+                 font=font_string);
 }
 
 module border_frame() {
@@ -525,7 +546,7 @@ module octagon(d) {
 // ==================== END ====================
 
 echo("==============================================");
-echo("Parametric NFC Sign Generator v1.3.2");
+echo("Parametric NFC Sign Generator v1.4.0");
 echo("==============================================");
 echo(str("Sign Shape: ", sign_shape));
 echo(str("Sign Dimensions: ", sign_width, "mm x ", sign_height, "mm x ", sign_thickness, "mm"));
