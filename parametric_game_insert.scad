@@ -152,14 +152,174 @@ token_compartments_x = 2; // [1:1:5]
 token_compartments_y = 2; // [1:1:5]
 
 /* [Layout Configuration] */
-// Layout style
-layout_style = "auto"; // [auto:Automatic, manual:Manual Grid, custom:Custom Positions]
+// Layout mode
+layout_mode = "auto"; // [auto:Auto Grid Layout, multi:Multi-Container Mode (Custom)]
 
 // For auto layout: number of rows
 auto_rows = 2; // [1:1:4]
 
 // For auto layout: number of columns
 auto_cols = 2; // [1:1:4]
+
+/* [Container Slot 1] */
+// Enable container slot 1
+c1_enable = false;
+
+// Container type for slot 1
+c1_type = "token_tray"; // [card_holder:Card Holder, component_bin:Component Bin, dice_tray:Dice Tray, token_tray:Token Tray]
+
+// Slot 1 width (mm)
+c1_width = 70; // [30:5:200]
+
+// Slot 1 depth (mm)
+c1_depth = 70; // [30:5:200]
+
+// Slot 1 height (mm)
+c1_height = 30; // [15:5:150]
+
+// Slot 1 position X (from left edge, mm)
+c1_pos_x = 1; // [0:1:400]
+
+// Slot 1 position Y (from front edge, mm)
+c1_pos_y = 1; // [0:1:400]
+
+// Slot 1: Bin type (if component_bin)
+c1_bin_type = "general"; // [general:General Storage, coin_slot:Coin Slots, token_well:Token Wells, small_parts:Small Parts Grid, card_divider:Card Dividers]
+
+// Slot 1: Number of slots/compartments X
+c1_comp_x = 2; // [1:1:6]
+
+// Slot 1: Number of slots/compartments Y
+c1_comp_y = 2; // [1:1:6]
+
+// Slot 1: Add divider (general bin only)
+c1_divider = false;
+
+// Slot 1: Finger cutout (card holder, mm)
+c1_cutout = 25; // [0:5:60]
+
+// Slot 1: Generate lid (token tray/coin bin)
+c1_lid = false;
+
+/* [Container Slot 2] */
+// Enable container slot 2
+c2_enable = false;
+
+// Container type for slot 2
+c2_type = "component_bin"; // [card_holder:Card Holder, component_bin:Component Bin, dice_tray:Dice Tray, token_tray:Token Tray]
+
+// Slot 2 width (mm)
+c2_width = 90; // [30:5:200]
+
+// Slot 2 depth (mm)
+c2_depth = 90; // [30:5:200]
+
+// Slot 2 height (mm)
+c2_height = 40; // [15:5:150]
+
+// Slot 2 position X (from left edge, mm)
+c2_pos_x = 75; // [0:1:400]
+
+// Slot 2 position Y (from front edge, mm)
+c2_pos_y = 1; // [0:1:400]
+
+// Slot 2: Bin type (if component_bin)
+c2_bin_type = "coin_slot"; // [general:General Storage, coin_slot:Coin Slots, token_well:Token Wells, small_parts:Small Parts Grid, card_divider:Card Dividers]
+
+// Slot 2: Number of slots/compartments X
+c2_comp_x = 6; // [1:1:12]
+
+// Slot 2: Number of slots/compartments Y
+c2_comp_y = 2; // [1:1:6]
+
+// Slot 2: Add divider (general bin only)
+c2_divider = true;
+
+// Slot 2: Finger cutout (card holder, mm)
+c2_cutout = 30; // [0:5:60]
+
+// Slot 2: Generate lid
+c2_lid = false;
+
+/* [Container Slot 3] */
+// Enable container slot 3
+c3_enable = false;
+
+// Container type for slot 3
+c3_type = "token_tray"; // [card_holder:Card Holder, component_bin:Component Bin, dice_tray:Dice Tray, token_tray:Token Tray]
+
+// Slot 3 width (mm)
+c3_width = 70; // [30:5:200]
+
+// Slot 3 depth (mm)
+c3_depth = 70; // [30:5:200]
+
+// Slot 3 height (mm)
+c3_height = 30; // [15:5:150]
+
+// Slot 3 position X (from left edge, mm)
+c3_pos_x = 170; // [0:1:400]
+
+// Slot 3 position Y (from front edge, mm)
+c3_pos_y = 1; // [0:1:400]
+
+// Slot 3: Bin type (if component_bin)
+c3_bin_type = "token_well"; // [general:General Storage, coin_slot:Coin Slots, token_well:Token Wells, small_parts:Small Parts Grid, card_divider:Card Dividers]
+
+// Slot 3: Number of slots/compartments X
+c3_comp_x = 3; // [1:1:12]
+
+// Slot 3: Number of slots/compartments Y
+c3_comp_y = 3; // [1:1:6]
+
+// Slot 3: Add divider (general bin only)
+c3_divider = false;
+
+// Slot 3: Finger cutout (card holder, mm)
+c3_cutout = 30; // [0:5:60]
+
+// Slot 3: Generate lid
+c3_lid = true;
+
+/* [Container Slot 4] */
+// Enable container slot 4
+c4_enable = false;
+
+// Container type for slot 4
+c4_type = "card_holder"; // [card_holder:Card Holder, component_bin:Component Bin, dice_tray:Dice Tray, token_tray:Token Tray]
+
+// Slot 4 width (mm)
+c4_width = 70; // [30:5:200]
+
+// Slot 4 depth (mm)
+c4_depth = 95; // [30:5:200]
+
+// Slot 4 height (mm)
+c4_height = 65; // [15:5:150]
+
+// Slot 4 position X (from left edge, mm)
+c4_pos_x = 1; // [0:1:400]
+
+// Slot 4 position Y (from front edge, mm)
+c4_pos_y = 75; // [0:1:400]
+
+// Slot 4: Bin type (if component_bin)
+c4_bin_type = "general"; // [general:General Storage, coin_slot:Coin Slots, token_well:Token Wells, small_parts:Small Parts Grid, card_divider:Card Dividers]
+
+// Slot 4: Number of slots/compartments X
+c4_comp_x = 2; // [1:1:12]
+
+// Slot 4: Number of slots/compartments Y
+c4_comp_y = 2; // [1:1:6]
+
+// Slot 4: Add divider (general bin only)
+c4_divider = false;
+
+// Slot 4: Finger cutout (card holder, mm)
+c4_cutout = 30; // [0:5:60]
+
+// Slot 4: Generate lid
+c4_lid = false;
 
 /* [Display Options] */
 // Show layout validation
@@ -666,15 +826,15 @@ module card_divider_bin(width, depth, height, num_sections=3) {
  * Routes to appropriate specialized bin based on bin_type parameter
  */
 module component_bin(width=bin_width, depth=bin_depth, height=bin_height,
-                     add_divider=bin_add_divider, type=bin_type) {
+                     add_divider=bin_add_divider, type=bin_type, num_slots=bin_slots) {
     if (type == "coin_slot") {
-        coin_slot_bin(width, depth, height, num_slots=bin_slots, slot_width=coin_slot_width);
+        coin_slot_bin(width, depth, height, num_slots=num_slots, slot_width=coin_slot_width);
     } else if (type == "token_well") {
-        token_well_bin(width, depth, height, num_wells=bin_slots);
+        token_well_bin(width, depth, height, num_wells=num_slots);
     } else if (type == "small_parts") {
         small_parts_bin(width, depth, height);
     } else if (type == "card_divider") {
-        card_divider_bin(width, depth, height, num_sections=bin_slots);
+        card_divider_bin(width, depth, height, num_sections=num_slots);
     } else {
         // Default: general storage bin
         difference() {
@@ -773,12 +933,40 @@ function auto_grid_layout() =
     )
     containers;
 
+/**
+ * Multi-container layout generator
+ * Builds containers from individual slot configurations
+ */
+function multi_container_layout() =
+    let (
+        // Container definitions: [type, x, y, width, depth, height, settings...]
+        // settings = [comp_x, comp_y, bin_type, divider, cutout, lid]
+        containers = [
+            if (c1_enable)
+                [c1_type, c1_pos_x, c1_pos_y, c1_width, c1_depth, c1_height,
+                 c1_comp_x, c1_comp_y, c1_bin_type, c1_divider, c1_cutout, c1_lid],
+
+            if (c2_enable)
+                [c2_type, c2_pos_x, c2_pos_y, c2_width, c2_depth, c2_height,
+                 c2_comp_x, c2_comp_y, c2_bin_type, c2_divider, c2_cutout, c2_lid],
+
+            if (c3_enable)
+                [c3_type, c3_pos_x, c3_pos_y, c3_width, c3_depth, c3_height,
+                 c3_comp_x, c3_comp_y, c3_bin_type, c3_divider, c3_cutout, c3_lid],
+
+            if (c4_enable)
+                [c4_type, c4_pos_x, c4_pos_y, c4_width, c4_depth, c4_height,
+                 c4_comp_x, c4_comp_y, c4_bin_type, c4_divider, c4_cutout, c4_lid],
+        ]
+    )
+    containers;
+
 //====================================
 // MAIN RENDERING
 //====================================
 
-// Generate layout
-containers = auto_grid_layout();
+// Generate layout based on mode
+containers = (layout_mode == "multi") ? multi_container_layout() : auto_grid_layout();
 
 // Validation
 if (show_validation) {
@@ -796,20 +984,30 @@ if (show_all) {
         d = c[4];
         h = c[5];
 
+        // Extract multi-mode settings if available
+        is_multi = layout_mode == "multi" && len(c) > 6;
+        comp_x = is_multi ? c[6] : token_compartments_x;
+        comp_y = is_multi ? c[7] : token_compartments_y;
+        container_bin_type = is_multi ? c[8] : bin_type;
+        divider = is_multi ? c[9] : bin_add_divider;
+        cutout = is_multi ? c[10] : card_finger_cutout;
+        has_lid = is_multi ? c[11] : generate_lids;
+
         translate([x - box_width/2 + w/2,
                    y - box_depth/2 + d/2,
                    0]) {
             if (type == "card_holder")
-                card_holder(width=w, depth=d, height=h);
+                card_holder(width=w, depth=d, height=h, cutout=cutout);
             else if (type == "component_bin")
-                component_bin(width=w, depth=d, height=h);
+                component_bin(width=w, depth=d, height=h, type=container_bin_type,
+                             add_divider=divider, num_slots=comp_x);
             else if (type == "dice_tray")
                 dice_tray(width=w, depth=d, height=h);
             else if (type == "token_tray") {
-                token_tray(width=w, depth=d, height=h);
+                token_tray(width=w, depth=d, height=h, comp_x=comp_x, comp_y=comp_y);
 
-                // Generate lid if enabled
-                if (generate_lids) {
+                // Generate lid if enabled (auto mode uses global, multi mode uses per-container)
+                if (has_lid) {
                     translate([0, 0, h + 5 * exploded_view]) {
                         if (lid_type == "snap")
                             snap_lid(w, d, tolerance=lid_tolerance, thickness=lid_thickness);
@@ -823,8 +1021,8 @@ if (show_all) {
         }
 
         // Also generate lids for component bins if they're coin/token types
-        if (generate_lids && type == "component_bin" &&
-            (bin_type == "coin_slot" || bin_type == "token_well")) {
+        if (has_lid && type == "component_bin" &&
+            (container_bin_type == "coin_slot" || container_bin_type == "token_well")) {
             translate([x - box_width/2 + w/2,
                        y - box_depth/2 + d/2,
                        h + 5 * exploded_view]) {
@@ -867,10 +1065,11 @@ if (show_all) {
 // Example usage text
 echo("=== Parametric Game Insert System ===");
 echo("Adjust parameters in the Customizer panel");
-echo("Enable/disable containers as needed");
+echo(str("Layout mode: ", layout_mode == "multi" ? "MULTI-CONTAINER (Custom)" : "AUTO GRID"));
 echo("Check validation report for fit confirmation");
 echo("");
-echo("NEW FEATURES:");
+echo("FEATURES:");
+echo("  - Multi-Container Mode: Create multiple trays/bins, each customized!");
 echo("  - Hex patterns for floors/walls (saves 30-50% filament!)");
 echo("  - Lids for token/coin trays (snap, slide, friction types)");
 echo("  - Specialized bin types:");
@@ -878,4 +1077,10 @@ echo("    * Coin slots - vertical storage");
 echo("    * Token wells - circular compartments");
 echo("    * Small parts grid - 4x3 compartments");
 echo("    * Card dividers - multiple card sections");
-echo("  Toggle these in the Customizer panel!");
+echo("");
+if (layout_mode == "multi") {
+    echo(str("Active containers: ", len(containers)));
+    echo("Enable Container Slots 1-4 and configure each independently!");
+} else {
+    echo("Switch to 'multi' layout mode for full customization!");
+}

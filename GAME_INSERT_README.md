@@ -65,22 +65,36 @@ All specialized bins include hex floor patterns for maximum filament savings!
 
 ### 1. Choose Your Approach
 
-**Option A: Use the Auto-Layout System** (Easiest)
+**Option A: Multi-Container Mode** (Most Flexible - NEW!)
 - Open `parametric_game_insert.scad`
+- Set `layout_mode = "multi"` in Customizer
+- Enable Container Slots 1-4 (or more as needed)
+- For each slot, choose:
+  - Container type (card_holder, token_tray, component_bin, dice_tray)
+  - Dimensions (width, depth, height)
+  - Position (x, y coordinates)
+  - Type-specific settings (compartments, bin type, lids, etc.)
+- **Perfect for:** Multiple token trays, multiple bins with different types, full customization
+
+**Option B: Auto-Layout System** (Easiest)
+- Open `parametric_game_insert.scad`
+- Keep `layout_mode = "auto"` (default)
 - Set your box dimensions
 - Enable the containers you need
-- Let the system automatically arrange them
+- Let the system automatically arrange them in a grid
+- **Perfect for:** Quick setups, simple layouts, getting started
 
-**Option B: Use a Game Template**
+**Option C: Use a Game Template**
 - Start with `examples/game_insert_template.scad`
 - Measure your game box and components
 - Adjust parameters to match your needs
 - Manually position containers
+- **Perfect for:** Learning the system, specific game examples
 
-**Option C: Copy an Example**
-- Look at `examples/game_insert_catan.scad` or `game_insert_ticket_to_ride.scad`
+**Option D: Copy an Example**
+- Look at `examples/game_insert_catan.scad`, `game_insert_ticket_to_ride.scad`, or `game_insert_multi_container_example.scad`
 - Copy and modify for your game
-- Full control over layout and features
+- **Perfect for:** Seeing complete working examples
 
 ### 2. Measure Your Game Box
 
@@ -325,6 +339,175 @@ generate_lids = true;
 lid_type = "slide";          // Easy sliding access
 ```
 
+## Multi-Container Mode
+
+The multi-container mode is a powerful feature that lets you create **multiple instances** of any container type, each with independent customization. This solves the limitation of the auto-layout system where you can only have one of each container type.
+
+### When to Use Multi-Container Mode
+
+Use multi-container mode when you need:
+- **Multiple token trays** with different compartment layouts
+- **Multiple component bins** with different specialized types (some coin slots, some token wells)
+- **Per-container lid control** (some with lids, some without)
+- **Precise positioning** for irregular box shapes
+- **Full customization** of every container
+
+### How It Works
+
+1. **Switch to multi mode:**
+   ```scad
+   layout_mode = "multi";
+   ```
+
+2. **Enable container slots:**
+   Each slot represents one container. Currently supports 4 slots (expandable).
+   ```scad
+   c1_enable = true;   // Turn on slot 1
+   c2_enable = true;   // Turn on slot 2
+   c3_enable = false;  // Slot 3 disabled
+   c4_enable = false;  // Slot 4 disabled
+   ```
+
+3. **Configure each slot independently:**
+
+### Container Slot Parameters
+
+Every slot has these configurable parameters:
+
+**Basic Settings:**
+- `c#_type` - Container type: "card_holder", "component_bin", "dice_tray", or "token_tray"
+- `c#_width` - Width in mm
+- `c#_depth` - Depth in mm
+- `c#_height` - Height in mm
+- `c#_pos_x` - X position from left edge (mm)
+- `c#_pos_y` - Y position from front edge (mm)
+
+**Type-Specific Settings:**
+- `c#_bin_type` - For component_bin: "general", "coin_slot", "token_well", "small_parts", "card_divider"
+- `c#_comp_x` - Number of compartments/slots (X direction)
+- `c#_comp_y` - Number of compartments (Y direction, for token trays)
+- `c#_divider` - Add center divider (for general bins)
+- `c#_cutout` - Finger cutout size (for card holders)
+- `c#_lid` - Generate lid for this container (true/false)
+
+### Example: Multiple Token Trays
+
+Create two token trays with different layouts:
+
+```scad
+layout_mode = "multi";
+
+// Slot 1: 2x2 token tray WITH lid
+c1_enable = true;
+c1_type = "token_tray";
+c1_width = 65;
+c1_depth = 65;
+c1_height = 30;
+c1_pos_x = 1;
+c1_pos_y = 1;
+c1_comp_x = 2;  // 2 columns
+c1_comp_y = 2;  // 2 rows
+c1_lid = true;  // This one gets a lid
+
+// Slot 2: 3x3 token tray WITHOUT lid
+c2_enable = true;
+c2_type = "token_tray";
+c2_width = 65;
+c2_depth = 65;
+c2_height = 30;
+c2_pos_x = 68;  // Next to slot 1
+c2_pos_y = 1;
+c2_comp_x = 3;  // 3 columns
+c2_comp_y = 3;  // 3 rows
+c2_lid = false; // No lid for this one
+```
+
+### Example: Multiple Specialized Bins
+
+Create multiple component bins with different types:
+
+```scad
+layout_mode = "multi";
+
+// Slot 1: Coin slot bin
+c1_enable = true;
+c1_type = "component_bin";
+c1_bin_type = "coin_slot";
+c1_width = 90;
+c1_depth = 70;
+c1_height = 35;
+c1_pos_x = 1;
+c1_pos_y = 1;
+c1_comp_x = 6;  // 6 coin slots
+c1_lid = true;
+
+// Slot 2: Token well bin
+c2_enable = true;
+c2_type = "component_bin";
+c2_bin_type = "token_well";
+c2_width = 90;
+c2_depth = 90;
+c2_height = 30;
+c2_pos_x = 95;
+c2_pos_y = 1;
+c2_comp_x = 9;  // 9 circular wells
+c2_lid = false;
+
+// Slot 3: Small parts grid
+c3_enable = true;
+c3_type = "component_bin";
+c3_bin_type = "small_parts";
+c3_width = 90;
+c3_depth = 90;
+c3_height = 25;
+c3_pos_x = 190;
+c3_pos_y = 1;
+// Small parts is fixed 4x3 grid
+c3_lid = true;
+```
+
+### Positioning Tips for Multi-Container Mode
+
+- **Origin:** Position (0,0) is the bottom-left corner (front-left of box)
+- **X-axis:** Goes left to right
+- **Y-axis:** Goes front to back
+- **Spacing:** Use `container_gap` value between containers (typically 1mm)
+- **Formula:** Next container X position = previous X + previous width + gap
+
+**Example calculation:**
+```
+Container 1: pos_x = 1, width = 65
+Container 2: pos_x = 1 + 65 + 1 = 67
+Container 3: pos_x = 67 + 65 + 1 = 133
+```
+
+### Validation in Multi-Container Mode
+
+The system validates each container:
+- Checks if container fits within box dimensions
+- Reports overflow in console
+- Shows which containers have issues
+
+Watch the console output for messages like:
+```
+Container 0 (token_tray): ✓ FITS [65x65x30mm] at pos [1,1]
+Container 1 (component_bin): ✗ OVERFLOW [90x90x40mm] at pos [250,1]
+```
+
+### Benefits of Multi-Container Mode
+
+✅ **Multiple Instances** - Create 2+ token trays, 2+ bins, etc.
+✅ **Individual Customization** - Each container independently configured
+✅ **Precise Control** - Exact positioning for space optimization
+✅ **Mix Types** - Different bin types in same insert
+✅ **Per-Container Lids** - Choose which containers get lids
+✅ **Flexible Layouts** - Not limited to grid patterns
+
+### See Also
+
+- `examples/game_insert_multi_container_example.scad` - Complete working example
+- Auto-layout mode documentation (simpler but less flexible)
+
 ## Advanced Features
 
 ### Stackable Containers
@@ -554,6 +737,20 @@ For BOSL2 library issues:
 - Check BOSL2 tutorials in `tutorials/` directory
 
 ## Version History
+
+- v1.2 (2026-01) - Multi-Container Mode Update
+  - **NEW:** Multi-Container Mode - create multiple instances of any container type!
+  - **NEW:** 4 configurable container slots (each independently customizable)
+  - **NEW:** Per-container settings:
+    - Individual container types (mix token trays, bins, card holders, etc.)
+    - Independent dimensions and positioning
+    - Per-container lid control
+    - Type-specific settings (compartments, bin types, etc.)
+  - Layout mode selector: "auto" (grid) or "multi" (custom)
+  - Validation works with both modes
+  - Example file: `game_insert_multi_container_example.scad`
+  - Comprehensive documentation for multi-container workflows
+  - **Use case:** Multiple token trays with different layouts, multiple specialized bins
 
 - v1.1 (2026-01) - Filament Saving & Specialization Update
   - **NEW:** Honeycomb hex patterns for floors (30-40% filament savings)
