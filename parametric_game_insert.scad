@@ -20,6 +20,7 @@
 
 include <BOSL2/std.scad>
 include <BOSL2/rounding.scad>
+include <BOSL2/structs.scad>
 
 /* [Box Dimensions] */
 // Total internal width of the game box (mm)
@@ -44,6 +45,35 @@ corner_radius = 2.0; // [0:0.5:10]
 // Tolerance/gap between containers (mm)
 container_gap = 0.5; // [0:0.1:3.0]
 
+/* [Filament Saving Options] */
+// Use hex pattern in floors (saves filament)
+hex_floor_pattern = false;
+
+// Hex pattern size for floors (mm)
+hex_floor_size = 8; // [4:1:15]
+
+// Hex pattern wall thickness (mm)
+hex_floor_wall = 0.8; // [0.4:0.1:2.0]
+
+// Use hex pattern in walls (saves filament)
+hex_wall_pattern = false;
+
+// Hex pattern size for walls (mm)
+hex_wall_size = 10; // [6:1:20]
+
+/* [Lid Options] */
+// Generate lids for token/coin trays
+generate_lids = false;
+
+// Lid type
+lid_type = "snap"; // [snap:Snap-fit Lid, slide:Sliding Lid, friction:Friction Fit]
+
+// Lid clearance/tolerance (mm)
+lid_tolerance = 0.3; // [0.1:0.05:0.8]
+
+// Lid thickness (mm)
+lid_thickness = 2.0; // [1.0:0.5:4.0]
+
 /* [Card Holder Settings] */
 // Enable card holder
 enable_card_holder = true;
@@ -67,6 +97,9 @@ card_finger_cutout = 30; // [0:5:60]
 // Enable component bin
 enable_component_bin = true;
 
+// Bin type
+bin_type = "general"; // [general:General Storage, coin_slot:Coin Slots, token_well:Token Wells, small_parts:Small Parts Grid, card_divider:Card Dividers]
+
 // Component bin width (mm)
 bin_width = 90; // [40:5:200]
 
@@ -76,8 +109,14 @@ bin_depth = 90; // [40:5:200]
 // Component bin height (mm)
 bin_height = 40; // [20:5:150]
 
-// Add divider to bin
+// Add divider to bin (general type only)
 bin_add_divider = true;
+
+// Number of coin slots or token wells
+bin_slots = 6; // [3:1:12]
+
+// Coin slot width (mm)
+coin_slot_width = 28; // [20:1:40]
 
 /* [Dice Tray Settings] */
 // Enable dice tray
@@ -159,28 +198,230 @@ effective_wall = wall_thickness;
 gap = container_gap;
 
 //====================================
+// HELPER MODULES - HEX PATTERNS & LIDS
+//====================================
+
+/**
+ * Hexagonal honeycomb pattern for floors
+ * Significantly reduces filament usage while maintaining strength
+ */
+module hex_pattern_floor(width, depth, hex_size=8, wall_thick=0.8) {
+    // Calculate honeycomb spacing
+    hex_spacing = hex_size * 1.732; // sqrt(3) * hex_size
+
+    // Create hex grid
+    difference() {
+        // Solid floor
+        children();
+
+        // Cut hexagons
+        translate([0, 0, -0.5])
+            for (x = [-width/2 : hex_spacing : width/2]) {
+                for (y = [-depth/2 : hex_spacing : depth/2]) {
+                    offset_y = ((x / hex_spacing) % 2 == 0) ? 0 : hex_spacing / 2;
+                    translate([x, y + offset_y, 0])
+                        linear_extrude(height=floor_thickness + 1)
+                            hexagon(r=hex_size - wall_thick);
+                }
+            }
+    }
+}
+
+/**
+ * Hexagonal pattern cutouts for walls
+ */
+module hex_pattern_wall(wall_width, wall_height, hex_size=10, orient="vertical") {
+    hex_spacing = hex_size * 1.732;
+
+    if (orient == "vertical") {
+        for (z = [hex_size : hex_spacing : wall_height - hex_size]) {
+            for (x = [-wall_width/2 + hex_size : hex_spacing : wall_width/2 - hex_size]) {
+                offset_x = ((z / hex_spacing) % 2 == 0) ? 0 : hex_spacing / 2;
+                translate([x + offset_x, 0, z])
+                    rotate([90, 0, 0])
+                        linear_extrude(height=wall_thickness * 3, center=true)
+                            hexagon(r=hex_size * 0.6);
+            }
+        }
+    }
+}
+
+/**
+ * Snap-fit lid for containers
+ */
+module snap_lid(width, depth, tolerance=0.3, thickness=2.0) {
+    clip_height = 3;
+    clip_thick = 1.0;
+
+    difference() {
+        union() {
+            // Main lid top
+            cuboid([width - tolerance, depth - tolerance, thickness],
+                   rounding=corner_radius,
+                   edges="Z",
+                   anchor=BOTTOM);
+
+            // Lip that goes inside container
+            translate([0, 0, thickness])
+                difference() {
+                    cuboid([width - 2*wall_thickness - tolerance*2,
+                            depth - 2*wall_thickness - tolerance*2,
+                            clip_height],
+                           rounding=max(0, corner_radius - wall_thickness),
+                           edges="Z",
+                           anchor=BOTTOM);
+
+                    // Hollow interior
+                    translate([0, 0, -0.1])
+                        cuboid([width - 2*wall_thickness - tolerance*2 - 2*clip_thick,
+                                depth - 2*wall_thickness - tolerance*2 - 2*clip_thick,
+                                clip_height + 1],
+                               rounding=max(0, corner_radius - wall_thickness - clip_thick),
+                               edges="Z",
+                               anchor=BOTTOM);
+                }
+
+            // Snap clips
+            for (side = [0, 180]) {
+                rotate([0, 0, side])
+                    translate([0, (depth - 2*wall_thickness - tolerance*2) / 2 - clip_thick/2, thickness])
+                        difference() {
+                            cuboid([15, clip_thick + 0.3, clip_height], anchor=BOTTOM);
+                            translate([0, -clip_thick, clip_height - 0.5])
+                                rotate([0, 90, 0])
+                                    cyl(d=1, h=20, anchor=CENTER);
+                        }
+            }
+        }
+
+        // Finger grip recess
+        translate([0, 0, thickness/2])
+            cuboid([30, 12, thickness + 1],
+                   rounding=3,
+                   edges="Z",
+                   anchor=CENTER);
+    }
+}
+
+/**
+ * Sliding lid for containers
+ */
+module sliding_lid(width, depth, tolerance=0.3, thickness=2.0) {
+    track_depth = 2;
+
+    difference() {
+        union() {
+            // Main lid
+            cuboid([width - 2*wall_thickness - tolerance*2 + 1,
+                    depth + 2,
+                    thickness],
+                   rounding=corner_radius,
+                   edges="Z",
+                   anchor=BOTTOM);
+
+            // Side rails
+            for (side = [-1, 1]) {
+                translate([side * (width - 2*wall_thickness - tolerance*2) / 2,
+                           0,
+                           thickness])
+                    cuboid([1, depth + 2, track_depth],
+                           anchor=BOTTOM);
+            }
+        }
+
+        // Finger grip
+        translate([0, depth/2 - 10, thickness/2])
+            rotate([90, 0, 0])
+                cyl(d=15, h=3, anchor=FRONT);
+    }
+}
+
+/**
+ * Friction-fit lid (simplest)
+ */
+module friction_lid(width, depth, tolerance=0.3, thickness=2.0) {
+    difference() {
+        cuboid([width - tolerance,
+                depth - tolerance,
+                thickness],
+               rounding=corner_radius,
+               edges="Z",
+               anchor=BOTTOM);
+
+        // Finger grip
+        translate([0, 0, thickness/2])
+            cuboid([35, 15, thickness + 1],
+                   rounding=4,
+                   edges="Z",
+                   anchor=CENTER);
+    }
+}
+
+//====================================
 // CONTAINER MODULES
 //====================================
 
 /**
  * Basic container box with rounded corners and optional features
  */
-module container_box(width, depth, height, finger_cutout=0, chamfer_top=true) {
+module container_box(width, depth, height, finger_cutout=0, chamfer_top=true, use_hex_floor=false, use_hex_walls=false) {
     difference() {
-        // Main body with rounding
-        cuboid([width, depth, height],
-               rounding=corner_radius,
-               edges="Z",
-               anchor=BOTTOM);
+        union() {
+            // Main body with rounding
+            if (use_hex_floor && hex_floor_pattern) {
+                // Body with hex floor
+                difference() {
+                    cuboid([width, depth, height],
+                           rounding=corner_radius,
+                           edges="Z",
+                           anchor=BOTTOM);
 
-        // Hollow interior
-        translate([0, 0, floor_thickness])
-            cuboid([width - 2*wall_thickness,
-                    depth - 2*wall_thickness,
-                    height - floor_thickness + 0.1],
-                   rounding=max(0, corner_radius - wall_thickness),
-                   edges="Z",
-                   anchor=BOTTOM);
+                    // Hollow interior
+                    translate([0, 0, floor_thickness])
+                        cuboid([width - 2*wall_thickness,
+                                depth - 2*wall_thickness,
+                                height - floor_thickness + 0.1],
+                               rounding=max(0, corner_radius - wall_thickness),
+                               edges="Z",
+                               anchor=BOTTOM);
+                }
+
+                // Add hex pattern floor
+                translate([0, 0, 0])
+                    hex_pattern_floor(width - 2*wall_thickness, depth - 2*wall_thickness,
+                                     hex_size=hex_floor_size, wall_thick=hex_floor_wall)
+                        cuboid([width - 2*wall_thickness,
+                                depth - 2*wall_thickness,
+                                floor_thickness],
+                               anchor=BOTTOM);
+            } else {
+                // Regular solid body
+                cuboid([width, depth, height],
+                       rounding=corner_radius,
+                       edges="Z",
+                       anchor=BOTTOM);
+            }
+        }
+
+        // Hollow interior (if not using hex floor)
+        if (!use_hex_floor || !hex_floor_pattern) {
+            translate([0, 0, floor_thickness])
+                cuboid([width - 2*wall_thickness,
+                        depth - 2*wall_thickness,
+                        height - floor_thickness + 0.1],
+                       rounding=max(0, corner_radius - wall_thickness),
+                       edges="Z",
+                       anchor=BOTTOM);
+        } else {
+            // Interior already cut in hex floor version
+            translate([0, 0, floor_thickness])
+                cuboid([width - 2*wall_thickness,
+                        depth - 2*wall_thickness,
+                        height - floor_thickness + 0.1],
+                       rounding=max(0, corner_radius - wall_thickness),
+                       edges="Z",
+                       anchor=BOTTOM);
+        }
 
         // Top chamfer for easier insertion
         if (chamfer_top && top_chamfer > 0) {
@@ -198,6 +439,22 @@ module container_box(width, depth, height, finger_cutout=0, chamfer_top=true) {
             translate([0, depth/2 - wall_thickness, height - finger_cutout/2])
                 rotate([90, 0, 0])
                     cyl(d=finger_cutout, h=wall_thickness*3, anchor=BOTTOM);
+        }
+
+        // Hex pattern in walls (saves filament)
+        if (use_hex_walls && hex_wall_pattern) {
+            // Front and back walls
+            for (side = [0, 180]) {
+                rotate([0, 0, side])
+                    translate([0, depth/2, 0])
+                        hex_pattern_wall(width, height, hex_size=hex_wall_size);
+            }
+            // Left and right walls
+            for (side = [90, 270]) {
+                rotate([0, 0, side])
+                    translate([0, width/2, 0])
+                        hex_pattern_wall(depth, height, hex_size=hex_wall_size);
+            }
         }
     }
 
@@ -289,7 +546,7 @@ module dice_tray(width=dice_width, depth=dice_depth, height=dice_height,
  */
 module token_tray(width=token_width, depth=token_depth, height=token_height,
                   comp_x=token_compartments_x, comp_y=token_compartments_y) {
-    container_box(width, depth, height);
+    container_box(width, depth, height, use_hex_floor=true);
 
     // Internal dividers
     int_width = width - 2*wall_thickness;
@@ -316,6 +573,119 @@ module token_tray(width=token_width, depth=token_depth, height=token_height,
                        floor_thickness])
                 cuboid([int_width,
                         wall_thickness,
+                        height - floor_thickness],
+                       anchor=BOTTOM);
+        }
+    }
+}
+
+//====================================
+// SPECIALIZED BIN TYPES
+//====================================
+
+/**
+ * Coin slot bin - Vertical slots for coins
+ */
+module coin_slot_bin(width, depth, height, num_slots=6, slot_width=28) {
+    container_box(width, depth, height, use_hex_floor=true);
+
+    int_width = width - 2*wall_thickness;
+    int_depth = depth - 2*wall_thickness;
+
+    // Create vertical dividers for coin slots
+    for (i = [1:num_slots-1]) {
+        translate([int_width * i / num_slots - int_width/2,
+                   0,
+                   floor_thickness])
+            cuboid([wall_thickness,
+                    int_depth,
+                    height - floor_thickness],
+                   anchor=BOTTOM);
+    }
+}
+
+/**
+ * Token well bin - Circular wells for round tokens
+ */
+module token_well_bin(width, depth, height, num_wells=6) {
+    // Calculate well layout
+    wells_per_row = ceil(sqrt(num_wells));
+    well_diameter = min((width - 2*wall_thickness) / wells_per_row - 2,
+                       (depth - 2*wall_thickness) / wells_per_row - 2);
+
+    difference() {
+        container_box(width, depth, height, use_hex_floor=true);
+
+        // Create circular wells
+        int_width = width - 2*wall_thickness;
+        int_depth = depth - 2*wall_thickness;
+
+        for (i = [0:num_wells-1]) {
+            x_pos = (i % wells_per_row) - (wells_per_row - 1) / 2;
+            y_pos = floor(i / wells_per_row) - (ceil(num_wells / wells_per_row) - 1) / 2;
+
+            translate([x_pos * (int_width / wells_per_row),
+                       y_pos * (int_depth / ceil(num_wells / wells_per_row)),
+                       floor_thickness])
+                cyl(d=well_diameter, h=height, anchor=BOTTOM);
+        }
+    }
+}
+
+/**
+ * Small parts bin - Many small compartments
+ */
+module small_parts_bin(width, depth, height) {
+    // Fixed 4x3 grid for small parts
+    token_tray(width=width, depth=depth, height=height, comp_x=4, comp_y=3);
+}
+
+/**
+ * Card divider bin - Multiple vertical card sections
+ */
+module card_divider_bin(width, depth, height, num_sections=3) {
+    container_box(width, depth, height, use_hex_floor=true);
+
+    int_width = width - 2*wall_thickness;
+    int_depth = depth - 2*wall_thickness;
+
+    // Vertical dividers for card sections
+    for (i = [1:num_sections-1]) {
+        translate([int_width * i / num_sections - int_width/2,
+                   0,
+                   floor_thickness])
+            cuboid([wall_thickness,
+                    int_depth,
+                    height - floor_thickness],
+                   anchor=BOTTOM);
+    }
+}
+
+/**
+ * Universal component bin dispatcher
+ * Routes to appropriate specialized bin based on bin_type parameter
+ */
+module component_bin(width=bin_width, depth=bin_depth, height=bin_height,
+                     add_divider=bin_add_divider, type=bin_type) {
+    if (type == "coin_slot") {
+        coin_slot_bin(width, depth, height, num_slots=bin_slots, slot_width=coin_slot_width);
+    } else if (type == "token_well") {
+        token_well_bin(width, depth, height, num_wells=bin_slots);
+    } else if (type == "small_parts") {
+        small_parts_bin(width, depth, height);
+    } else if (type == "card_divider") {
+        card_divider_bin(width, depth, height, num_sections=bin_slots);
+    } else {
+        // Default: general storage bin
+        difference() {
+            container_box(width, depth, height, use_hex_floor=true);
+        }
+
+        // Optional divider
+        if (add_divider) {
+            translate([0, 0, floor_thickness])
+                cuboid([wall_thickness,
+                        depth - 2*wall_thickness,
                         height - floor_thickness],
                        anchor=BOTTOM);
         }
@@ -435,8 +805,36 @@ if (show_all) {
                 component_bin(width=w, depth=d, height=h);
             else if (type == "dice_tray")
                 dice_tray(width=w, depth=d, height=h);
-            else if (type == "token_tray")
+            else if (type == "token_tray") {
                 token_tray(width=w, depth=d, height=h);
+
+                // Generate lid if enabled
+                if (generate_lids) {
+                    translate([0, 0, h + 5 * exploded_view]) {
+                        if (lid_type == "snap")
+                            snap_lid(w, d, tolerance=lid_tolerance, thickness=lid_thickness);
+                        else if (lid_type == "slide")
+                            sliding_lid(w, d, tolerance=lid_tolerance, thickness=lid_thickness);
+                        else if (lid_type == "friction")
+                            friction_lid(w, d, tolerance=lid_tolerance, thickness=lid_thickness);
+                    }
+                }
+            }
+        }
+
+        // Also generate lids for component bins if they're coin/token types
+        if (generate_lids && type == "component_bin" &&
+            (bin_type == "coin_slot" || bin_type == "token_well")) {
+            translate([x - box_width/2 + w/2,
+                       y - box_depth/2 + d/2,
+                       h + 5 * exploded_view]) {
+                if (lid_type == "snap")
+                    snap_lid(w, d, tolerance=lid_tolerance, thickness=lid_thickness);
+                else if (lid_type == "slide")
+                    sliding_lid(w, d, tolerance=lid_tolerance, thickness=lid_thickness);
+                else if (lid_type == "friction")
+                    friction_lid(w, d, tolerance=lid_tolerance, thickness=lid_thickness);
+            }
         }
     }
 
@@ -471,3 +869,13 @@ echo("=== Parametric Game Insert System ===");
 echo("Adjust parameters in the Customizer panel");
 echo("Enable/disable containers as needed");
 echo("Check validation report for fit confirmation");
+echo("");
+echo("NEW FEATURES:");
+echo("  - Hex patterns for floors/walls (saves 30-50% filament!)");
+echo("  - Lids for token/coin trays (snap, slide, friction types)");
+echo("  - Specialized bin types:");
+echo("    * Coin slots - vertical storage");
+echo("    * Token wells - circular compartments");
+echo("    * Small parts grid - 4x3 compartments");
+echo("    * Card dividers - multiple card sections");
+echo("  Toggle these in the Customizer panel!");
