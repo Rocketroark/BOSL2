@@ -24,8 +24,8 @@ container_gap = 0.5; // [0:0.1:3.0]
 
 /* [Global Hex Pattern Defaults] */
 default_hex_floor = false;
-default_hex_floor_size = 8; // [4:1:15]
-default_hex_floor_wall = 0.8; // [0.4:0.1:2.0]
+default_hex_floor_size = 3; // [2:0.5:10] Hex hole size (radius in mm)
+default_hex_floor_wall = 1.0; // [0.4:0.1:2.0] Wall thickness between hexagons
 
 /* [Global Lid Defaults] */
 default_lid_type = "snap"; // [snap:Snap-fit, friction:Friction-fit]
@@ -288,13 +288,14 @@ module snap_lid_standalone(width, depth, tolerance, thickness, use_hex) {
 
         // Hex pattern on lid top if enabled
         if (use_hex) {
-            hex_spacing = default_hex_floor_size * 1.732;
+            hex_radius = default_hex_floor_size;
+            hex_spacing = (hex_radius * 2 + default_hex_floor_wall) * 1.732;
             for (x = [-(width + 0.5)/2 : hex_spacing : (width + 0.5)/2]) {
                 for (y = [-(depth + 0.5)/2 : hex_spacing : (depth + 0.5)/2]) {
                     offset_y = (floor(x / hex_spacing) % 2 == 0) ? 0 : hex_spacing / 2;
-                    translate([x, y + offset_y, thickness/2])
-                        linear_extrude(height=thickness + 1, center=true)
-                            circle(r=default_hex_floor_size - default_hex_floor_wall, $fn=6);
+                    translate([x, y + offset_y, 0])
+                        linear_extrude(height=thickness + 2)
+                            circle(r=hex_radius, $fn=6);
                 }
             }
         }
@@ -333,13 +334,14 @@ module friction_lid_standalone(width, depth, tolerance, thickness, use_hex) {
 
         // Hex pattern on lid top if enabled
         if (use_hex) {
-            hex_spacing = default_hex_floor_size * 1.732;
+            hex_radius = default_hex_floor_size;
+            hex_spacing = (hex_radius * 2 + default_hex_floor_wall) * 1.732;
             for (x = [-(width + 0.5)/2 : hex_spacing : (width + 0.5)/2]) {
                 for (y = [-(depth + 0.5)/2 : hex_spacing : (depth + 0.5)/2]) {
                     offset_y = (floor(x / hex_spacing) % 2 == 0) ? 0 : hex_spacing / 2;
-                    translate([x, y + offset_y, thickness/2])
-                        linear_extrude(height=thickness + 1, center=true)
-                            circle(r=default_hex_floor_size - default_hex_floor_wall, $fn=6);
+                    translate([x, y + offset_y, 0])
+                        linear_extrude(height=thickness + 2)
+                            circle(r=hex_radius, $fn=6);
                 }
             }
         }
@@ -376,31 +378,32 @@ module container_box_standalone(width, depth, height, finger_cutout, use_hex_flo
 
         // Cut hex pattern holes into floor if enabled
         if (use_hex_floor) {
-            hex_spacing = default_hex_floor_size * 1.732;
+            hex_radius = default_hex_floor_size;
+            hex_spacing = (hex_radius * 2 + default_hex_floor_wall) * 1.732;
             for (x = [-(width - 2*wall_thickness)/2 : hex_spacing : (width - 2*wall_thickness)/2]) {
                 for (y = [-(depth - 2*wall_thickness)/2 : hex_spacing : (depth - 2*wall_thickness)/2]) {
                     offset_y = (floor(x / hex_spacing) % 2 == 0) ? 0 : hex_spacing / 2;
-                    translate([x, y + offset_y, floor_thickness/2])
-                        linear_extrude(height=floor_thickness + 1, center=true)
-                            circle(r=default_hex_floor_size - default_hex_floor_wall, $fn=6);
+                    translate([x, y + offset_y, 0])
+                        linear_extrude(height=floor_thickness + 2)
+                            circle(r=hex_radius, $fn=6);
                 }
             }
         }
 
         // Cut hex pattern into walls if enabled
         if (use_hex_walls) {
-            hex_spacing = default_hex_floor_size * 1.732;
-            wall_hex_height = height - floor_thickness - 2; // Leave top and bottom solid
+            hex_radius = default_hex_floor_size;
+            hex_spacing = (hex_radius * 2 + default_hex_floor_wall) * 1.732;
 
             // Front and back walls
             for (side = [0, 1]) {
                 y_pos = side == 0 ? -depth/2 : depth/2;
                 for (x = [-(width - 2*wall_thickness)/2 : hex_spacing : (width - 2*wall_thickness)/2]) {
-                    for (z = [floor_thickness + 3 : hex_spacing : height - 3]) {
+                    for (z = [floor_thickness + hex_radius + 1 : hex_spacing : height - hex_radius - 1]) {
                         translate([x, y_pos, z])
                             rotate([90, 0, 0])
-                                linear_extrude(height=wall_thickness + 1, center=true)
-                                    circle(r=default_hex_floor_size - default_hex_floor_wall, $fn=6);
+                                linear_extrude(height=wall_thickness + 2, center=true)
+                                    circle(r=hex_radius, $fn=6);
                     }
                 }
             }
@@ -409,12 +412,12 @@ module container_box_standalone(width, depth, height, finger_cutout, use_hex_flo
             for (side = [0, 1]) {
                 x_pos = side == 0 ? -width/2 : width/2;
                 for (y = [-(depth - 2*wall_thickness)/2 : hex_spacing : (depth - 2*wall_thickness)/2]) {
-                    for (z = [floor_thickness + 3 : hex_spacing : height - 3]) {
+                    for (z = [floor_thickness + hex_radius + 1 : hex_spacing : height - hex_radius - 1]) {
                         offset_y = (floor(z / hex_spacing) % 2 == 0) ? 0 : hex_spacing / 2;
                         translate([x_pos, y + offset_y, z])
                             rotate([90, 0, 90])
-                                linear_extrude(height=wall_thickness + 1, center=true)
-                                    circle(r=default_hex_floor_size - default_hex_floor_wall, $fn=6);
+                                linear_extrude(height=wall_thickness + 2, center=true)
+                                    circle(r=hex_radius, $fn=6);
                     }
                 }
             }
@@ -608,9 +611,9 @@ if (len(containers) > 0) {
             else if (type == "token_tray")
                 token_tray_standalone(w, d, h, comp_x, comp_y, hex_floor, hex_walls, grips, stackable);
 
-            // Lid
+            // Lid - positioned next to container for easy printing
             if (has_lid) {
-                translate([0, 0, h]) {
+                translate([w/2 + 5 + w/2, 0, default_lid_thickness/2]) {
                     if (default_lid_type == "snap")
                         snap_lid_standalone(w, d, default_lid_tolerance, default_lid_thickness, lid_hex);
                     else
