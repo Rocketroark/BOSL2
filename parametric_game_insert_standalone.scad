@@ -228,18 +228,18 @@ module hex_floor_standalone(width, depth, hex_size, wall_thick) {
     }
 }
 
-// Snap lid - standalone (full enclosure)
+// Snap lid - standalone (solid top cover)
 module snap_lid_standalone(width, depth, tolerance, thickness) {
     wall_height = 10; // Walls extend down 10mm to fully contain items
     clip_thick = 1.2;
 
     difference() {
         union() {
-            // Top surface
+            // SOLID TOP SURFACE - covers entire container opening
             translate([0, 0, thickness/2])
-                rcube([width - tolerance, depth - tolerance, thickness], r=corner_radius);
+                rcube([width + 0.5, depth + 0.5, thickness], r=corner_radius);
 
-            // Containment walls that extend down inside the container rim
+            // Interior containment walls that extend down inside container rim
             translate([0, 0, -wall_height/2])
                 difference() {
                     // Outer wall boundary
@@ -272,18 +272,18 @@ module snap_lid_standalone(width, depth, tolerance, thickness) {
     }
 }
 
-// Friction lid - standalone (full enclosure)
+// Friction lid - standalone (solid top cover)
 module friction_lid_standalone(width, depth, tolerance, thickness) {
     wall_height = 10; // Walls extend down 10mm to fully contain items
     wall_thick = 1.5;
 
     difference() {
         union() {
-            // Top surface
+            // SOLID TOP SURFACE - covers entire container opening
             translate([0, 0, thickness/2])
-                rcube([width - tolerance, depth - tolerance, thickness], r=corner_radius);
+                rcube([width + 0.5, depth + 0.5, thickness], r=corner_radius);
 
-            // Containment walls with tight friction fit
+            // Interior containment walls with tight friction fit
             translate([0, 0, -wall_height/2])
                 difference() {
                     // Outer wall boundary (slightly tighter fit than snap lid)
