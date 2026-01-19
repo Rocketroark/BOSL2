@@ -8,7 +8,7 @@
  * - Multiple shape options
  * - Configurable mounting options
  *
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Claude AI
  * Date: 2026-01-19
  * License: CC-BY-4.0
@@ -16,125 +16,185 @@
 
 include <BOSL2/std.scad>
 
-/* [Sign Dimensions] */
+/* [Basic Parameters] */
+// Sign base color
+sign_color = "#FFFFFF";  // color
+
+// Shape of the sign
+sign_shape = "rectangle"; // [rectangle, circle, oval, hexagon, octagon]
+
 // Width of the sign in mm
 sign_width = 80; // [30:5:200]
+
 // Height of the sign in mm
 sign_height = 80; // [30:5:200]
+
 // Base thickness of sign (before NFC cavity)
 sign_thickness = 3; // [2:0.5:10]
+
 // Corner radius for rounded shapes
 corner_radius = 3; // [0:0.5:15]
 
-/* [Sign Shape] */
-// Shape of the sign
-sign_shape = "rectangle"; // [rectangle, circle, oval, hexagon, octagon]
 // For oval shape: width to height ratio
 oval_ratio = 1.5; // [1:0.1:3]
 
 /* [NFC Tag Housing] */
 // Enable NFC tag cavity
 enable_nfc = true;
+
 // NFC tag diameter (NTAG216 standard is 25-26mm)
 nfc_tag_diameter = 26; // [20:0.5:30]
+
 // Depth of NFC tag recess
 nfc_tag_depth = 1.25; // [0.5:0.1:3]
+
 // Position NFC cavity on front or back
 nfc_position = "back"; // [front, back, center]
+
 // X offset of NFC tag from center
 nfc_offset_x = 0; // [-50:1:50]
+
 // Y offset of NFC tag from center
 nfc_offset_y = 0; // [-50:1:50]
 
-/* [Main Image Settings] */
-// Type of main image file
-image_type = "none"; // [none, svg, png, stl]
-// Path to SVG file (relative or absolute)
-svg_file = "image.svg";
-// Path to PNG file (for heightmap)
-png_file = "image.png";
-// Path to STL file
-stl_file = "image.stl";
+/* [Main Image - Front Side] */
+// Image file type: svg (recommended), png, stl, or none
+image_type = "svg"; // [none, svg, png, stl]
+
+// SVG image file (place your .svg file in the same directory)
+image_svg_file = "image.svg";
+
+// PNG image file (used as heightmap)
+image_png_file = "image.png";
+
+// STL image file (3D model)
+image_stl_file = "image.stl";
+
 // Width of image in mm
 image_width = 50; // [10:1:150]
+
 // Height of image in mm
 image_height = 50; // [10:1:150]
+
 // Thickness/depth of embossed image
 image_thickness = 1; // [0.3:0.1:5]
+
 // Image position
 image_side = "front"; // [front, back]
+
 // X offset from center
 image_offset_x = 0; // [-100:1:100]
+
 // Y offset from center
 image_offset_y = 0; // [-100:1:100]
-// Invert image (emboss vs deboss)
-image_invert = false;
+
+// Image mode
+image_mode = "emboss"; // [emboss, deboss]
+
+// Image color (for multi-color printing)
+image_color = "#00FF00";  // color
 
 /* [QR Code Settings] */
 // Enable QR code
 enable_qr_code = false;
+
 // Type of QR code file
 qr_code_type = "svg"; // [svg, png]
+
 // Path to QR code SVG file
-qr_code_svg = "qrcode.svg";
+qr_code_svg_file = "qrcode.svg";
+
 // Path to QR code PNG file
-qr_code_png = "qrcode.png";
+qr_code_png_file = "qrcode.png";
+
 // Size of QR code (square)
 qr_code_size = 25; // [10:1:80]
+
 // Thickness of QR code relief
 qr_code_thickness = 0.8; // [0.3:0.1:3]
+
 // QR code position
 qr_code_side = "back"; // [front, back]
+
 // QR code corner position (or center)
 qr_code_corner = "bottom_right"; // [center, top_left, top_right, bottom_left, bottom_right]
+
 // Fine X adjustment
 qr_code_offset_x = 0; // [-50:1:50]
+
 // Fine Y adjustment
 qr_code_offset_y = 0; // [-50:1:50]
-// Invert QR code (emboss vs deboss)
-qr_code_invert = false;
+
+// QR code mode
+qr_code_mode = "emboss"; // [emboss, deboss]
+
+// QR code color
+qr_code_color = "#000000";  // color
 
 /* [Mounting Options] */
 // Mounting type
 mounting_type = "none"; // [none, holes, slot, magnet, adhesive_cavity]
+
 // Hole diameter for screw mounting
 mounting_hole_diameter = 3.5; // [2:0.1:10]
+
 // Number of mounting holes
 mounting_hole_count = 2; // [1:1:4]
+
 // Distance from edge to hole center
 mounting_hole_edge_distance = 8; // [5:1:20]
+
 // Slot width for keyhole mounting
 slot_width = 6; // [3:0.5:15]
+
 // Slot height
 slot_height = 10; // [5:1:30]
+
 // Magnet diameter (common 6mm or 8mm)
 magnet_diameter = 6; // [4:0.5:15]
+
 // Magnet depth
 magnet_depth = 2; // [1:0.1:5]
+
 // Number of magnets
 magnet_count = 1; // [1:1:4]
 
-/* [Advanced Options] */
+/* [Border Options] */
 // Add border/frame around sign
 enable_border = false;
+
 // Border width
 border_width = 2; // [1:0.5:10]
+
 // Border thickness (raised)
 border_thickness = 0.5; // [0.2:0.1:3]
-// Text label support
+
+// Border color
+border_color = "#0000FF";  // color
+
+/* [Text Label] */
+// Add text label
 enable_text = false;
+
 // Text to emboss
 text_string = "SCAN ME";
+
 // Text size
 text_size = 6; // [3:0.5:20]
+
 // Text thickness
 text_thickness = 0.8; // [0.3:0.1:3]
+
 // Text position
 text_position = "bottom"; // [top, bottom, center]
+
+// Text color
+text_color = "#FF0000";  // color
+
+/* [Advanced Options] */
 // Quality of circles ($fn)
 circle_quality = 64; // [16:4:128]
 
-/* [Export Options] */
 // What to render
 render_part = "assembled"; // [assembled, sign_only, nfc_test_fit]
 
@@ -145,7 +205,8 @@ $fn = circle_quality;
 if (render_part == "assembled") {
     complete_sign();
 } else if (render_part == "sign_only") {
-    sign_body();
+    color(sign_color)
+        sign_body();
 } else if (render_part == "nfc_test_fit") {
     // Render a small test piece to verify NFC tag fit
     intersection() {
@@ -158,56 +219,63 @@ if (render_part == "assembled") {
 // ==================== MODULES ====================
 
 module complete_sign() {
-    difference() {
-        union() {
-            // Main sign body
-            sign_body();
+    // Main sign body
+    color(sign_color)
+        difference() {
+            union() {
+                // Base sign body
+                sign_body();
 
-            // Add border if enabled
-            if (enable_border) {
-                border_frame();
+                // Add border if enabled
+                if (enable_border) {
+                    border_frame();
+                }
             }
 
-            // Add embossed elements (front)
-            if (image_side == "front" && !image_invert) {
+            // Subtract NFC cavity
+            if (enable_nfc) {
+                nfc_cavity();
+            }
+
+            // Subtract debossed elements
+            if (image_type != "none" && image_mode == "deboss") {
                 emboss_image();
             }
 
-            if (enable_qr_code && qr_code_side == "front" && !qr_code_invert) {
+            if (enable_qr_code && qr_code_mode == "deboss") {
                 emboss_qr_code();
             }
 
-            // Add embossed elements (back)
-            if (image_side == "back" && !image_invert) {
-                emboss_image();
-            }
-
-            if (enable_qr_code && qr_code_side == "back" && !qr_code_invert) {
-                emboss_qr_code();
-            }
-
-            // Add text if enabled
-            if (enable_text) {
-                emboss_text();
-            }
+            // Subtract mounting features
+            mounting_features();
         }
 
-        // Subtract NFC cavity
-        if (enable_nfc) {
-            nfc_cavity();
-        }
-
-        // Subtract debossed elements
-        if (image_type != "none" && image_invert) {
+    // Add embossed elements (front)
+    if (image_type != "none" && image_side == "front" && image_mode == "emboss") {
+        color(image_color)
             emboss_image();
-        }
+    }
 
-        if (enable_qr_code && qr_code_invert) {
+    if (enable_qr_code && qr_code_side == "front" && qr_code_mode == "emboss") {
+        color(qr_code_color)
             emboss_qr_code();
-        }
+    }
 
-        // Subtract mounting features
-        mounting_features();
+    // Add embossed elements (back)
+    if (image_type != "none" && image_side == "back" && image_mode == "emboss") {
+        color(image_color)
+            emboss_image();
+    }
+
+    if (enable_qr_code && qr_code_side == "back" && qr_code_mode == "emboss") {
+        color(qr_code_color)
+            emboss_qr_code();
+    }
+
+    // Add text if enabled
+    if (enable_text) {
+        color(text_color)
+            emboss_text();
     }
 }
 
@@ -280,19 +348,8 @@ module emboss_image() {
     z_offset = (image_side == "front") ? image_thickness/2 : -image_thickness/2;
 
     translate([image_offset_x, image_offset_y, z_base + z_offset]) {
-        if (image_type == "svg") {
-            resize([image_width, image_height, image_thickness], auto=true)
-                linear_extrude(height=image_thickness, center=true, convexity=10)
-                    import(file=svg_file, center=true);
-        }
-        else if (image_type == "png") {
-            resize([image_width, image_height, image_thickness], auto=true)
-                surface(file=png_file, center=true, convexity=10);
-        }
-        else if (image_type == "stl") {
-            resize([image_width, image_height, image_thickness], auto=true)
-                import(file=stl_file, center=true);
-        }
+        image_loader(image_type, image_svg_file, image_png_file, image_stl_file,
+                     image_width, image_height, image_thickness);
     }
 }
 
@@ -313,15 +370,8 @@ module emboss_qr_code() {
     z_offset = (qr_code_side == "front") ? qr_code_thickness/2 : -qr_code_thickness/2;
 
     translate([qr_pos[0] + qr_code_offset_x, qr_pos[1] + qr_code_offset_y, z_base + z_offset]) {
-        if (qr_code_type == "svg") {
-            resize([qr_code_size, qr_code_size, qr_code_thickness], auto=true)
-                linear_extrude(height=qr_code_thickness, center=true, convexity=10)
-                    import(file=qr_code_svg, center=true);
-        }
-        else if (qr_code_type == "png") {
-            resize([qr_code_size, qr_code_size, qr_code_thickness], auto=true)
-                surface(file=qr_code_png, center=true, convexity=10);
-        }
+        image_loader(qr_code_type, qr_code_svg_file, qr_code_png_file, "",
+                     qr_code_size, qr_code_size, qr_code_thickness);
     }
 }
 
@@ -441,6 +491,30 @@ module adhesive_recess() {
 
 // ==================== HELPER FUNCTIONS ====================
 
+/*
+ * Generic image loader module that handles SVG, PNG, or STL files
+ * Pattern based on nfc_tag_keychain.scad logo() module
+ */
+module image_loader(fileType, svgFile, pngFile, stlFile, imgWidth, imgHeight, imgThickness) {
+    if(fileType == "svg") {
+        if (svgFile != "image.svg" && svgFile != "qrcode.svg" && svgFile != "default.svg") {
+            resize([imgWidth, imgHeight, imgThickness], auto=true)
+                linear_extrude(height = imgThickness, center = true)
+                    import(file = svgFile, center = true);
+        }
+    } else if(fileType == "png") {
+        if (pngFile != "image.png" && pngFile != "qrcode.png" && pngFile != "default.png") {
+            resize([imgWidth, imgHeight, imgThickness], auto=true)
+                surface(file = pngFile, center = true);
+        }
+    } else if(fileType == "stl") {
+        if (stlFile != "image.stl" && stlFile != "default.stl") {
+            resize([imgWidth, imgHeight, imgThickness], auto=true)
+                import(file = stlFile, center = true);
+        }
+    }
+}
+
 module octagon(d) {
     circle(d=d, $fn=8);
 }
@@ -448,7 +522,7 @@ module octagon(d) {
 // ==================== END ====================
 
 echo("==============================================");
-echo("Parametric NFC Sign Generator v1.0.0");
+echo("Parametric NFC Sign Generator v1.1.0");
 echo("==============================================");
 echo(str("Sign Shape: ", sign_shape));
 echo(str("Sign Dimensions: ", sign_width, "mm x ", sign_height, "mm x ", sign_thickness, "mm"));
@@ -459,9 +533,9 @@ if (enable_nfc) {
 }
 echo(str("Main Image: ", image_type));
 if (image_type != "none") {
-    echo(str("  - File: ", image_type == "svg" ? svg_file : image_type == "png" ? png_file : stl_file));
+    echo(str("  - File: ", image_type == "svg" ? image_svg_file : image_type == "png" ? image_png_file : image_stl_file));
     echo(str("  - Size: ", image_width, "mm x ", image_height, "mm"));
-    echo(str("  - Side: ", image_side, ", Mode: ", image_invert ? "deboss" : "emboss"));
+    echo(str("  - Side: ", image_side, ", Mode: ", image_mode));
 }
 echo(str("QR Code: ", enable_qr_code ? "YES" : "NO"));
 if (enable_qr_code) {
