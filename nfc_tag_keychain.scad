@@ -35,16 +35,14 @@ nfc_tag_hole = true;
 // Logo file type: svg (recommended), png, or stl
 logo1Type = "svg"; // [svg,png,stl]
 
-// SVG logo file (place your .svg file in the same directory)
-// Example: "my_logo.svg" or "photo.svg"
-svgFile1 = "default.svg";
+// SVG logo file (click to upload)
+svgFile1 = "default.svg"; // file
 
-// PNG logo file (if using PNG instead of SVG)
-// Example: "my_photo.png"
-pngFile1 = "default.png";
+// PNG logo file (click to upload)
+pngFile1 = "default.png"; // file
 
-// STL logo file (if using 3D model as logo)
-stlFile1 = "default.stl";
+// STL logo file (click to upload)
+stlFile1 = "default.stl"; // file
 
 // Logo raised height above surface (in mm)
 logo1Thickness = 0.5;
@@ -71,9 +69,14 @@ logo2Enabled = false;
 // Logo file type for back side
 logo2Type = "svg"; // [svg,png,stl]
 
-svgFile2 = "default.svg";
-pngFile2 = "default.png";
-stlFile2 = "default.stl";
+// SVG logo file (click to upload)
+svgFile2 = "default.svg"; // file
+
+// PNG logo file (click to upload)
+pngFile2 = "default.png"; // file
+
+// STL logo file (click to upload)
+stlFile2 = "default.stl"; // file
 
 // Logo raised height above surface (in mm)
 logo2Thickness = 0.5;

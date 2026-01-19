@@ -8,7 +8,7 @@
  * - Multiple shape options
  * - Configurable mounting options
  *
- * Version: 1.1.0
+ * Version: 1.3.0
  * Author: Claude AI
  * Date: 2026-01-19
  * License: CC-BY-4.0
@@ -59,77 +59,77 @@ nfc_offset_y = 0; // [-50:1:50]
 
 /* [Main Image - Front Side] */
 // Image file type: svg (recommended), png, stl, or none
-image_type = "svg"; // [none, svg, png, stl]
+imageType = "svg"; // [none, svg, png, stl]
 
-// SVG image file (place your .svg file in the same directory)
-image_svg_file = "image.svg";
+// SVG image file (click to upload)
+svgFile = "default.svg"; // file
 
-// PNG image file (used as heightmap)
-image_png_file = "image.png";
+// PNG image file (click to upload)
+pngFile = "default.png"; // file
 
-// STL image file (3D model)
-image_stl_file = "image.stl";
+// STL image file (click to upload)
+stlFile = "default.stl"; // file
 
-// Width of image in mm
-image_width = 50; // [10:1:150]
-
-// Height of image in mm
-image_height = 50; // [10:1:150]
-
-// Thickness/depth of embossed image
-image_thickness = 1; // [0.3:0.1:5]
-
-// Image position
-image_side = "front"; // [front, back]
-
-// X offset from center
-image_offset_x = 0; // [-100:1:100]
-
-// Y offset from center
-image_offset_y = 0; // [-100:1:100]
-
-// Image mode
-image_mode = "emboss"; // [emboss, deboss]
+// Image raised height above surface (in mm)
+imageThickness = 1; // [0.3:0.1:5]
 
 // Image color (for multi-color printing)
-image_color = "#00FF00";  // color
+imageColor = "#00FF00";  // color
+
+// Image width (warps/scales the image)
+imageWidth = 50; // [10:1:150]
+
+// Image height (warps/scales the image)
+imageHeight = 50; // [10:1:150]
+
+// Image position
+imageSide = "front"; // [front, back]
+
+// Horizontal offset of image from center
+imageOffsetX = 0; // [-100:1:100]
+
+// Vertical offset of image from center
+imageOffsetY = 0; // [-100:1:100]
+
+// Image mode
+imageMode = "emboss"; // [emboss, deboss]
 
 /* [QR Code Settings] */
 // Enable QR code
-enable_qr_code = false;
+enableQRCode = false;
 
-// Type of QR code file
-qr_code_type = "svg"; // [svg, png]
+// QR code file type: svg or png
+qrCodeType = "svg"; // [svg, png]
 
-// Path to QR code SVG file
-qr_code_svg_file = "qrcode.svg";
+// SVG QR code file (click to upload)
+qrCodeSvgFile = "default.svg"; // file
 
-// Path to QR code PNG file
-qr_code_png_file = "qrcode.png";
+// PNG QR code file (click to upload)
+qrCodePngFile = "default.png"; // file
 
-// Size of QR code (square)
-qr_code_size = 25; // [10:1:80]
-
-// Thickness of QR code relief
-qr_code_thickness = 0.8; // [0.3:0.1:3]
-
-// QR code position
-qr_code_side = "back"; // [front, back]
-
-// QR code corner position (or center)
-qr_code_corner = "bottom_right"; // [center, top_left, top_right, bottom_left, bottom_right]
-
-// Fine X adjustment
-qr_code_offset_x = 0; // [-50:1:50]
-
-// Fine Y adjustment
-qr_code_offset_y = 0; // [-50:1:50]
-
-// QR code mode
-qr_code_mode = "emboss"; // [emboss, deboss]
+// QR code raised height above surface (in mm)
+qrCodeThickness = 0.8; // [0.3:0.1:3]
 
 // QR code color
-qr_code_color = "#000000";  // color
+qrCodeColor = "#000000";  // color
+
+// Size of QR code (square, in mm)
+qrCodeSize = 25; // [10:1:80]
+
+// QR code position on sign
+qrCodeSide = "back"; // [front, back]
+
+// QR code corner position (or center)
+qrCodeCorner = "bottom_right"; // [center, top_left, top_right, bottom_left, bottom_right]
+
+// Horizontal offset of QR code from position
+qrCodeOffsetX = 0; // [-50:1:50]
+
+// Vertical offset of QR code from position
+qrCodeOffsetY = 0; // [-50:1:50]
+
+// QR code mode
+qrCodeMode = "emboss"; // [emboss, deboss]
 
 /* [Mounting Options] */
 // Mounting type
@@ -238,11 +238,11 @@ module complete_sign() {
             }
 
             // Subtract debossed elements
-            if (image_type != "none" && image_mode == "deboss") {
+            if (imageType != "none" && imageMode == "deboss") {
                 emboss_image();
             }
 
-            if (enable_qr_code && qr_code_mode == "deboss") {
+            if (enableQRCode && qrCodeMode == "deboss") {
                 emboss_qr_code();
             }
 
@@ -251,24 +251,24 @@ module complete_sign() {
         }
 
     // Add embossed elements (front)
-    if (image_type != "none" && image_side == "front" && image_mode == "emboss") {
-        color(image_color)
+    if (imageType != "none" && imageSide == "front" && imageMode == "emboss") {
+        color(imageColor)
             emboss_image();
     }
 
-    if (enable_qr_code && qr_code_side == "front" && qr_code_mode == "emboss") {
-        color(qr_code_color)
+    if (enableQRCode && qrCodeSide == "front" && qrCodeMode == "emboss") {
+        color(qrCodeColor)
             emboss_qr_code();
     }
 
     // Add embossed elements (back)
-    if (image_type != "none" && image_side == "back" && image_mode == "emboss") {
-        color(image_color)
+    if (imageType != "none" && imageSide == "back" && imageMode == "emboss") {
+        color(imageColor)
             emboss_image();
     }
 
-    if (enable_qr_code && qr_code_side == "back" && qr_code_mode == "emboss") {
-        color(qr_code_color)
+    if (enableQRCode && qrCodeSide == "back" && qrCodeMode == "emboss") {
+        color(qrCodeColor)
             emboss_qr_code();
     }
 
@@ -341,37 +341,37 @@ module nfc_cavity() {
 }
 
 module emboss_image() {
-    if (image_type == "none") return;
+    if (imageType == "none") return;
 
     // Calculate Z position
-    z_base = (image_side == "front") ? sign_thickness/2 : -sign_thickness/2;
-    z_offset = (image_side == "front") ? image_thickness/2 : -image_thickness/2;
+    z_base = (imageSide == "front") ? sign_thickness/2 : -sign_thickness/2;
+    z_offset = (imageSide == "front") ? imageThickness/2 : -imageThickness/2;
 
-    translate([image_offset_x, image_offset_y, z_base + z_offset]) {
-        image_loader(image_type, image_svg_file, image_png_file, image_stl_file,
-                     image_width, image_height, image_thickness);
+    translate([imageOffsetX, imageOffsetY, z_base + z_offset]) {
+        image_loader(imageType, svgFile, pngFile, stlFile,
+                     imageWidth, imageHeight, imageThickness);
     }
 }
 
 module emboss_qr_code() {
     // Calculate corner position
     function get_qr_position() =
-        (qr_code_corner == "center") ? [0, 0] :
-        (qr_code_corner == "top_left") ? [-sign_width/2 + qr_code_size/2 + 3, sign_height/2 - qr_code_size/2 - 3] :
-        (qr_code_corner == "top_right") ? [sign_width/2 - qr_code_size/2 - 3, sign_height/2 - qr_code_size/2 - 3] :
-        (qr_code_corner == "bottom_left") ? [-sign_width/2 + qr_code_size/2 + 3, -sign_height/2 + qr_code_size/2 + 3] :
-        (qr_code_corner == "bottom_right") ? [sign_width/2 - qr_code_size/2 - 3, -sign_height/2 + qr_code_size/2 + 3] :
+        (qrCodeCorner == "center") ? [0, 0] :
+        (qrCodeCorner == "top_left") ? [-sign_width/2 + qrCodeSize/2 + 3, sign_height/2 - qrCodeSize/2 - 3] :
+        (qrCodeCorner == "top_right") ? [sign_width/2 - qrCodeSize/2 - 3, sign_height/2 - qrCodeSize/2 - 3] :
+        (qrCodeCorner == "bottom_left") ? [-sign_width/2 + qrCodeSize/2 + 3, -sign_height/2 + qrCodeSize/2 + 3] :
+        (qrCodeCorner == "bottom_right") ? [sign_width/2 - qrCodeSize/2 - 3, -sign_height/2 + qrCodeSize/2 + 3] :
         [0, 0];
 
     qr_pos = get_qr_position();
 
     // Calculate Z position
-    z_base = (qr_code_side == "front") ? sign_thickness/2 : -sign_thickness/2;
-    z_offset = (qr_code_side == "front") ? qr_code_thickness/2 : -qr_code_thickness/2;
+    z_base = (qrCodeSide == "front") ? sign_thickness/2 : -sign_thickness/2;
+    z_offset = (qrCodeSide == "front") ? qrCodeThickness/2 : -qrCodeThickness/2;
 
-    translate([qr_pos[0] + qr_code_offset_x, qr_pos[1] + qr_code_offset_y, z_base + z_offset]) {
-        image_loader(qr_code_type, qr_code_svg_file, qr_code_png_file, "",
-                     qr_code_size, qr_code_size, qr_code_thickness);
+    translate([qr_pos[0] + qrCodeOffsetX, qr_pos[1] + qrCodeOffsetY, z_base + z_offset]) {
+        image_loader(qrCodeType, qrCodeSvgFile, qrCodePngFile, "",
+                     qrCodeSize, qrCodeSize, qrCodeThickness);
     }
 }
 
@@ -497,18 +497,18 @@ module adhesive_recess() {
  */
 module image_loader(fileType, svgFile, pngFile, stlFile, imgWidth, imgHeight, imgThickness) {
     if(fileType == "svg") {
-        if (svgFile != "image.svg" && svgFile != "qrcode.svg" && svgFile != "default.svg") {
+        if (svgFile != "default.svg") {
             resize([imgWidth, imgHeight, imgThickness], auto=true)
                 linear_extrude(height = imgThickness, center = true)
                     import(file = svgFile, center = true);
         }
     } else if(fileType == "png") {
-        if (pngFile != "image.png" && pngFile != "qrcode.png" && pngFile != "default.png") {
+        if (pngFile != "default.png") {
             resize([imgWidth, imgHeight, imgThickness], auto=true)
                 surface(file = pngFile, center = true);
         }
     } else if(fileType == "stl") {
-        if (stlFile != "image.stl" && stlFile != "default.stl") {
+        if (stlFile != "default.stl") {
             resize([imgWidth, imgHeight, imgThickness], auto=true)
                 import(file = stlFile, center = true);
         }
@@ -522,7 +522,7 @@ module octagon(d) {
 // ==================== END ====================
 
 echo("==============================================");
-echo("Parametric NFC Sign Generator v1.1.0");
+echo("Parametric NFC Sign Generator v1.3.0");
 echo("==============================================");
 echo(str("Sign Shape: ", sign_shape));
 echo(str("Sign Dimensions: ", sign_width, "mm x ", sign_height, "mm x ", sign_thickness, "mm"));
@@ -531,16 +531,16 @@ if (enable_nfc) {
     echo(str("  - Diameter: ", nfc_tag_diameter, "mm, Depth: ", nfc_tag_depth, "mm"));
     echo(str("  - Position: ", nfc_position));
 }
-echo(str("Main Image: ", image_type));
-if (image_type != "none") {
-    echo(str("  - File: ", image_type == "svg" ? image_svg_file : image_type == "png" ? image_png_file : image_stl_file));
-    echo(str("  - Size: ", image_width, "mm x ", image_height, "mm"));
-    echo(str("  - Side: ", image_side, ", Mode: ", image_mode));
+echo(str("Main Image: ", imageType));
+if (imageType != "none") {
+    echo(str("  - File: ", imageType == "svg" ? svgFile : imageType == "png" ? pngFile : stlFile));
+    echo(str("  - Size: ", imageWidth, "mm x ", imageHeight, "mm"));
+    echo(str("  - Side: ", imageSide, ", Mode: ", imageMode));
 }
-echo(str("QR Code: ", enable_qr_code ? "YES" : "NO"));
-if (enable_qr_code) {
-    echo(str("  - Size: ", qr_code_size, "mm x ", qr_code_size, "mm"));
-    echo(str("  - Position: ", qr_code_corner, " on ", qr_code_side));
+echo(str("QR Code: ", enableQRCode ? "YES" : "NO"));
+if (enableQRCode) {
+    echo(str("  - Size: ", qrCodeSize, "mm x ", qrCodeSize, "mm"));
+    echo(str("  - Position: ", qrCodeCorner, " on ", qrCodeSide));
 }
 echo(str("Mounting: ", mounting_type));
 echo("==============================================");
