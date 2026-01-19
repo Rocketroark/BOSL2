@@ -46,6 +46,7 @@ c1_comp_y = 2; // [1:1:12]
 c1_divider = false;
 c1_cutout = 25; // [0:5:60]
 c1_lid = false;
+c1_lid_hex = false;
 c1_hex_floor = false;
 c1_finger_grips = false;
 c1_stackable = false;
@@ -64,6 +65,7 @@ c2_comp_y = 2; // [1:1:12]
 c2_divider = false;
 c2_cutout = 0; // [0:5:60]
 c2_lid = false;
+c2_lid_hex = false;
 c2_hex_floor = false;
 c2_finger_grips = false;
 c2_stackable = false;
@@ -82,6 +84,7 @@ c3_comp_y = 3; // [1:1:12]
 c3_divider = false;
 c3_cutout = 0; // [0:5:60]
 c3_lid = true;
+c3_lid_hex = false;
 c3_hex_floor = true;
 c3_finger_grips = false;
 c3_stackable = false;
@@ -100,6 +103,7 @@ c4_comp_y = 1; // [1:1:12]
 c4_divider = false;
 c4_cutout = 30; // [0:5:60]
 c4_lid = false;
+c4_lid_hex = false;
 c4_hex_floor = false;
 c4_finger_grips = false;
 c4_stackable = false;
@@ -118,6 +122,7 @@ c5_comp_y = 2; // [1:1:12]
 c5_divider = true;
 c5_cutout = 0; // [0:5:60]
 c5_lid = false;
+c5_lid_hex = false;
 c5_hex_floor = true;
 c5_finger_grips = true;
 c5_stackable = false;
@@ -136,6 +141,7 @@ c6_comp_y = 1; // [1:1:12]
 c6_divider = false;
 c6_cutout = 0; // [0:5:60]
 c6_lid = true;
+c6_lid_hex = false;
 c6_hex_floor = true;
 c6_finger_grips = false;
 c6_stackable = false;
@@ -154,6 +160,7 @@ c7_comp_y = 3; // [1:1:12]
 c7_divider = false;
 c7_cutout = 0; // [0:5:60]
 c7_lid = true;
+c7_lid_hex = false;
 c7_hex_floor = true;
 c7_finger_grips = false;
 c7_stackable = true;
@@ -172,6 +179,7 @@ c8_comp_y = 4; // [1:1:12]
 c8_divider = false;
 c8_cutout = 0; // [0:5:60]
 c8_lid = false;
+c8_lid_hex = false;
 c8_hex_floor = true;
 c8_finger_grips = false;
 c8_stackable = false;
@@ -228,85 +236,120 @@ module hex_floor_standalone(width, depth, hex_size, wall_thick) {
     }
 }
 
-// Snap lid - standalone
-module snap_lid_standalone(width, depth, tolerance, thickness) {
-    clip_height = 4;
+// Snap lid - standalone (solid top cover)
+module snap_lid_standalone(width, depth, tolerance, thickness, use_hex) {
+    wall_height = 10; // Walls extend down 10mm to fully contain items
     clip_thick = 1.2;
 
     difference() {
         union() {
-            // Main lid surface (top)
+            // SOLID TOP SURFACE - covers entire container opening
             translate([0, 0, thickness/2])
-                rcube([width - tolerance, depth - tolerance, thickness], r=corner_radius);
+                rcube([width + 0.5, depth + 0.5, thickness], r=corner_radius);
 
-            // Downward lip that fits inside container walls
-            translate([0, 0, -clip_height/2])
+            // Interior containment walls that extend down inside container rim
+            translate([0, 0, -wall_height/2])
                 difference() {
+                    // Outer wall boundary
                     rcube([width - 2*wall_thickness - tolerance,
                            depth - 2*wall_thickness - tolerance,
-                           clip_height], r=max(0.5, corner_radius - wall_thickness));
+                           wall_height], r=max(0.5, corner_radius - wall_thickness));
 
-                    // Hollow out interior
+                    // Hollow interior to create walls
                     rcube([width - 2*wall_thickness - tolerance - 2*clip_thick,
                            depth - 2*wall_thickness - tolerance - 2*clip_thick,
-                           clip_height + 1], r=max(0.5, corner_radius - wall_thickness - clip_thick));
+                           wall_height + 1], r=max(0.5, corner_radius - wall_thickness - clip_thick));
                 }
 
-            // Flexible snap clips on sides for secure attachment
+            // Snap clips on two opposite sides for secure attachment
             for (side = [0, 180]) {
                 rotate([0, 0, side])
-                    translate([0, (depth - 2*wall_thickness - tolerance) / 2 - clip_thick/2, -clip_height/2])
-                        cube([20, clip_thick, clip_height], center=true);
+                    translate([0, (depth - 2*wall_thickness - tolerance) / 2 - clip_thick/2, -wall_height/2])
+                        difference() {
+                            cube([25, clip_thick + 0.4, wall_height], center=true);
+                            // Small undercut for flexible snap action
+                            translate([0, -clip_thick/2 - 0.2, -wall_height/2 + 1.5])
+                                cube([15, 0.4, 3], center=true);
+                        }
             }
         }
 
-        // Finger grip cutout for easy removal
+        // Finger grip cutout on top for easy removal
         translate([0, 0, thickness/2])
             rcube([35, 15, thickness + 1], r=4);
+
+        // Hex pattern on lid top if enabled
+        if (use_hex) {
+            hex_spacing = default_hex_floor_size * 1.732;
+            for (x = [-(width + 0.5)/2 : hex_spacing : (width + 0.5)/2]) {
+                for (y = [-(depth + 0.5)/2 : hex_spacing : (depth + 0.5)/2]) {
+                    offset_y = (floor(x / hex_spacing) % 2 == 0) ? 0 : hex_spacing / 2;
+                    translate([x, y + offset_y, thickness/2])
+                        linear_extrude(height=thickness + 1, center=true)
+                            circle(r=default_hex_floor_size - default_hex_floor_wall, $fn=6);
+                }
+            }
+        }
     }
 }
 
-// Friction lid - standalone
-module friction_lid_standalone(width, depth, tolerance, thickness) {
-    lip_height = 3;
+// Friction lid - standalone (solid top cover)
+module friction_lid_standalone(width, depth, tolerance, thickness, use_hex) {
+    wall_height = 10; // Walls extend down 10mm to fully contain items
+    wall_thick = 1.5;
 
     difference() {
         union() {
-            // Main lid surface
+            // SOLID TOP SURFACE - covers entire container opening
             translate([0, 0, thickness/2])
-                rcube([width - tolerance, depth - tolerance, thickness], r=corner_radius);
+                rcube([width + 0.5, depth + 0.5, thickness], r=corner_radius);
 
-            // Downward friction-fit lip
-            translate([0, 0, -lip_height/2])
+            // Interior containment walls with tight friction fit
+            translate([0, 0, -wall_height/2])
                 difference() {
+                    // Outer wall boundary (slightly tighter fit than snap lid)
                     rcube([width - 2*wall_thickness - tolerance/2,
                            depth - 2*wall_thickness - tolerance/2,
-                           lip_height], r=max(0.5, corner_radius - wall_thickness));
+                           wall_height], r=max(0.5, corner_radius - wall_thickness));
 
-                    rcube([width - 2*wall_thickness - tolerance/2 - 2.4,
-                           depth - 2*wall_thickness - tolerance/2 - 2.4,
-                           lip_height + 1], r=max(0.5, corner_radius - wall_thickness - 1.2));
+                    // Hollow interior to create walls
+                    rcube([width - 2*wall_thickness - tolerance/2 - 2*wall_thick,
+                           depth - 2*wall_thickness - tolerance/2 - 2*wall_thick,
+                           wall_height + 1], r=max(0.5, corner_radius - wall_thickness - wall_thick));
                 }
         }
 
-        // Finger grip cutout
+        // Finger grip cutout on top for easy removal
         translate([0, 0, thickness/2])
             rcube([35, 15, thickness + 1], r=4);
+
+        // Hex pattern on lid top if enabled
+        if (use_hex) {
+            hex_spacing = default_hex_floor_size * 1.732;
+            for (x = [-(width + 0.5)/2 : hex_spacing : (width + 0.5)/2]) {
+                for (y = [-(depth + 0.5)/2 : hex_spacing : (depth + 0.5)/2]) {
+                    offset_y = (floor(x / hex_spacing) % 2 == 0) ? 0 : hex_spacing / 2;
+                    translate([x, y + offset_y, thickness/2])
+                        linear_extrude(height=thickness + 1, center=true)
+                            circle(r=default_hex_floor_size - default_hex_floor_wall, $fn=6);
+                }
+            }
+        }
     }
 }
 
 // Main container box - standalone
 module container_box_standalone(width, depth, height, finger_cutout, use_hex_floor, use_finger_grips, use_stackable) {
     difference() {
-        // Main walls
+        // Outer box (walls + floor)
         translate([0, 0, height/2])
             rcube([width, depth, height], r=corner_radius);
 
-        // Interior cavity - starts at floor_thickness (leave room for floor)
-        translate([0, 0, floor_thickness + (height - floor_thickness)/2])
+        // Interior cavity - cut from top of floor to top of container
+        translate([0, 0, floor_thickness + (height - floor_thickness)/2 + 0.01])
             rcube([width - 2*wall_thickness,
                    depth - 2*wall_thickness,
-                   height - floor_thickness + 0.1], r=max(0.5, corner_radius - wall_thickness));
+                   height - floor_thickness], r=max(0.5, corner_radius - wall_thickness));
 
         // Top chamfer
         if (top_chamfer > 0) {
@@ -323,14 +366,14 @@ module container_box_standalone(width, depth, height, finger_cutout, use_hex_flo
                     cylinder(d=finger_cutout, h=wall_thickness*3);
         }
 
-        // Cut hex pattern into floor if enabled
+        // Cut hex pattern holes into floor if enabled
         if (use_hex_floor) {
             hex_spacing = default_hex_floor_size * 1.732;
             for (x = [-(width - 2*wall_thickness)/2 : hex_spacing : (width - 2*wall_thickness)/2]) {
                 for (y = [-(depth - 2*wall_thickness)/2 : hex_spacing : (depth - 2*wall_thickness)/2]) {
                     offset_y = (floor(x / hex_spacing) % 2 == 0) ? 0 : hex_spacing / 2;
-                    translate([x, y + offset_y, floor_thickness/2])
-                        linear_extrude(height=floor_thickness + 1, center=true)
+                    translate([x, y + offset_y, -0.5])
+                        linear_extrude(height=floor_thickness + 1)
                             circle(r=default_hex_floor_size - default_hex_floor_wall, $fn=6);
                 }
             }
@@ -456,35 +499,35 @@ function multi_layout() =
         containers = [
             if (c1_enable)
                 [c1_type, c1_pos_x, c1_pos_y, c1_width, c1_depth, c1_height,
-                 c1_comp_x, c1_comp_y, c1_bin_type, c1_divider, c1_cutout, c1_lid,
+                 c1_comp_x, c1_comp_y, c1_bin_type, c1_divider, c1_cutout, c1_lid, c1_lid_hex,
                  c1_hex_floor, c1_finger_grips, c1_stackable],
             if (c2_enable)
                 [c2_type, c2_pos_x, c2_pos_y, c2_width, c2_depth, c2_height,
-                 c2_comp_x, c2_comp_y, c2_bin_type, c2_divider, c2_cutout, c2_lid,
+                 c2_comp_x, c2_comp_y, c2_bin_type, c2_divider, c2_cutout, c2_lid, c2_lid_hex,
                  c2_hex_floor, c2_finger_grips, c2_stackable],
             if (c3_enable)
                 [c3_type, c3_pos_x, c3_pos_y, c3_width, c3_depth, c3_height,
-                 c3_comp_x, c3_comp_y, c3_bin_type, c3_divider, c3_cutout, c3_lid,
+                 c3_comp_x, c3_comp_y, c3_bin_type, c3_divider, c3_cutout, c3_lid, c3_lid_hex,
                  c3_hex_floor, c3_finger_grips, c3_stackable],
             if (c4_enable)
                 [c4_type, c4_pos_x, c4_pos_y, c4_width, c4_depth, c4_height,
-                 c4_comp_x, c4_comp_y, c4_bin_type, c4_divider, c4_cutout, c4_lid,
+                 c4_comp_x, c4_comp_y, c4_bin_type, c4_divider, c4_cutout, c4_lid, c4_lid_hex,
                  c4_hex_floor, c4_finger_grips, c4_stackable],
             if (c5_enable)
                 [c5_type, c5_pos_x, c5_pos_y, c5_width, c5_depth, c5_height,
-                 c5_comp_x, c5_comp_y, c5_bin_type, c5_divider, c5_cutout, c5_lid,
+                 c5_comp_x, c5_comp_y, c5_bin_type, c5_divider, c5_cutout, c5_lid, c5_lid_hex,
                  c5_hex_floor, c5_finger_grips, c5_stackable],
             if (c6_enable)
                 [c6_type, c6_pos_x, c6_pos_y, c6_width, c6_depth, c6_height,
-                 c6_comp_x, c6_comp_y, c6_bin_type, c6_divider, c6_cutout, c6_lid,
+                 c6_comp_x, c6_comp_y, c6_bin_type, c6_divider, c6_cutout, c6_lid, c6_lid_hex,
                  c6_hex_floor, c6_finger_grips, c6_stackable],
             if (c7_enable)
                 [c7_type, c7_pos_x, c7_pos_y, c7_width, c7_depth, c7_height,
-                 c7_comp_x, c7_comp_y, c7_bin_type, c7_divider, c7_cutout, c7_lid,
+                 c7_comp_x, c7_comp_y, c7_bin_type, c7_divider, c7_cutout, c7_lid, c7_lid_hex,
                  c7_hex_floor, c7_finger_grips, c7_stackable],
             if (c8_enable)
                 [c8_type, c8_pos_x, c8_pos_y, c8_width, c8_depth, c8_height,
-                 c8_comp_x, c8_comp_y, c8_bin_type, c8_divider, c8_cutout, c8_lid,
+                 c8_comp_x, c8_comp_y, c8_bin_type, c8_divider, c8_cutout, c8_lid, c8_lid_hex,
                  c8_hex_floor, c8_finger_grips, c8_stackable],
         ]
     )
@@ -508,9 +551,10 @@ if (len(containers) > 0) {
         divider = c[9];
         cutout = c[10];
         has_lid = c[11];
-        hex_floor = c[12];
-        grips = c[13];
-        stackable = c[14];
+        lid_hex = c[12];
+        hex_floor = c[13];
+        grips = c[14];
+        stackable = c[15];
 
         translate([x - box_width/2 + w/2, y - box_depth/2 + d/2, 0]) {
             if (type == "card_holder")
@@ -526,9 +570,9 @@ if (len(containers) > 0) {
             if (has_lid) {
                 translate([0, 0, h]) {
                     if (default_lid_type == "snap")
-                        snap_lid_standalone(w, d, default_lid_tolerance, default_lid_thickness);
+                        snap_lid_standalone(w, d, default_lid_tolerance, default_lid_thickness, lid_hex);
                     else
-                        friction_lid_standalone(w, d, default_lid_tolerance, default_lid_thickness);
+                        friction_lid_standalone(w, d, default_lid_tolerance, default_lid_thickness, lid_hex);
                 }
             }
         }
