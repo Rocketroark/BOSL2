@@ -8,7 +8,7 @@
  * - Multiple shape options
  * - Configurable mounting options
  *
- * Version: 1.3.0
+ * Version: 1.3.1
  * Author: Claude AI
  * Date: 2026-01-19
  * License: CC-BY-4.0
@@ -355,15 +355,7 @@ module emboss_image() {
 
 module emboss_qr_code() {
     // Calculate corner position
-    function get_qr_position() =
-        (qrCodeCorner == "center") ? [0, 0] :
-        (qrCodeCorner == "top_left") ? [-sign_width/2 + qrCodeSize/2 + 3, sign_height/2 - qrCodeSize/2 - 3] :
-        (qrCodeCorner == "top_right") ? [sign_width/2 - qrCodeSize/2 - 3, sign_height/2 - qrCodeSize/2 - 3] :
-        (qrCodeCorner == "bottom_left") ? [-sign_width/2 + qrCodeSize/2 + 3, -sign_height/2 + qrCodeSize/2 + 3] :
-        (qrCodeCorner == "bottom_right") ? [sign_width/2 - qrCodeSize/2 - 3, -sign_height/2 + qrCodeSize/2 + 3] :
-        [0, 0];
-
-    qr_pos = get_qr_position();
+    qr_pos = get_qr_position(qrCodeCorner, sign_width, sign_height, qrCodeSize);
 
     // Calculate Z position
     z_base = (qrCodeSide == "front") ? sign_thickness/2 : -sign_thickness/2;
@@ -492,6 +484,17 @@ module adhesive_recess() {
 // ==================== HELPER FUNCTIONS ====================
 
 /*
+ * Calculate QR code position based on corner setting
+ */
+function get_qr_position(corner, sign_w, sign_h, qr_size) =
+    (corner == "center") ? [0, 0] :
+    (corner == "top_left") ? [-sign_w/2 + qr_size/2 + 3, sign_h/2 - qr_size/2 - 3] :
+    (corner == "top_right") ? [sign_w/2 - qr_size/2 - 3, sign_h/2 - qr_size/2 - 3] :
+    (corner == "bottom_left") ? [-sign_w/2 + qr_size/2 + 3, -sign_h/2 + qr_size/2 + 3] :
+    (corner == "bottom_right") ? [sign_w/2 - qr_size/2 - 3, -sign_h/2 + qr_size/2 + 3] :
+    [0, 0];
+
+/*
  * Generic image loader module that handles SVG, PNG, or STL files
  * Pattern based on nfc_tag_keychain.scad logo() module
  */
@@ -522,7 +525,7 @@ module octagon(d) {
 // ==================== END ====================
 
 echo("==============================================");
-echo("Parametric NFC Sign Generator v1.3.0");
+echo("Parametric NFC Sign Generator v1.3.1");
 echo("==============================================");
 echo(str("Sign Shape: ", sign_shape));
 echo(str("Sign Dimensions: ", sign_width, "mm x ", sign_height, "mm x ", sign_thickness, "mm"));
