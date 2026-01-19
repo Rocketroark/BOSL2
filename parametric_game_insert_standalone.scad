@@ -298,15 +298,15 @@ module friction_lid_standalone(width, depth, tolerance, thickness) {
 // Main container box - standalone
 module container_box_standalone(width, depth, height, finger_cutout, use_hex_floor, use_finger_grips, use_stackable) {
     difference() {
-        // Main walls
+        // Outer box (walls + floor)
         translate([0, 0, height/2])
             rcube([width, depth, height], r=corner_radius);
 
-        // Interior cavity - starts at floor_thickness (leave room for floor)
-        translate([0, 0, floor_thickness + (height - floor_thickness)/2])
+        // Interior cavity - cut from top of floor to top of container
+        translate([0, 0, floor_thickness + (height - floor_thickness)/2 + 0.01])
             rcube([width - 2*wall_thickness,
                    depth - 2*wall_thickness,
-                   height - floor_thickness + 0.1], r=max(0.5, corner_radius - wall_thickness));
+                   height - floor_thickness], r=max(0.5, corner_radius - wall_thickness));
 
         // Top chamfer
         if (top_chamfer > 0) {
@@ -323,14 +323,14 @@ module container_box_standalone(width, depth, height, finger_cutout, use_hex_flo
                     cylinder(d=finger_cutout, h=wall_thickness*3);
         }
 
-        // Cut hex pattern into floor if enabled
+        // Cut hex pattern holes into floor if enabled
         if (use_hex_floor) {
             hex_spacing = default_hex_floor_size * 1.732;
             for (x = [-(width - 2*wall_thickness)/2 : hex_spacing : (width - 2*wall_thickness)/2]) {
                 for (y = [-(depth - 2*wall_thickness)/2 : hex_spacing : (depth - 2*wall_thickness)/2]) {
                     offset_y = (floor(x / hex_spacing) % 2 == 0) ? 0 : hex_spacing / 2;
-                    translate([x, y + offset_y, floor_thickness/2])
-                        linear_extrude(height=floor_thickness + 1, center=true)
+                    translate([x, y + offset_y, -0.5])
+                        linear_extrude(height=floor_thickness + 1)
                             circle(r=default_hex_floor_size - default_hex_floor_wall, $fn=6);
                 }
             }
