@@ -228,68 +228,77 @@ module hex_floor_standalone(width, depth, hex_size, wall_thick) {
     }
 }
 
-// Snap lid - standalone
+// Snap lid - standalone (full enclosure)
 module snap_lid_standalone(width, depth, tolerance, thickness) {
-    clip_height = 4;
+    wall_height = 10; // Walls extend down 10mm to fully contain items
     clip_thick = 1.2;
 
     difference() {
         union() {
-            // Main lid surface (top)
+            // Top surface
             translate([0, 0, thickness/2])
                 rcube([width - tolerance, depth - tolerance, thickness], r=corner_radius);
 
-            // Downward lip that fits inside container walls
-            translate([0, 0, -clip_height/2])
+            // Containment walls that extend down inside the container rim
+            translate([0, 0, -wall_height/2])
                 difference() {
+                    // Outer wall boundary
                     rcube([width - 2*wall_thickness - tolerance,
                            depth - 2*wall_thickness - tolerance,
-                           clip_height], r=max(0.5, corner_radius - wall_thickness));
+                           wall_height], r=max(0.5, corner_radius - wall_thickness));
 
-                    // Hollow out interior
+                    // Hollow interior to create walls
                     rcube([width - 2*wall_thickness - tolerance - 2*clip_thick,
                            depth - 2*wall_thickness - tolerance - 2*clip_thick,
-                           clip_height + 1], r=max(0.5, corner_radius - wall_thickness - clip_thick));
+                           wall_height + 1], r=max(0.5, corner_radius - wall_thickness - clip_thick));
                 }
 
-            // Flexible snap clips on sides for secure attachment
+            // Snap clips on two opposite sides for secure attachment
             for (side = [0, 180]) {
                 rotate([0, 0, side])
-                    translate([0, (depth - 2*wall_thickness - tolerance) / 2 - clip_thick/2, -clip_height/2])
-                        cube([20, clip_thick, clip_height], center=true);
+                    translate([0, (depth - 2*wall_thickness - tolerance) / 2 - clip_thick/2, -wall_height/2])
+                        difference() {
+                            cube([25, clip_thick + 0.4, wall_height], center=true);
+                            // Small undercut for flexible snap action
+                            translate([0, -clip_thick/2 - 0.2, -wall_height/2 + 1.5])
+                                cube([15, 0.4, 3], center=true);
+                        }
             }
         }
 
-        // Finger grip cutout for easy removal
+        // Finger grip cutout on top for easy removal
         translate([0, 0, thickness/2])
             rcube([35, 15, thickness + 1], r=4);
     }
 }
 
-// Friction lid - standalone
+// Friction lid - standalone (full enclosure)
 module friction_lid_standalone(width, depth, tolerance, thickness) {
-    lip_height = 3;
+    wall_height = 10; // Walls extend down 10mm to fully contain items
+    wall_thick = 1.5;
 
     difference() {
         union() {
-            // Main lid surface
+            // Top surface
             translate([0, 0, thickness/2])
                 rcube([width - tolerance, depth - tolerance, thickness], r=corner_radius);
 
-            // Downward friction-fit lip
-            translate([0, 0, -lip_height/2])
+            // Containment walls with tight friction fit
+            translate([0, 0, -wall_height/2])
                 difference() {
+                    // Outer wall boundary (slightly tighter fit than snap lid)
                     rcube([width - 2*wall_thickness - tolerance/2,
                            depth - 2*wall_thickness - tolerance/2,
-                           lip_height], r=max(0.5, corner_radius - wall_thickness));
+                           wall_height], r=max(0.5, corner_radius - wall_thickness));
 
-                    rcube([width - 2*wall_thickness - tolerance/2 - 2.4,
-                           depth - 2*wall_thickness - tolerance/2 - 2.4,
-                           lip_height + 1], r=max(0.5, corner_radius - wall_thickness - 1.2));
+                    // Hollow interior to create walls
+                    rcube([width - 2*wall_thickness - tolerance/2 - 2*wall_thick,
+                           depth - 2*wall_thickness - tolerance/2 - 2*wall_thick,
+                           wall_height + 1], r=max(0.5, corner_radius - wall_thickness - wall_thick));
                 }
         }
 
-        // Finger grip cutout
+        // Finger grip cutout on top for easy removal
         translate([0, 0, thickness/2])
             rcube([35, 15, thickness + 1], r=4);
     }
