@@ -141,6 +141,23 @@ enable_text = false;
 // text_color = "#FF0000";               // color
 
 // ============================================================
+// AUTO LAYOUT & DIVIDERS
+// ============================================================
+
+// Automatic element spacing (evenly distributes elements)
+enable_auto_layout = false;
+// auto_layout_side = "front";           // [front, back, both]
+// element_spacing = 5;                  // Spacing between elements in mm
+
+// Dividing lines between elements (requires auto-layout)
+enable_dividers = false;
+// divider_thickness = 0.5;              // Line thickness
+// divider_width = 60;                   // Line width
+// divider_style = "line";               // [line, dashed, dotted]
+// divider_mode = "emboss";              // [emboss, deboss]
+// divider_color = "#888888";            // color
+
+// ============================================================
 // RENDER OPTIONS
 // ============================================================
 
