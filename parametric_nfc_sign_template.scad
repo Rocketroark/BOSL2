@@ -49,15 +49,14 @@ nfc_position = "back";        // [front, back, center]
 // Choose image type - this will appear as a DROPDOWN in OpenSCAD Customizer
 imageType = "svg"; // [none, svg, png, stl]
 
-// Provide BOTH SVG and PNG file paths - OpenSCAD will use the correct one
-// Example: "my_logo.svg" or "company_logo.svg"
-svgFile = "default.svg";        // Path to your SVG file
+// SVG image file (click to upload)
+svgFile = "default.svg"; // file
 
-// Example: "my_photo.png" or "logo.png"
-pngFile = "default.png";        // Path to your PNG file (if using PNG)
+// PNG image file (click to upload)
+pngFile = "default.png"; // file
 
-// Example: "my_model.stl"
-stlFile = "default.stl";        // Path to your STL file (if using STL)
+// STL image file (click to upload)
+stlFile = "default.stl"; // file
 
 // Image settings
 imageWidth = 50;              // Image width in mm
@@ -79,8 +78,8 @@ enableQRCode = false;         // Set to true to add QR code
 
 // QR code settings (uncomment if using)
 // qrCodeType = "svg";        // [svg, png] - dropdown in customizer
-// qrCodeSvgFile = "default.svg"; // Path to QR code SVG (Example: "qrcode.svg")
-// qrCodePngFile = "default.png"; // Path to QR code PNG (Example: "qrcode.png")
+// qrCodeSvgFile = "default.svg"; // file - click to upload
+// qrCodePngFile = "default.png"; // file - click to upload
 // qrCodeSize = 25;            // Size in mm (square)
 // qrCodeThickness = 0.8;      // Relief depth
 // qrCodeSide = "back";        // [front, back]
@@ -187,11 +186,12 @@ DROPDOWN FEATURES:
 - render_part: Choose what to export
 
 FILE UPLOADS:
-- Files use the pattern from nfc_tag_keychain.scad
-- Set svgFile = "my_logo.svg", pngFile = "my_logo.png", etc.
-- Use the imageType dropdown to choose which file to use
+- File parameters have UPLOAD BUTTONS (// file syntax)
+- Click the upload button next to svgFile, pngFile, or stlFile
+- Select your file from the file picker dialog
+- Use the imageType dropdown to choose which file type to use
 - Default values ("default.svg", "default.png") are ignored
-- No need to delete unused file paths
+- Works in Thingiverse Customizer and compatible interfaces
 
 CREATING QR CODES:
 1. Use online QR generator (qr-code-generator.com)

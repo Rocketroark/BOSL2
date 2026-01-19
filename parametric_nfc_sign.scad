@@ -8,7 +8,7 @@
  * - Multiple shape options
  * - Configurable mounting options
  *
- * Version: 1.2.0
+ * Version: 1.3.0
  * Author: Claude AI
  * Date: 2026-01-19
  * License: CC-BY-4.0
@@ -61,17 +61,14 @@ nfc_offset_y = 0; // [-50:1:50]
 // Image file type: svg (recommended), png, stl, or none
 imageType = "svg"; // [none, svg, png, stl]
 
-// SVG image file (place your .svg file in the same directory)
-// Example: "my_logo.svg" or "company_logo.svg"
-svgFile = "default.svg";
+// SVG image file (click to upload)
+svgFile = "default.svg"; // file
 
-// PNG image file (if using PNG instead of SVG)
-// Example: "my_photo.png" or "logo.png"
-pngFile = "default.png";
+// PNG image file (click to upload)
+pngFile = "default.png"; // file
 
-// STL image file (if using 3D model as logo)
-// Example: "my_model.stl"
-stlFile = "default.stl";
+// STL image file (click to upload)
+stlFile = "default.stl"; // file
 
 // Image raised height above surface (in mm)
 imageThickness = 1; // [0.3:0.1:5]
@@ -104,13 +101,11 @@ enableQRCode = false;
 // QR code file type: svg or png
 qrCodeType = "svg"; // [svg, png]
 
-// SVG QR code file (place your .svg file in the same directory)
-// Example: "qrcode.svg" or "website_qr.svg"
-qrCodeSvgFile = "default.svg";
+// SVG QR code file (click to upload)
+qrCodeSvgFile = "default.svg"; // file
 
-// PNG QR code file (if using PNG instead of SVG)
-// Example: "qrcode.png" or "contact_qr.png"
-qrCodePngFile = "default.png";
+// PNG QR code file (click to upload)
+qrCodePngFile = "default.png"; // file
 
 // QR code raised height above surface (in mm)
 qrCodeThickness = 0.8; // [0.3:0.1:3]
@@ -527,7 +522,7 @@ module octagon(d) {
 // ==================== END ====================
 
 echo("==============================================");
-echo("Parametric NFC Sign Generator v1.2.0");
+echo("Parametric NFC Sign Generator v1.3.0");
 echo("==============================================");
 echo(str("Sign Shape: ", sign_shape));
 echo(str("Sign Dimensions: ", sign_width, "mm x ", sign_height, "mm x ", sign_thickness, "mm"));
