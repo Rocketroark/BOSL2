@@ -33,7 +33,7 @@ default_lid_tolerance = 0.3; // [0.1:0.05:0.8]
 default_lid_thickness = 2.0; // [1.0:0.5:4.0]
 
 /* [Container Slot 1] */
-c1_enable = false;
+c1_enable = true;
 c1_type = "token_tray"; // [card_holder, component_bin, dice_tray, token_tray]
 c1_width = 70; // [30:5:200]
 c1_depth = 70; // [30:5:200]
