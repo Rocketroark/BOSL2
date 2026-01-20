@@ -8,7 +8,7 @@
  * - Multiple shape options
  * - Configurable mounting options
  *
- * Version: 1.4.0
+ * Version: 1.6.1
  * Author: Claude AI
  * Date: 2026-01-19
  * License: CC-BY-4.0
@@ -93,6 +93,9 @@ imageOffsetY = 0; // [-100:1:100]
 
 // Image mode
 imageMode = "emboss"; // [emboss, deboss]
+
+// Make embossed elements flush with surface (for smooth face-down printing)
+flush_emboss = false;
 
 /* [QR Code Settings] */
 // Enable QR code
@@ -203,6 +206,34 @@ text_offset_y = 0; // [-100:1:100]
 // Text color
 text_color = "#FF0000";  // color
 
+/* [Auto Layout & Dividers] */
+// Enable automatic element spacing
+enable_auto_layout = false;
+
+// Auto-layout side (which side to arrange)
+auto_layout_side = "front"; // [front, back, both]
+
+// Vertical spacing between elements (in mm)
+element_spacing = 5; // [2:1:20]
+
+// Add dividing lines between elements
+enable_dividers = false;
+
+// Divider line thickness (height)
+divider_thickness = 0.5; // [0.2:0.1:2]
+
+// Divider line width (length)
+divider_width = 60; // [10:5:150]
+
+// Divider style
+divider_style = "line"; // [line, dashed, dotted]
+
+// Divider mode
+divider_mode = "emboss"; // [emboss, deboss]
+
+// Divider color
+divider_color = "#888888";  // color
+
 /* [Advanced Options] */
 // Quality of circles ($fn)
 circle_quality = 64; // [16:4:128]
@@ -258,6 +289,35 @@ module complete_sign() {
                 emboss_qr_code();
             }
 
+            // Subtract debossed dividers
+            if (enable_dividers && enable_auto_layout && divider_mode == "deboss") {
+                // Front side dividers
+                if (auto_layout_side == "front" || auto_layout_side == "both") {
+                    layout_front = calculate_auto_layout("front");
+                    divider_positions_front = layout_front[3];
+
+                    if (divider_positions_front[0] != undef) {
+                        divider_line(divider_positions_front[0], "front");
+                    }
+                    if (divider_positions_front[1] != undef) {
+                        divider_line(divider_positions_front[1], "front");
+                    }
+                }
+
+                // Back side dividers
+                if (auto_layout_side == "back" || auto_layout_side == "both") {
+                    layout_back = calculate_auto_layout("back");
+                    divider_positions_back = layout_back[3];
+
+                    if (divider_positions_back[0] != undef) {
+                        divider_line(divider_positions_back[0], "back");
+                    }
+                    if (divider_positions_back[1] != undef) {
+                        divider_line(divider_positions_back[1], "back");
+                    }
+                }
+            }
+
             // Subtract mounting features
             mounting_features();
         }
@@ -288,6 +348,43 @@ module complete_sign() {
     if (enable_text) {
         color(text_color)
             emboss_text();
+    }
+
+    // Add dividers if enabled and auto-layout is active
+    if (enable_dividers && enable_auto_layout) {
+        // Front side dividers
+        if (auto_layout_side == "front" || auto_layout_side == "both") {
+            layout_front = calculate_auto_layout("front");
+            divider_positions_front = layout_front[3];
+
+            if (divider_mode == "emboss") {
+                color(divider_color) {
+                    if (divider_positions_front[0] != undef) {
+                        divider_line(divider_positions_front[0], "front");
+                    }
+                    if (divider_positions_front[1] != undef) {
+                        divider_line(divider_positions_front[1], "front");
+                    }
+                }
+            }
+        }
+
+        // Back side dividers
+        if (auto_layout_side == "back" || auto_layout_side == "both") {
+            layout_back = calculate_auto_layout("back");
+            divider_positions_back = layout_back[3];
+
+            if (divider_mode == "emboss") {
+                color(divider_color) {
+                    if (divider_positions_back[0] != undef) {
+                        divider_line(divider_positions_back[0], "back");
+                    }
+                    if (divider_positions_back[1] != undef) {
+                        divider_line(divider_positions_back[1], "back");
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -354,11 +451,33 @@ module nfc_cavity() {
 
 module emboss_image() {
     if (imageType != "none") {
+        // Check if auto-layout is enabled for this side
+        use_auto_layout = enable_auto_layout &&
+                          (auto_layout_side == imageSide || auto_layout_side == "both");
+
+        // Get layout positions if auto-layout is enabled
+        layout = use_auto_layout ? calculate_auto_layout(imageSide) : [0, 0, 0, []];
+        auto_y = layout[0];
+
+        // Calculate final Y position
+        final_y = use_auto_layout ? auto_y : imageOffsetY;
+        final_x = imageOffsetX;
+
         // Calculate Z position
         z_base = (imageSide == "front") ? sign_thickness/2 : -sign_thickness/2;
-        z_offset = (imageSide == "front") ? imageThickness/2 : -imageThickness/2;
 
-        translate([imageOffsetX, imageOffsetY, z_base + z_offset]) {
+        // Different positioning for emboss vs deboss
+        if (imageMode == "emboss") {
+            // Emboss: element sits on top of surface (or recessed if flush)
+            z_offset_normal = (imageSide == "front") ? imageThickness/2 : -imageThickness/2;
+            z_offset_flush = (imageSide == "front") ? -imageThickness/2 : imageThickness/2;
+            z_offset = flush_emboss ? z_offset_flush : z_offset_normal;
+        } else {
+            // Deboss: element is positioned to carve into surface when subtracted
+            z_offset = 0; // Centered at surface so it carves in when subtracted
+        }
+
+        translate([final_x, final_y, z_base + z_offset]) {
             image_loader(imageType, svgFile, pngFile, stlFile,
                          imageWidth, imageHeight, imageThickness);
         }
@@ -366,34 +485,81 @@ module emboss_image() {
 }
 
 module emboss_qr_code() {
-    // Calculate corner position
-    qr_pos = get_qr_position(qrCodeCorner, sign_width, sign_height, qrCodeSize);
+    // Check if auto-layout is enabled for this side
+    use_auto_layout = enable_auto_layout &&
+                      (auto_layout_side == qrCodeSide || auto_layout_side == "both");
+
+    // Get layout positions if auto-layout is enabled
+    layout = use_auto_layout ? calculate_auto_layout(qrCodeSide) : [0, 0, 0, []];
+    auto_y = layout[2];
+
+    // Calculate final position
+    if (use_auto_layout) {
+        final_x = qrCodeOffsetX;
+        final_y = auto_y;
+    } else {
+        qr_pos = get_qr_position(qrCodeCorner, sign_width, sign_height, qrCodeSize);
+        final_x = qr_pos[0] + qrCodeOffsetX;
+        final_y = qr_pos[1] + qrCodeOffsetY;
+    }
 
     // Calculate Z position
     z_base = (qrCodeSide == "front") ? sign_thickness/2 : -sign_thickness/2;
-    z_offset = (qrCodeSide == "front") ? qrCodeThickness/2 : -qrCodeThickness/2;
 
-    translate([qr_pos[0] + qrCodeOffsetX, qr_pos[1] + qrCodeOffsetY, z_base + z_offset]) {
+    // Different positioning for emboss vs deboss
+    if (qrCodeMode == "emboss") {
+        // Emboss: element sits on top of surface (or recessed if flush)
+        z_offset_normal = (qrCodeSide == "front") ? qrCodeThickness/2 : -qrCodeThickness/2;
+        z_offset_flush = (qrCodeSide == "front") ? -qrCodeThickness/2 : qrCodeThickness/2;
+        z_offset = flush_emboss ? z_offset_flush : z_offset_normal;
+    } else {
+        // Deboss: element is positioned to carve into surface when subtracted
+        z_offset = 0; // Centered at surface so it carves in when subtracted
+    }
+
+    translate([final_x, final_y, z_base + z_offset]) {
         image_loader(qrCodeType, qrCodeSvgFile, qrCodePngFile, "",
                      qrCodeSize, qrCodeSize, qrCodeThickness);
     }
 }
 
 module emboss_text() {
-    // Calculate preset Y position
-    preset_y = (text_position == "top") ? sign_height/2 - text_size - 3 :
-               (text_position == "bottom") ? -sign_height/2 + 3 :
-               (text_position == "center") ? 0 :
-               0; // custom uses only offsets
+    // Text is always on front for now - could be parameterized
+    text_side = "front";
 
-    // Apply offsets (for custom position or fine-tuning presets)
-    final_x = (text_position == "custom") ? text_offset_x : text_offset_x;
-    final_y = (text_position == "custom") ? text_offset_y : preset_y + text_offset_y;
+    // Check if auto-layout is enabled
+    use_auto_layout = enable_auto_layout &&
+                      (auto_layout_side == text_side || auto_layout_side == "both");
+
+    // Get layout positions if auto-layout is enabled
+    layout = use_auto_layout ? calculate_auto_layout(text_side) : [0, 0, 0, []];
+    auto_y = layout[1];
+
+    // Calculate final position
+    if (use_auto_layout) {
+        final_x = text_offset_x;
+        final_y = auto_y + text_offset_y;
+    } else {
+        // Calculate preset Y position
+        preset_y = (text_position == "top") ? sign_height/2 - text_size - 3 :
+                   (text_position == "bottom") ? -sign_height/2 + 3 :
+                   (text_position == "center") ? 0 :
+                   0; // custom uses only offsets
+
+        // Apply offsets (for custom position or fine-tuning presets)
+        final_x = (text_position == "custom") ? text_offset_x : text_offset_x;
+        final_y = (text_position == "custom") ? text_offset_y : preset_y + text_offset_y;
+    }
 
     // Build font string (format: "FontName:style=StyleName")
     font_string = str(text_font, ":style=", text_style);
 
-    translate([final_x, final_y, sign_thickness/2 + text_thickness/2])
+    // Calculate Z position (text is always on front)
+    z_offset_normal = text_thickness/2;
+    z_offset_flush = -text_thickness/2;
+    z_offset = flush_emboss ? z_offset_flush : z_offset_normal;
+
+    translate([final_x, final_y, sign_thickness/2 + z_offset])
         linear_extrude(height=text_thickness, center=true)
             text(text_string, size=text_size, halign="center", valign="center",
                  font=font_string);
@@ -502,6 +668,52 @@ module adhesive_recess() {
                rounding=2, edges="Z", anchor=CENTER);
 }
 
+module divider_line(y_pos, side) {
+    // Calculate Z position
+    z_base = (side == "front") ? sign_thickness/2 : -sign_thickness/2;
+
+    // Different positioning for emboss vs deboss
+    if (divider_mode == "emboss") {
+        // Emboss: element sits on top of surface (or recessed if flush)
+        z_offset_normal = (side == "front") ? divider_thickness/2 : -divider_thickness/2;
+        z_offset_flush = (side == "front") ? -divider_thickness/2 : divider_thickness/2;
+        z_offset = flush_emboss ? z_offset_flush : z_offset_normal;
+    } else {
+        // Deboss: element is positioned to carve into surface when subtracted
+        z_offset = 0; // Centered at surface so it carves in when subtracted
+    }
+
+    actual_width = min(divider_width, sign_width - 10);
+
+    if (divider_style == "line") {
+        // Solid line
+        translate([0, y_pos, z_base + z_offset])
+            cuboid([actual_width, 0.5, divider_thickness], anchor=CENTER);
+    }
+    else if (divider_style == "dashed") {
+        // Dashed line - 5 segments
+        dash_length = actual_width / 11; // 5 dashes + 4 gaps
+        gap_length = dash_length * 0.5;
+
+        for (i = [0:4]) {
+            x_offset = -actual_width/2 + dash_length/2 + i * (dash_length + gap_length);
+            translate([x_offset, y_pos, z_base + z_offset])
+                cuboid([dash_length, 0.5, divider_thickness], anchor=CENTER);
+        }
+    }
+    else if (divider_style == "dotted") {
+        // Dotted line - multiple small circles
+        dot_count = floor(actual_width / 5);
+        dot_spacing = actual_width / (dot_count - 1);
+
+        for (i = [0:dot_count-1]) {
+            x_offset = -actual_width/2 + i * dot_spacing;
+            translate([x_offset, y_pos, z_base + z_offset])
+                cyl(d=1.5, h=divider_thickness, anchor=CENTER);
+        }
+    }
+}
+
 // ==================== HELPER FUNCTIONS ====================
 
 /*
@@ -514,6 +726,45 @@ function get_qr_position(corner, sign_w, sign_h, qr_size) =
     (corner == "bottom_left") ? [-sign_w/2 + qr_size/2 + 3, -sign_h/2 + qr_size/2 + 3] :
     (corner == "bottom_right") ? [sign_w/2 - qr_size/2 - 3, -sign_h/2 + qr_size/2 + 3] :
     [0, 0];
+
+/*
+ * Calculate auto-layout positions for elements on a given side
+ * Returns [image_y, text_y, qr_y, divider_positions]
+ */
+function calculate_auto_layout(side) =
+    let(
+        // Determine which elements are on this side
+        has_image = (imageType != "none" && imageSide == side),
+        has_text = (enable_text == true),
+        has_qr = (enableQRCode && qrCodeSide == side),
+
+        // Count elements
+        element_count = (has_image ? 1 : 0) + (has_text ? 1 : 0) + (has_qr ? 1 : 0),
+
+        // Calculate element heights
+        image_h = has_image ? imageHeight : 0,
+        text_h = has_text ? text_size : 0,
+        qr_h = has_qr ? qrCodeSize : 0,
+
+        // Total content height including spacing
+        total_height = image_h + text_h + qr_h + (element_count - 1) * element_spacing,
+
+        // Starting Y position (top of content area)
+        start_y = total_height / 2,
+
+        // Calculate positions for each element
+        image_y = has_image ? start_y - image_h/2 : 0,
+        text_y = has_text ? (has_image ? image_y - image_h/2 - element_spacing - text_h/2 : start_y - text_h/2) : 0,
+        qr_y = has_qr ? (has_text ? text_y - text_h/2 - element_spacing - qr_h/2 :
+                         has_image ? image_y - image_h/2 - element_spacing - qr_h/2 :
+                         start_y - qr_h/2) : 0,
+
+        // Calculate divider positions (between elements)
+        div1_y = (has_image && has_text) ? image_y - image_h/2 - element_spacing/2 : undef,
+        div2_y = (has_text && has_qr) ? text_y - text_h/2 - element_spacing/2 :
+                 (has_image && has_qr && !has_text) ? image_y - image_h/2 - element_spacing/2 : undef
+    )
+    [image_y, text_y, qr_y, [div1_y, div2_y]];
 
 /*
  * Generic image loader module that handles SVG, PNG, or STL files
@@ -546,7 +797,7 @@ module octagon(d) {
 // ==================== END ====================
 
 echo("==============================================");
-echo("Parametric NFC Sign Generator v1.4.0");
+echo("Parametric NFC Sign Generator v1.6.1");
 echo("==============================================");
 echo(str("Sign Shape: ", sign_shape));
 echo(str("Sign Dimensions: ", sign_width, "mm x ", sign_height, "mm x ", sign_thickness, "mm"));

@@ -66,6 +66,9 @@ imageSide = "front";          // [front, back]
 imageMode = "emboss";         // [emboss, deboss] - dropdown in customizer
 imageColor = "#00FF00";       // color - for multi-color printing
 
+// Make embossed elements flush with surface (for smooth face-down printing)
+flush_emboss = false;
+
 // Image position adjustments
 // imageOffsetX = 0;          // Move left/right
 // imageOffsetY = 0;          // Move up/down
@@ -139,6 +142,23 @@ enable_text = false;
 // text_offset_x = 0;                    // Fine-tune horizontal position
 // text_offset_y = 0;                    // Fine-tune vertical position
 // text_color = "#FF0000";               // color
+
+// ============================================================
+// AUTO LAYOUT & DIVIDERS
+// ============================================================
+
+// Automatic element spacing (evenly distributes elements)
+enable_auto_layout = false;
+// auto_layout_side = "front";           // [front, back, both]
+// element_spacing = 5;                  // Spacing between elements in mm
+
+// Dividing lines between elements (requires auto-layout)
+enable_dividers = false;
+// divider_thickness = 0.5;              // Line thickness
+// divider_width = 60;                   // Line width
+// divider_style = "line";               // [line, dashed, dotted]
+// divider_mode = "emboss";              // [emboss, deboss]
+// divider_color = "#888888";            // color
 
 // ============================================================
 // RENDER OPTIONS
@@ -215,6 +235,13 @@ TESTING NFC FIT:
 3. Test NFC tag fit
 4. Adjust nfc_tag_diameter if needed (±0.5mm)
 5. Switch back to "assembled" for final print
+
+FLUSH EMBOSS MODE:
+- Set flush_emboss = true to make embossed elements level with surface
+- Elements are recessed into the base instead of raised above it
+- Perfect for face-down printing to get a smooth top surface
+- Print the front face down on the build plate for best finish
+- Works with images, text, QR codes, and dividers
 
 EXPORTING:
 1. Press F6 for full render (may take 30-60 seconds)
