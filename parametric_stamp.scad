@@ -1,6 +1,6 @@
 /*
  * Parametric Stamp Generator
- * Version: 1.0.0
+ * Version: 1.1.0
  *
  * A customizable 3D printable stamp with:
  * - Variable stamp size (width, height, depth)
@@ -8,6 +8,7 @@
  * - Multiple handle styles
  * - Text/script engraving options
  * - Multiple stamp shapes
+ * - Recessed face with raised border (prevents ink overflow)
  *
  * Based on BOSL2 library examples
  * Author: Claude Code
@@ -33,6 +34,17 @@ stamp_depth = 5; // [3:0.5:10]
 
 // Corner radius for rounded shapes (mm)
 corner_radius = 2; // [0:0.5:10]
+
+/* [Face Recess Settings] */
+
+// Enable recessed stamp face (prevents ink overflow)
+enable_face_recess = true;
+
+// Face recess depth (how far to lower center, mm)
+face_recess_depth = 1.0; // [0.3:0.1:3]
+
+// Border width (raised edge around stamp, mm)
+border_width = 3; // [1:0.5:10]
 
 /* [Image Settings] */
 
@@ -168,47 +180,85 @@ module complete_stamp() {
 }
 
 module stamp_base() {
-    difference() {
-        // Create the base stamp shape
-        stamp_body();
+    if (enable_face_recess) {
+        // With recessed face: add raised image/text elements
+        union() {
+            stamp_body();
 
-        // Apply image
-        if (image_type != "none") {
-            apply_image();
+            // Add raised image elements
+            if (image_type != "none") {
+                apply_image_raised();
+            }
+
+            // Add raised text elements
+            if (enable_text && text_content != "") {
+                apply_text_raised();
+            }
         }
+    } else {
+        // Without recess: use traditional subtract method
+        difference() {
+            stamp_body();
 
-        // Apply text
-        if (enable_text && text_content != "") {
-            apply_text();
+            // Subtract image
+            if (image_type != "none") {
+                apply_image();
+            }
+
+            // Subtract text
+            if (enable_text && text_content != "") {
+                apply_text();
+            }
         }
     }
 }
 
 module stamp_body() {
+    difference() {
+        // Main stamp body
+        create_stamp_shape(stamp_width, stamp_height, stamp_depth);
+
+        // Create recessed face if enabled
+        if (enable_face_recess) {
+            // Calculate inset dimensions
+            inset_amount = border_width * 2;
+            inset_width = stamp_width - inset_amount;
+            inset_height = stamp_height - inset_amount;
+
+            // Only create recess if there's room for it
+            if (inset_width > 0 && inset_height > 0) {
+                translate([0, 0, face_recess_depth])
+                    create_stamp_shape(inset_width, inset_height, stamp_depth);
+            }
+        }
+    }
+}
+
+module create_stamp_shape(width, height, depth) {
     if (stamp_shape == "rectangle") {
-        cuboid([stamp_width, stamp_height, stamp_depth],
+        cuboid([width, height, depth],
                rounding=corner_radius,
                edges="Z",
                anchor=BOTTOM);
     }
     else if (stamp_shape == "square") {
-        size = max(stamp_width, stamp_height);
-        cuboid([size, size, stamp_depth],
+        size = max(width, height);
+        cuboid([size, size, depth],
                rounding=corner_radius,
                edges="Z",
                anchor=BOTTOM);
     }
     else if (stamp_shape == "circle") {
-        diameter = max(stamp_width, stamp_height);
-        cyl(d=diameter, h=stamp_depth,
+        diameter = max(width, height);
+        cyl(d=diameter, h=depth,
             rounding2=corner_radius,
             anchor=BOTTOM);
     }
     else if (stamp_shape == "oval") {
-        linear_extrude(height=stamp_depth, center=false, convexity=10)
+        linear_extrude(height=depth, center=false, convexity=10)
             round2d(r=corner_radius)
-                scale([stamp_width/stamp_height, 1])
-                    circle(d=stamp_height);
+                scale([width/height, 1])
+                    circle(d=height);
     }
 }
 
@@ -217,8 +267,29 @@ module apply_image() {
     x_pos = center_image ? 0 : image_offset_x;
     y_pos = center_image ? 0 : image_offset_y;
 
-    // Position for deboss/emboss
+    // Position for deboss/emboss (traditional mode without recess)
     z_pos = (image_mode == "deboss") ? -stamp_depth/2 + image_depth/2 : stamp_depth/2 + image_depth/2;
+
+    translate([x_pos, y_pos, z_pos]) {
+        if (mirror_image) {
+            mirror([1, 0, 0])
+                image_loader(image_type, svg_file, png_file, stl_file,
+                           image_width, image_height, image_depth);
+        } else {
+            image_loader(image_type, svg_file, png_file, stl_file,
+                       image_width, image_height, image_depth);
+        }
+    }
+}
+
+module apply_image_raised() {
+    // Calculate position
+    x_pos = center_image ? 0 : image_offset_x;
+    y_pos = center_image ? 0 : image_offset_y;
+
+    // Position raised from recessed face
+    // Image sits on the recessed face and extends upward
+    z_pos = face_recess_depth + image_depth/2;
 
     translate([x_pos, y_pos, z_pos]) {
         if (mirror_image) {
@@ -277,7 +348,33 @@ module apply_text() {
         y_pos = text_offset_y;
     }
 
+    // Traditional positioning (without recess)
     z_pos = (text_mode == "deboss") ? -stamp_depth/2 + text_depth/2 : stamp_depth/2 + text_depth/2;
+
+    translate([x_pos, y_pos, z_pos])
+        mirror([1, 0, 0])  // Mirror text for proper stamping
+            linear_extrude(height=text_depth, center=true, convexity=10)
+                text(text_content, size=text_size, font=text_font,
+                     halign="center", valign="center");
+}
+
+module apply_text_raised() {
+    // Calculate text position
+    x_pos = (text_position == "custom") ? text_offset_x : 0;
+
+    y_pos = 0;
+    if (text_position == "top") {
+        y_pos = stamp_height/2 - text_size/2 - 2;
+    } else if (text_position == "bottom") {
+        y_pos = -stamp_height/2 + text_size/2 + 2;
+    } else if (text_position == "center") {
+        y_pos = 0;
+    } else {
+        y_pos = text_offset_y;
+    }
+
+    // Position raised from recessed face
+    z_pos = face_recess_depth + text_depth/2;
 
     translate([x_pos, y_pos, z_pos])
         mirror([1, 0, 0])  // Mirror text for proper stamping
@@ -406,10 +503,13 @@ module knurled_grip_cutout() {
 
 // Preview message
 echo("=================================");
-echo("Parametric Stamp Generator v1.0.0");
+echo("Parametric Stamp Generator v1.1.0");
 echo("=================================");
 echo(str("Stamp shape: ", stamp_shape));
 echo(str("Stamp size: ", stamp_width, "mm x ", stamp_height, "mm x ", stamp_depth, "mm"));
+if (enable_face_recess) {
+    echo(str("Face recess: ", face_recess_depth, "mm with ", border_width, "mm border"));
+}
 echo(str("Handle: ", handle_style, " (", enable_handle ? "enabled" : "disabled", ")"));
 echo(str("Image type: ", image_type));
 echo(str("Text: ", enable_text ? text_content : "none"));

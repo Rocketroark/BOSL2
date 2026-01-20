@@ -1,9 +1,10 @@
 /*
  * Parametric Stamp - Quick Start Template
- * Version: 1.0.0
+ * Version: 1.1.0
  *
  * Simplified template for quick stamp creation
  * Upload your image and adjust basic settings
+ * Features recessed face to prevent ink overflow
  *
  * For advanced options, use parametric_stamp.scad
  */
@@ -46,6 +47,15 @@ relief = 1.5; // [0.5:0.1:5]
 // Handle height (mm)
 handle_height = 25; // [10:1:50]
 
+// Enable recessed face (prevents ink overflow)
+enable_recess = true;
+
+// Face recess depth (mm)
+recess_depth = 1.0; // [0.3:0.1:3]
+
+// Border width (mm)
+border = 3; // [1:0.5:10]
+
 // ===========================
 // Main Model
 // ===========================
@@ -53,24 +63,50 @@ handle_height = 25; // [10:1:50]
 $fn = 100;
 
 union() {
-    // Stamp base
-    difference() {
-        // Base shape
-        cuboid([width, height, depth], rounding=2, edges="Z", anchor=BOTTOM);
+    // Stamp base with recessed face
+    if (enable_recess) {
+        union() {
+            // Body with recessed center
+            difference() {
+                cuboid([width, height, depth], rounding=2, edges="Z", anchor=BOTTOM);
+                // Create recess
+                translate([0, 0, recess_depth])
+                    cuboid([width - border*2, height - border*2, depth],
+                           rounding=1, edges="Z", anchor=BOTTOM);
+            }
 
-        // Image
-        translate([0, 0, -depth/2 + relief/2])
-            mirror([1, 0, 0])
-                load_image();
-
-        // Text
-        if (add_text && stamp_text != "") {
-            translate([0, -height/2 + text_size/2 + 2, -depth/2 + 0.4])
+            // Add raised image
+            translate([0, 0, recess_depth + relief/2])
                 mirror([1, 0, 0])
-                    linear_extrude(height=0.8, center=true)
-                        text(stamp_text, size=text_size,
-                             font="Liberation Sans:style=Bold",
-                             halign="center", valign="center");
+                    load_image();
+
+            // Add raised text
+            if (add_text && stamp_text != "") {
+                translate([0, -height/2 + text_size/2 + 2, recess_depth + 0.4])
+                    mirror([1, 0, 0])
+                        linear_extrude(height=0.8, center=true)
+                            text(stamp_text, size=text_size,
+                                 font="Liberation Sans:style=Bold",
+                                 halign="center", valign="center");
+            }
+        }
+    } else {
+        // Traditional stamp (no recess)
+        difference() {
+            cuboid([width, height, depth], rounding=2, edges="Z", anchor=BOTTOM);
+
+            translate([0, 0, -depth/2 + relief/2])
+                mirror([1, 0, 0])
+                    load_image();
+
+            if (add_text && stamp_text != "") {
+                translate([0, -height/2 + text_size/2 + 2, -depth/2 + 0.4])
+                    mirror([1, 0, 0])
+                        linear_extrude(height=0.8, center=true)
+                            text(stamp_text, size=text_size,
+                                 font="Liberation Sans:style=Bold",
+                                 halign="center", valign="center");
+            }
         }
     }
 
@@ -154,6 +190,9 @@ echo("4. Optional: Add text");
 echo("5. Export STL for 3D printing");
 echo("========================================");
 echo(str("Current size: ", width, "mm x ", height, "mm"));
+if (enable_recess) {
+    echo(str("Recessed face: ", recess_depth, "mm with ", border, "mm border"));
+}
 echo(str("Handle: ", handle));
 if (add_text) {
     echo(str("Text: ", stamp_text));

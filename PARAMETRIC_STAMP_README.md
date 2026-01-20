@@ -17,6 +17,14 @@ A fully customizable 3D printable stamp model for OpenSCAD using the BOSL2 libra
 - Adjustable corner radius for rounded edges
 - Size range: 20-100mm width/height
 
+### 🛡️ Recessed Face (NEW in v1.1.0)
+- **Prevents ink overflow** and blotchy stamps
+- Recessed center with raised border
+- Image and text elements extend above the recess as raised stamping surfaces
+- Adjustable recess depth (0.3-3mm)
+- Configurable border width (1-10mm)
+- Can be disabled for traditional flat stamp design
+
 ### 🎯 Handle Options
 Four distinct handle styles:
 - **Cylindrical** - Classic round handle with optional dome top
@@ -91,6 +99,30 @@ Handle customization:
 - **Smooth** - Plain surface
 - **Ridged** - Vertical grip lines
 - **Knurled** - Diamond crosshatch pattern
+
+### Recessed Face Feature
+
+The recessed face is a critical feature for professional stamp quality:
+
+**How it works:**
+- The center of the stamp face is lowered by the recess depth
+- A raised border remains at the original level
+- Image and text elements are raised from the recessed face
+- Only the raised elements (image/text) contact the paper when stamping
+
+**Benefits:**
+- **Prevents ink overflow** - Ink stays on raised elements only
+- **Cleaner impressions** - No blotchy backgrounds
+- **Professional results** - Like commercial rubber stamps
+- **Better control** - Easier to apply even pressure
+
+**Settings:**
+- `enable_face_recess` - Turn feature on/off (default: **true**)
+- `face_recess_depth` - How far to lower the center (default: 1.0mm)
+- `border_width` - Width of raised edge (default: 3mm)
+
+**Important Note:**
+When recess is enabled, image_mode and text_mode are ignored - all elements are automatically raised from the recessed face for proper stamping function.
 
 ## Tips for Best Results
 
@@ -195,6 +227,12 @@ image_depth = 1.2
 - Use F5 (preview) instead of F6 (render)
 
 ## Version History
+
+- **v1.1.0** - Recessed Face Feature
+  - Added recessed stamp face to prevent ink overflow
+  - Configurable recess depth and border width
+  - Image and text elements automatically raised from recessed surface
+  - Improves stamp quality and professional appearance
 
 - **v1.0.0** - Initial release
   - Multiple stamp shapes
