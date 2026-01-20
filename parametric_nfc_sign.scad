@@ -8,7 +8,7 @@
  * - Multiple shape options
  * - Configurable mounting options
  *
- * Version: 1.5.0
+ * Version: 1.6.0
  * Author: Claude AI
  * Date: 2026-01-19
  * License: CC-BY-4.0
@@ -93,6 +93,9 @@ imageOffsetY = 0; // [-100:1:100]
 
 // Image mode
 imageMode = "emboss"; // [emboss, deboss]
+
+// Make embossed elements flush with surface (for smooth face-down printing)
+flush_emboss = false;
 
 /* [QR Code Settings] */
 // Enable QR code
@@ -462,7 +465,10 @@ module emboss_image() {
 
         // Calculate Z position
         z_base = (imageSide == "front") ? sign_thickness/2 : -sign_thickness/2;
-        z_offset = (imageSide == "front") ? imageThickness/2 : -imageThickness/2;
+        // When flush, element is recessed so top is flush with surface
+        z_offset_normal = (imageSide == "front") ? imageThickness/2 : -imageThickness/2;
+        z_offset_flush = (imageSide == "front") ? -imageThickness/2 : imageThickness/2;
+        z_offset = (flush_emboss && imageMode == "emboss") ? z_offset_flush : z_offset_normal;
 
         translate([final_x, final_y, z_base + z_offset]) {
             image_loader(imageType, svgFile, pngFile, stlFile,
@@ -492,7 +498,10 @@ module emboss_qr_code() {
 
     // Calculate Z position
     z_base = (qrCodeSide == "front") ? sign_thickness/2 : -sign_thickness/2;
-    z_offset = (qrCodeSide == "front") ? qrCodeThickness/2 : -qrCodeThickness/2;
+    // When flush, element is recessed so top is flush with surface
+    z_offset_normal = (qrCodeSide == "front") ? qrCodeThickness/2 : -qrCodeThickness/2;
+    z_offset_flush = (qrCodeSide == "front") ? -qrCodeThickness/2 : qrCodeThickness/2;
+    z_offset = (flush_emboss && qrCodeMode == "emboss") ? z_offset_flush : z_offset_normal;
 
     translate([final_x, final_y, z_base + z_offset]) {
         image_loader(qrCodeType, qrCodeSvgFile, qrCodePngFile, "",
@@ -531,7 +540,12 @@ module emboss_text() {
     // Build font string (format: "FontName:style=StyleName")
     font_string = str(text_font, ":style=", text_style);
 
-    translate([final_x, final_y, sign_thickness/2 + text_thickness/2])
+    // Calculate Z position (text is always on front)
+    z_offset_normal = text_thickness/2;
+    z_offset_flush = -text_thickness/2;
+    z_offset = flush_emboss ? z_offset_flush : z_offset_normal;
+
+    translate([final_x, final_y, sign_thickness/2 + z_offset])
         linear_extrude(height=text_thickness, center=true)
             text(text_string, size=text_size, halign="center", valign="center",
                  font=font_string);
@@ -643,7 +657,10 @@ module adhesive_recess() {
 module divider_line(y_pos, side) {
     // Calculate Z position
     z_base = (side == "front") ? sign_thickness/2 : -sign_thickness/2;
-    z_offset = (side == "front") ? divider_thickness/2 : -divider_thickness/2;
+    // When flush, divider is recessed so top is flush with surface
+    z_offset_normal = (side == "front") ? divider_thickness/2 : -divider_thickness/2;
+    z_offset_flush = (side == "front") ? -divider_thickness/2 : divider_thickness/2;
+    z_offset = (flush_emboss && divider_mode == "emboss") ? z_offset_flush : z_offset_normal;
 
     actual_width = min(divider_width, sign_width - 10);
 
@@ -759,7 +776,7 @@ module octagon(d) {
 // ==================== END ====================
 
 echo("==============================================");
-echo("Parametric NFC Sign Generator v1.5.0");
+echo("Parametric NFC Sign Generator v1.6.0");
 echo("==============================================");
 echo(str("Sign Shape: ", sign_shape));
 echo(str("Sign Dimensions: ", sign_width, "mm x ", sign_height, "mm x ", sign_thickness, "mm"));

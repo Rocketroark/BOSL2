@@ -66,6 +66,9 @@ imageSide = "front";          // [front, back]
 imageMode = "emboss";         // [emboss, deboss] - dropdown in customizer
 imageColor = "#00FF00";       // color - for multi-color printing
 
+// Make embossed elements flush with surface (for smooth face-down printing)
+flush_emboss = false;
+
 // Image position adjustments
 // imageOffsetX = 0;          // Move left/right
 // imageOffsetY = 0;          // Move up/down
@@ -232,6 +235,13 @@ TESTING NFC FIT:
 3. Test NFC tag fit
 4. Adjust nfc_tag_diameter if needed (±0.5mm)
 5. Switch back to "assembled" for final print
+
+FLUSH EMBOSS MODE:
+- Set flush_emboss = true to make embossed elements level with surface
+- Elements are recessed into the base instead of raised above it
+- Perfect for face-down printing to get a smooth top surface
+- Print the front face down on the build plate for best finish
+- Works with images, text, QR codes, and dividers
 
 EXPORTING:
 1. Press F6 for full render (may take 30-60 seconds)
