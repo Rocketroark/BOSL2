@@ -8,7 +8,7 @@
  * - Multiple shape options
  * - Configurable mounting options
  *
- * Version: 1.6.0
+ * Version: 1.6.1
  * Author: Claude AI
  * Date: 2026-01-19
  * License: CC-BY-4.0
@@ -465,10 +465,17 @@ module emboss_image() {
 
         // Calculate Z position
         z_base = (imageSide == "front") ? sign_thickness/2 : -sign_thickness/2;
-        // When flush, element is recessed so top is flush with surface
-        z_offset_normal = (imageSide == "front") ? imageThickness/2 : -imageThickness/2;
-        z_offset_flush = (imageSide == "front") ? -imageThickness/2 : imageThickness/2;
-        z_offset = (flush_emboss && imageMode == "emboss") ? z_offset_flush : z_offset_normal;
+
+        // Different positioning for emboss vs deboss
+        if (imageMode == "emboss") {
+            // Emboss: element sits on top of surface (or recessed if flush)
+            z_offset_normal = (imageSide == "front") ? imageThickness/2 : -imageThickness/2;
+            z_offset_flush = (imageSide == "front") ? -imageThickness/2 : imageThickness/2;
+            z_offset = flush_emboss ? z_offset_flush : z_offset_normal;
+        } else {
+            // Deboss: element is positioned to carve into surface when subtracted
+            z_offset = 0; // Centered at surface so it carves in when subtracted
+        }
 
         translate([final_x, final_y, z_base + z_offset]) {
             image_loader(imageType, svgFile, pngFile, stlFile,
@@ -498,10 +505,17 @@ module emboss_qr_code() {
 
     // Calculate Z position
     z_base = (qrCodeSide == "front") ? sign_thickness/2 : -sign_thickness/2;
-    // When flush, element is recessed so top is flush with surface
-    z_offset_normal = (qrCodeSide == "front") ? qrCodeThickness/2 : -qrCodeThickness/2;
-    z_offset_flush = (qrCodeSide == "front") ? -qrCodeThickness/2 : qrCodeThickness/2;
-    z_offset = (flush_emboss && qrCodeMode == "emboss") ? z_offset_flush : z_offset_normal;
+
+    // Different positioning for emboss vs deboss
+    if (qrCodeMode == "emboss") {
+        // Emboss: element sits on top of surface (or recessed if flush)
+        z_offset_normal = (qrCodeSide == "front") ? qrCodeThickness/2 : -qrCodeThickness/2;
+        z_offset_flush = (qrCodeSide == "front") ? -qrCodeThickness/2 : qrCodeThickness/2;
+        z_offset = flush_emboss ? z_offset_flush : z_offset_normal;
+    } else {
+        // Deboss: element is positioned to carve into surface when subtracted
+        z_offset = 0; // Centered at surface so it carves in when subtracted
+    }
 
     translate([final_x, final_y, z_base + z_offset]) {
         image_loader(qrCodeType, qrCodeSvgFile, qrCodePngFile, "",
@@ -657,10 +671,17 @@ module adhesive_recess() {
 module divider_line(y_pos, side) {
     // Calculate Z position
     z_base = (side == "front") ? sign_thickness/2 : -sign_thickness/2;
-    // When flush, divider is recessed so top is flush with surface
-    z_offset_normal = (side == "front") ? divider_thickness/2 : -divider_thickness/2;
-    z_offset_flush = (side == "front") ? -divider_thickness/2 : divider_thickness/2;
-    z_offset = (flush_emboss && divider_mode == "emboss") ? z_offset_flush : z_offset_normal;
+
+    // Different positioning for emboss vs deboss
+    if (divider_mode == "emboss") {
+        // Emboss: element sits on top of surface (or recessed if flush)
+        z_offset_normal = (side == "front") ? divider_thickness/2 : -divider_thickness/2;
+        z_offset_flush = (side == "front") ? -divider_thickness/2 : divider_thickness/2;
+        z_offset = flush_emboss ? z_offset_flush : z_offset_normal;
+    } else {
+        // Deboss: element is positioned to carve into surface when subtracted
+        z_offset = 0; // Centered at surface so it carves in when subtracted
+    }
 
     actual_width = min(divider_width, sign_width - 10);
 
@@ -776,7 +797,7 @@ module octagon(d) {
 // ==================== END ====================
 
 echo("==============================================");
-echo("Parametric NFC Sign Generator v1.6.0");
+echo("Parametric NFC Sign Generator v1.6.1");
 echo("==============================================");
 echo(str("Sign Shape: ", sign_shape));
 echo(str("Sign Dimensions: ", sign_width, "mm x ", sign_height, "mm x ", sign_thickness, "mm"));
