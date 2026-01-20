@@ -1,6 +1,6 @@
 /*
  * Parametric Stamp Generator
- * Version: 1.1.0
+ * Version: 1.2.0
  *
  * A customizable 3D printable stamp with:
  * - Variable stamp size (width, height, depth)
@@ -9,6 +9,7 @@
  * - Text/script engraving options
  * - Multiple stamp shapes
  * - Recessed face with raised border (prevents ink overflow)
+ * - Separate handle printing with socket mount system
  *
  * Based on BOSL2 library examples
  * Author: Claude Code
@@ -89,6 +90,9 @@ mirror_image = true;
 // Enable handle
 enable_handle = true;
 
+// Handle mounting type
+handle_mount = "socket"; // [integrated, socket]
+
 // Handle style
 handle_style = "cylindrical"; // [cylindrical, rectangular, knob, ergonomic, none]
 
@@ -106,6 +110,15 @@ grip_ridges = 8; // [4:1:20]
 
 // Ridge depth (mm)
 ridge_depth = 0.5; // [0.2:0.1:2]
+
+// Socket depth (for separate handle, mm)
+socket_depth = 8; // [5:0.5:15]
+
+// Socket diameter (for separate handle, mm)
+socket_diameter = 12; // [8:0.5:20]
+
+// Socket clearance (extra space for fit, mm)
+socket_clearance = 0.2; // [0:0.05:0.5]
 
 /* [Text/Script Options] */
 
@@ -138,14 +151,11 @@ text_mode = "deboss"; // [emboss, deboss]
 
 /* [Advanced Options] */
 
+// What to render
+render_part = "both"; // [both, stamp_only, handle_only]
+
 // Circle quality (higher = smoother but slower)
 circle_quality = 100; // [20:10:200]
-
-// Show stamp preview
-show_stamp = true;
-
-// Show handle preview
-show_handle = true;
 
 // Render quality
 render_quality = "medium"; // [low, medium, high]
@@ -156,8 +166,14 @@ render_quality = "medium"; // [low, medium, high]
 
 $fn = circle_quality;
 
-if (show_stamp || show_handle) {
+if (render_part == "both") {
     complete_stamp();
+} else if (render_part == "stamp_only") {
+    stamp_assembly();
+} else if (render_part == "handle_only") {
+    if (enable_handle && handle_style != "none") {
+        separate_handle();
+    }
 }
 
 // ===========================
@@ -165,16 +181,33 @@ if (show_stamp || show_handle) {
 // ===========================
 
 module complete_stamp() {
-    union() {
-        // Stamp base
-        if (show_stamp) {
-            stamp_base();
-        }
+    if (handle_mount == "integrated") {
+        // Traditional: stamp and handle printed together
+        union() {
+            stamp_assembly();
 
-        // Handle
-        if (show_handle && enable_handle && handle_style != "none") {
-            translate([0, 0, stamp_depth/2])
-                stamp_handle();
+            if (enable_handle && handle_style != "none") {
+                translate([0, 0, stamp_depth/2])
+                    stamp_handle();
+            }
+        }
+    } else {
+        // Socket mount: show stamp with socket, handle separate
+        stamp_assembly();
+    }
+}
+
+module stamp_assembly() {
+    difference() {
+        // Stamp with raised elements
+        stamp_base();
+
+        // Add socket hole if using socket mount
+        if (enable_handle && handle_style != "none" && handle_mount == "socket") {
+            translate([0, 0, stamp_depth])
+                cyl(d=socket_diameter + socket_clearance,
+                    h=socket_depth*2,
+                    anchor=TOP);
         }
     }
 }
@@ -334,19 +367,22 @@ module image_loader(fileType, svgFile, pngFile, stlFile, imgWidth, imgHeight, im
 }
 
 module apply_text() {
-    // Calculate text position
-    x_pos = (text_position == "custom") ? text_offset_x : 0;
-
-    y_pos = 0;
+    // Calculate base text position
+    base_y = 0;
     if (text_position == "top") {
-        y_pos = stamp_height/2 - text_size/2 - 2;
+        base_y = stamp_height/2 - text_size/2 - 2;
     } else if (text_position == "bottom") {
-        y_pos = -stamp_height/2 + text_size/2 + 2;
+        base_y = -stamp_height/2 + text_size/2 + 2;
     } else if (text_position == "center") {
-        y_pos = 0;
+        base_y = 0;
     } else {
-        y_pos = text_offset_y;
+        // Custom position - use offset directly as position
+        base_y = 0;
     }
+
+    // Apply offsets (always applied for fine-tuning)
+    x_pos = text_offset_x;
+    y_pos = base_y + text_offset_y;
 
     // Traditional positioning (without recess)
     z_pos = (text_mode == "deboss") ? -stamp_depth/2 + text_depth/2 : stamp_depth/2 + text_depth/2;
@@ -359,19 +395,22 @@ module apply_text() {
 }
 
 module apply_text_raised() {
-    // Calculate text position
-    x_pos = (text_position == "custom") ? text_offset_x : 0;
-
-    y_pos = 0;
+    // Calculate base text position
+    base_y = 0;
     if (text_position == "top") {
-        y_pos = stamp_height/2 - text_size/2 - 2;
+        base_y = stamp_height/2 - text_size/2 - 2;
     } else if (text_position == "bottom") {
-        y_pos = -stamp_height/2 + text_size/2 + 2;
+        base_y = -stamp_height/2 + text_size/2 + 2;
     } else if (text_position == "center") {
-        y_pos = 0;
+        base_y = 0;
     } else {
-        y_pos = text_offset_y;
+        // Custom position - use offset directly as position
+        base_y = 0;
     }
+
+    // Apply offsets (always applied for fine-tuning)
+    x_pos = text_offset_x;
+    y_pos = base_y + text_offset_y;
 
     // Position raised from recessed face
     z_pos = face_recess_depth + text_depth/2;
@@ -381,6 +420,23 @@ module apply_text_raised() {
             linear_extrude(height=text_depth, center=true, convexity=10)
                 text(text_content, size=text_size, font=text_font,
                      halign="center", valign="center");
+}
+
+module separate_handle() {
+    // Render handle with mounting peg for socket mount
+    union() {
+        // Main handle body
+        stamp_handle();
+
+        // Add mounting peg if using socket mount
+        if (handle_mount == "socket") {
+            translate([0, 0, -socket_depth/2])
+                cyl(d=socket_diameter,
+                    h=socket_depth,
+                    anchor=TOP,
+                    chamfer2=0.5);
+        }
+    }
 }
 
 module stamp_handle() {
@@ -503,14 +559,20 @@ module knurled_grip_cutout() {
 
 // Preview message
 echo("=================================");
-echo("Parametric Stamp Generator v1.1.0");
+echo("Parametric Stamp Generator v1.2.0");
 echo("=================================");
+echo(str("Rendering: ", render_part));
 echo(str("Stamp shape: ", stamp_shape));
 echo(str("Stamp size: ", stamp_width, "mm x ", stamp_height, "mm x ", stamp_depth, "mm"));
 if (enable_face_recess) {
     echo(str("Face recess: ", face_recess_depth, "mm with ", border_width, "mm border"));
 }
-echo(str("Handle: ", handle_style, " (", enable_handle ? "enabled" : "disabled", ")"));
+if (enable_handle && handle_style != "none") {
+    echo(str("Handle: ", handle_style, " (", handle_mount, " mount)"));
+    if (handle_mount == "socket") {
+        echo(str("Socket: ", socket_diameter, "mm dia x ", socket_depth, "mm deep"));
+    }
+}
 echo(str("Image type: ", image_type));
 echo(str("Text: ", enable_text ? text_content : "none"));
 echo("=================================");

@@ -37,9 +37,33 @@ Handle customization:
 - Variable diameter (15-40mm)
 - Grip patterns: smooth, ridged, knurled
 
+### 🔧 Handle Mounting System (NEW in v1.2.0)
+Two mounting options:
+- **Integrated** - Traditional one-piece design (stamp and handle together)
+- **Socket** - Separate printing with socket mount system
+
+**Socket Mount Benefits:**
+- Print stamp and handle separately for easier printing
+- No support needed for either part
+- Replaceable handles
+- Mix and match different handles with different stamps
+- Better print quality (both parts print flat)
+
+**Socket Parameters:**
+- `socket_diameter` - Peg diameter (default: 12mm)
+- `socket_depth` - How deep the socket goes (default: 8mm)
+- `socket_clearance` - Extra space for fit (default: 0.2mm)
+
+**Printing Workflow:**
+1. Set `render_part` to "stamp_only" and export STL
+2. Set `render_part` to "handle_only" and export STL
+3. Print both parts flat on the build plate
+4. Press handle peg into stamp socket
+
 ### 📝 Text/Script Options
 - Custom text engraving
 - Multiple positioning: top, bottom, center, or custom
+- **Fine-tunable offsets** - X and Y offsets always applied for precise positioning (v1.2.0)
 - Font selection support
 - Adjustable text size (3-20mm)
 - Emboss or deboss modes
@@ -227,6 +251,15 @@ image_depth = 1.2
 - Use F5 (preview) instead of F6 (render)
 
 ## Version History
+
+- **v1.2.0** - Socket Mount System & Text Offset Fix
+  - Added socket mount system for separate handle printing
+  - Handle can now be printed separately and inserted into stamp
+  - Configurable socket diameter, depth, and clearance
+  - New `render_part` parameter (both/stamp_only/handle_only)
+  - **Fixed text Y offset** - offsets now work with all position modes
+  - Text offsets always applied for fine-tuning preset positions
+  - Improved printing workflow with no supports needed
 
 - **v1.1.0** - Recessed Face Feature
   - Added recessed stamp face to prevent ink overflow

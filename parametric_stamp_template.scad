@@ -1,10 +1,11 @@
 /*
  * Parametric Stamp - Quick Start Template
- * Version: 1.1.0
+ * Version: 1.2.0
  *
  * Simplified template for quick stamp creation
  * Upload your image and adjust basic settings
  * Features recessed face to prevent ink overflow
+ * Socket mount system for separate handle printing
  *
  * For advanced options, use parametric_stamp.scad
  */
@@ -25,6 +26,9 @@ height = 30; // [20:1:100]
 // Handle style
 handle = "cylindrical"; // [cylindrical, knob, ergonomic, rectangular, none]
 
+// Handle mount type
+handle_mount = "socket"; // [integrated, socket]
+
 /* [Optional Text] */
 
 // Add text to stamp
@@ -36,7 +40,13 @@ stamp_text = "APPROVED"; // text
 // Text size (mm)
 text_size = 6; // [3:0.5:15]
 
+// Text Y offset (fine-tune position, mm)
+text_offset_y = 0; // [-20:0.5:20]
+
 /* [Advanced] */
+
+// What to render
+render_part = "both"; // [both, stamp_only, handle_only]
 
 // Stamp depth (mm)
 depth = 5; // [3:0.5:10]
@@ -56,13 +66,57 @@ recess_depth = 1.0; // [0.3:0.1:3]
 // Border width (mm)
 border = 3; // [1:0.5:10]
 
+// Socket diameter (for separate handle, mm)
+socket_diameter = 12; // [8:0.5:20]
+
+// Socket depth (for separate handle, mm)
+socket_depth = 8; // [5:0.5:15]
+
 // ===========================
 // Main Model
 // ===========================
 
 $fn = 100;
 
-union() {
+if (render_part == "both") {
+    if (handle_mount == "integrated") {
+        // Traditional: stamp and handle together
+        union() {
+            stamp_body();
+            if (handle != "none") {
+                translate([0, 0, depth/2])
+                    create_handle();
+            }
+        }
+    } else {
+        // Socket mount: show stamp with socket
+        stamp_body();
+    }
+} else if (render_part == "stamp_only") {
+    stamp_body();
+} else if (render_part == "handle_only") {
+    if (handle != "none") {
+        handle_with_peg();
+    }
+}
+
+// ===========================
+// Modules
+// ===========================
+
+module stamp_body() {
+    difference() {
+        stamp_with_elements();
+
+        // Add socket hole if using socket mount
+        if (handle != "none" && handle_mount == "socket") {
+            translate([0, 0, depth])
+                cyl(d=socket_diameter + 0.2, h=socket_depth*2, anchor=TOP);
+        }
+    }
+}
+
+module stamp_with_elements() {
     // Stamp base with recessed face
     if (enable_recess) {
         union() {
@@ -82,7 +136,8 @@ union() {
 
             // Add raised text
             if (add_text && stamp_text != "") {
-                translate([0, -height/2 + text_size/2 + 2, recess_depth + 0.4])
+                base_y = -height/2 + text_size/2 + 2;
+                translate([0, base_y + text_offset_y, recess_depth + 0.4])
                     mirror([1, 0, 0])
                         linear_extrude(height=0.8, center=true)
                             text(stamp_text, size=text_size,
@@ -100,7 +155,8 @@ union() {
                     load_image();
 
             if (add_text && stamp_text != "") {
-                translate([0, -height/2 + text_size/2 + 2, -depth/2 + 0.4])
+                base_y = -height/2 + text_size/2 + 2;
+                translate([0, base_y + text_offset_y, -depth/2 + 0.4])
                     mirror([1, 0, 0])
                         linear_extrude(height=0.8, center=true)
                             text(stamp_text, size=text_size,
@@ -109,17 +165,19 @@ union() {
             }
         }
     }
-
-    // Handle
-    if (handle != "none") {
-        translate([0, 0, depth/2])
-            create_handle();
-    }
 }
 
-// ===========================
-// Modules
-// ===========================
+module handle_with_peg() {
+    union() {
+        create_handle();
+
+        // Add mounting peg if using socket mount
+        if (handle_mount == "socket") {
+            translate([0, 0, -socket_depth/2])
+                cyl(d=socket_diameter, h=socket_depth, anchor=TOP, chamfer2=0.5);
+        }
+    }
+}
 
 module load_image() {
     if (image_file != "default.svg" && image_file != "default.png" && image_file != "default.stl") {
@@ -181,20 +239,27 @@ module create_handle() {
 }
 
 echo("========================================");
-echo("Parametric Stamp - Quick Start Template");
+echo("Parametric Stamp - Quick Start Template v1.2.0");
 echo("========================================");
 echo("1. Upload your image file");
 echo("2. Adjust width and height");
-echo("3. Choose a handle style");
+echo("3. Choose handle style and mount type");
 echo("4. Optional: Add text");
-echo("5. Export STL for 3D printing");
+echo("5. Select what to render (stamp/handle/both)");
+echo("6. Export STL for 3D printing");
 echo("========================================");
-echo(str("Current size: ", width, "mm x ", height, "mm"));
+echo(str("Rendering: ", render_part));
+echo(str("Stamp size: ", width, "mm x ", height, "mm"));
 if (enable_recess) {
     echo(str("Recessed face: ", recess_depth, "mm with ", border, "mm border"));
 }
-echo(str("Handle: ", handle));
+if (handle != "none") {
+    echo(str("Handle: ", handle, " (", handle_mount, " mount)"));
+    if (handle_mount == "socket") {
+        echo(str("Socket: ", socket_diameter, "mm dia x ", socket_depth, "mm deep"));
+    }
+}
 if (add_text) {
-    echo(str("Text: ", stamp_text));
+    echo(str("Text: ", stamp_text, " (offset: ", text_offset_y, "mm)"));
 }
 echo("========================================");
