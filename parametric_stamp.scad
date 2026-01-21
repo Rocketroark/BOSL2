@@ -463,42 +463,53 @@ module apply_text_raised() {
 }
 
 module apply_border() {
-    // Create border path based on stamp shape
-    border_path = create_border_path(stamp_width, stamp_height, stamp_shape, corner_radius, border_inset);
-
     // Position for deboss/emboss
     z_pos = (text_mode == "deboss") ? -stamp_depth/2 + border_depth/2 : stamp_depth/2 + border_depth/2;
 
     translate([0, 0, z_pos])
         linear_extrude(height=border_depth, center=true, convexity=10)
-            stroke(border_path, width=border_stroke_width, closed=true);
+            create_border_shape(stamp_width, stamp_height, stamp_shape, corner_radius, border_inset, border_stroke_width);
 }
 
 module apply_border_raised() {
-    // Create border path based on stamp shape
-    border_path = create_border_path(stamp_width, stamp_height, stamp_shape, corner_radius, border_inset);
-
     // Position raised from recessed face
     z_pos = face_recess_depth + border_depth/2;
 
     translate([0, 0, z_pos])
         linear_extrude(height=border_depth, center=true, convexity=10)
-            stroke(border_path, width=border_stroke_width, closed=true);
+            create_border_shape(stamp_width, stamp_height, stamp_shape, corner_radius, border_inset, border_stroke_width);
 }
 
-// Create border path for different stamp shapes
-function create_border_path(width, height, shape, radius, inset) =
-    let(
-        w = width - inset * 2,
-        h = height - inset * 2
-    )
-    (shape == "rectangle" || shape == "square") ?
-        offset(rect([w, h], rounding=max(0, radius - inset)), delta=0, closed=true)
-    : (shape == "circle") ?
-        circle(d=max(w, h) - inset * 2)
-    : (shape == "oval") ?
-        scale([w/h, 1]) circle(d=h)
-    : rect([w, h]);  // fallback
+// Create border shape for different stamp shapes
+module create_border_shape(width, height, shape, radius, inset, stroke_width) {
+    w = width - inset * 2;
+    h = height - inset * 2;
+
+    if (shape == "rectangle" || shape == "square") {
+        difference() {
+            offset(r=stroke_width/2)
+                rect([w, h], rounding=max(0, radius - inset));
+            offset(r=-stroke_width/2)
+                rect([w, h], rounding=max(0, radius - inset));
+        }
+    } else if (shape == "circle") {
+        difference() {
+            circle(d=max(w, h) + stroke_width);
+            circle(d=max(w, h) - stroke_width);
+        }
+    } else if (shape == "oval") {
+        difference() {
+            scale([w/h, 1]) circle(d=h + stroke_width);
+            scale([w/h, 1]) circle(d=h - stroke_width);
+        }
+    } else {
+        // fallback rectangle
+        difference() {
+            offset(r=stroke_width/2) rect([w, h]);
+            offset(r=-stroke_width/2) rect([w, h]);
+        }
+    }
+}
 
 module separate_handle() {
     // Render handle with mounting peg for socket mount
