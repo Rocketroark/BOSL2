@@ -303,7 +303,7 @@ module stamp_body() {
 
             // Only create recess if there's room for it
             if (inset_width > 0 && inset_height > 0) {
-                translate([0, 0, face_recess_depth])
+                translate([0, 0, stamp_depth - face_recess_depth])
                     create_stamp_shape(inset_width, inset_height, stamp_depth);
             }
         }
@@ -365,7 +365,7 @@ module apply_image_raised() {
 
     // Position raised from recessed face
     // Image sits on the recessed face and extends upward
-    z_pos = face_recess_depth + image_depth/2;
+    z_pos = (stamp_depth - face_recess_depth) + image_depth/2;
 
     translate([x_pos, y_pos, z_pos]) {
         if (mirror_image) {
@@ -465,7 +465,7 @@ module apply_text_raised() {
     y_pos = base_y + text_offset_y;
 
     // Position raised from recessed face
-    z_pos = face_recess_depth + text_depth/2;
+    z_pos = (stamp_depth - face_recess_depth) + text_depth/2;
 
     translate([x_pos, y_pos, z_pos])
         mirror([1, 0, 0])  // Mirror text for proper stamping
@@ -484,7 +484,7 @@ module apply_border() {
 
 module apply_border_raised() {
     // Position raised from recessed face
-    z_pos = face_recess_depth + border_depth/2;
+    z_pos = (stamp_depth - face_recess_depth) + border_depth/2;
 
     translate([0, 0, z_pos])
         linear_extrude(height=border_depth, center=true, convexity=10)

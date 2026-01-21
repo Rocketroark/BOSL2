@@ -132,20 +132,20 @@ module stamp_with_elements() {
             difference() {
                 cuboid([width, height, depth], rounding=2, edges="Z", anchor=BOTTOM);
                 // Create recess
-                translate([0, 0, recess_depth])
+                translate([0, 0, depth - recess_depth])
                     cuboid([width - border*2, height - border*2, depth],
                            rounding=1, edges="Z", anchor=BOTTOM);
             }
 
             // Add raised image
-            translate([0, 0, recess_depth + relief/2])
+            translate([0, 0, (depth - recess_depth) + relief/2])
                 mirror([1, 0, 0])
                     load_image();
 
             // Add raised text
             if (add_text && stamp_text != "") {
                 base_y = -height/2 + text_size/2 + 2;
-                translate([0, base_y + text_offset_y, recess_depth + 0.4])
+                translate([0, base_y + text_offset_y, (depth - recess_depth) + 0.4])
                     mirror([1, 0, 0])
                         linear_extrude(height=0.8, center=true)
                             text(stamp_text, size=text_size,
