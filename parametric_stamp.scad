@@ -235,12 +235,12 @@ module stamp_assembly() {
         // Stamp with raised elements
         stamp_base();
 
-        // Add socket hole if using socket mount
+        // Add socket hole if using socket mount (from the BACK)
         if (enable_handle && handle_style != "none" && handle_mount == "socket") {
-            translate([0, 0, stamp_depth])
+            translate([0, 0, 0])
                 cyl(d=socket_diameter + socket_clearance,
                     h=socket_depth,
-                    anchor=TOP);
+                    anchor=BOTTOM);
         }
     }
 }
