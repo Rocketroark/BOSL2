@@ -116,10 +116,10 @@ module stamp_body() {
     difference() {
         stamp_with_elements();
 
-        // Add socket hole if using socket mount
+        // Add socket hole if using socket mount (from the BACK)
         if (handle != "none" && handle_mount == "socket") {
-            translate([0, 0, depth])
-                cyl(d=socket_diameter + 0.2, h=socket_depth, anchor=TOP);
+            translate([0, 0, 0])
+                cyl(d=socket_diameter + 0.2, h=socket_depth, anchor=BOTTOM);
         }
     }
 }
