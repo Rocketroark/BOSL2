@@ -66,11 +66,19 @@ recess_depth = 1.0; // [0.3:0.1:3]
 // Border width (mm)
 border = 3; // [1:0.5:10]
 
-// Socket diameter (for separate handle, mm)
-socket_diameter = 12; // [8:0.5:20]
+/* [Socket/Insert Settings] */
 
-// Socket depth (for separate handle, mm)
-socket_depth = 8; // [2:0.5:15]
+// Socket hole depth in stamp (mm)
+socket_depth = 6; // [2:0.5:15]
+
+// Socket hole diameter in stamp (mm)
+socket_diameter = 10; // [6:0.5:25]
+
+// Insert peg length on handle (mm)
+insert_length = 6; // [2:0.5:15]
+
+// Insert peg diameter on handle (mm)
+insert_diameter = 10; // [6:0.5:25]
 
 // ===========================
 // Main Model
@@ -173,8 +181,8 @@ module handle_with_peg() {
 
         // Add mounting peg if using socket mount
         if (handle_mount == "socket") {
-            translate([0, 0, -socket_depth/2])
-                cyl(d=socket_diameter, h=socket_depth, anchor=TOP, chamfer2=0.5);
+            translate([0, 0, -insert_length/2])
+                cyl(d=insert_diameter, h=insert_length, anchor=TOP, chamfer2=0.5);
         }
     }
 }
@@ -256,7 +264,8 @@ if (enable_recess) {
 if (handle != "none") {
     echo(str("Handle: ", handle, " (", handle_mount, " mount)"));
     if (handle_mount == "socket") {
-        echo(str("Socket: ", socket_diameter, "mm dia x ", socket_depth, "mm deep"));
+        echo(str("Socket hole: ", socket_diameter, "mm dia x ", socket_depth, "mm deep"));
+        echo(str("Insert peg: ", insert_diameter, "mm dia x ", insert_length, "mm long"));
     }
 }
 if (add_text) {
