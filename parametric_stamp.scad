@@ -1,12 +1,13 @@
 /*
  * Parametric Stamp Generator
- * Version: 1.2.0
+ * Version: 1.3.0
  *
  * A customizable 3D printable stamp with:
  * - Variable stamp size (width, height, depth)
  * - Custom image upload (SVG, PNG, STL)
  * - Multiple handle styles
- * - Text/script engraving options
+ * - Multiline text with customizable spacing and alignment
+ * - Decorative border/stroke options
  * - Multiple stamp shapes
  * - Recessed face with raised border (prevents ink overflow)
  * - Separate handle printing with socket mount system
@@ -18,6 +19,7 @@
 
 // Include BOSL2 library for advanced geometry functions
 include <BOSL2/std.scad>
+include <BOSL2/beziers.scad>
 
 /* [Basic Stamp Parameters] */
 
@@ -125,7 +127,7 @@ socket_clearance = 0.2; // [0:0.05:0.5]
 // Enable text
 enable_text = false;
 
-// Text content
+// Text content (use "/" for line breaks)
 text_content = "CUSTOM"; // text
 
 // Text font
@@ -136,6 +138,12 @@ text_size = 6; // [3:0.5:20]
 
 // Text depth (mm)
 text_depth = 0.8; // [0.3:0.1:3]
+
+// Line spacing (for multiline text)
+line_spacing = 1.2; // [0.8:0.1:2]
+
+// Text alignment (for multiline)
+text_halign = "center"; // [left, center, right]
 
 // Text position
 text_position = "bottom"; // [top, bottom, center, custom]
@@ -148,6 +156,20 @@ text_offset_y = -10; // [-50:1:50]
 
 // Text mode
 text_mode = "deboss"; // [emboss, deboss]
+
+/* [Border/Stroke Options] */
+
+// Enable decorative border
+enable_border = false;
+
+// Border width (mm)
+border_stroke_width = 1.0; // [0.5:0.1:3]
+
+// Border inset from edge (mm)
+border_inset = 2; // [1:0.5:10]
+
+// Border depth (mm)
+border_depth = 0.8; // [0.3:0.1:3]
 
 /* [Advanced Options] */
 
@@ -206,7 +228,7 @@ module stamp_assembly() {
         if (enable_handle && handle_style != "none" && handle_mount == "socket") {
             translate([0, 0, stamp_depth])
                 cyl(d=socket_diameter + socket_clearance,
-                    h=socket_depth*2,
+                    h=socket_depth,
                     anchor=TOP);
         }
     }
@@ -227,6 +249,11 @@ module stamp_base() {
             if (enable_text && text_content != "") {
                 apply_text_raised();
             }
+
+            // Add raised border
+            if (enable_border) {
+                apply_border_raised();
+            }
         }
     } else {
         // Without recess: use traditional subtract method
@@ -241,6 +268,11 @@ module stamp_base() {
             // Subtract text
             if (enable_text && text_content != "") {
                 apply_text();
+            }
+
+            // Subtract border
+            if (enable_border) {
+                apply_border();
             }
         }
     }
@@ -367,12 +399,17 @@ module image_loader(fileType, svgFile, pngFile, stlFile, imgWidth, imgHeight, im
 }
 
 module apply_text() {
+    // Split text into lines
+    lines = split_text(text_content);
+    line_height = text_size * line_spacing;
+    total_height = len(lines) * line_height;
+
     // Calculate base text position
     base_y = 0;
     if (text_position == "top") {
-        base_y = stamp_height/2 - text_size/2 - 2;
+        base_y = stamp_height/2 - total_height/2 - 2;
     } else if (text_position == "bottom") {
-        base_y = -stamp_height/2 + text_size/2 + 2;
+        base_y = -stamp_height/2 + total_height/2 + 2;
     } else if (text_position == "center") {
         base_y = 0;
     } else {
@@ -390,17 +427,21 @@ module apply_text() {
     translate([x_pos, y_pos, z_pos])
         mirror([1, 0, 0])  // Mirror text for proper stamping
             linear_extrude(height=text_depth, center=true, convexity=10)
-                text(text_content, size=text_size, font=text_font,
-                     halign="center", valign="center");
+                render_text_lines(lines, text_size, line_height, text_font, text_halign);
 }
 
 module apply_text_raised() {
+    // Split text into lines
+    lines = split_text(text_content);
+    line_height = text_size * line_spacing;
+    total_height = len(lines) * line_height;
+
     // Calculate base text position
     base_y = 0;
     if (text_position == "top") {
-        base_y = stamp_height/2 - text_size/2 - 2;
+        base_y = stamp_height/2 - total_height/2 - 2;
     } else if (text_position == "bottom") {
-        base_y = -stamp_height/2 + text_size/2 + 2;
+        base_y = -stamp_height/2 + total_height/2 + 2;
     } else if (text_position == "center") {
         base_y = 0;
     } else {
@@ -418,9 +459,46 @@ module apply_text_raised() {
     translate([x_pos, y_pos, z_pos])
         mirror([1, 0, 0])  // Mirror text for proper stamping
             linear_extrude(height=text_depth, center=true, convexity=10)
-                text(text_content, size=text_size, font=text_font,
-                     halign="center", valign="center");
+                render_text_lines(lines, text_size, line_height, text_font, text_halign);
 }
+
+module apply_border() {
+    // Create border path based on stamp shape
+    border_path = create_border_path(stamp_width, stamp_height, stamp_shape, corner_radius, border_inset);
+
+    // Position for deboss/emboss
+    z_pos = (text_mode == "deboss") ? -stamp_depth/2 + border_depth/2 : stamp_depth/2 + border_depth/2;
+
+    translate([0, 0, z_pos])
+        linear_extrude(height=border_depth, center=true, convexity=10)
+            stroke(border_path, width=border_stroke_width, closed=true);
+}
+
+module apply_border_raised() {
+    // Create border path based on stamp shape
+    border_path = create_border_path(stamp_width, stamp_height, stamp_shape, corner_radius, border_inset);
+
+    // Position raised from recessed face
+    z_pos = face_recess_depth + border_depth/2;
+
+    translate([0, 0, z_pos])
+        linear_extrude(height=border_depth, center=true, convexity=10)
+            stroke(border_path, width=border_stroke_width, closed=true);
+}
+
+// Create border path for different stamp shapes
+function create_border_path(width, height, shape, radius, inset) =
+    let(
+        w = width - inset * 2,
+        h = height - inset * 2
+    )
+    (shape == "rectangle" || shape == "square") ?
+        offset(rect([w, h], rounding=max(0, radius - inset)), delta=0, closed=true)
+    : (shape == "circle") ?
+        circle(d=max(w, h) - inset * 2)
+    : (shape == "oval") ?
+        scale([w/h, 1]) circle(d=h)
+    : rect([w, h]);  // fallback
 
 module separate_handle() {
     // Render handle with mounting peg for socket mount
@@ -557,9 +635,25 @@ module knurled_grip_cutout() {
 // Helper Functions
 // ===========================
 
+// Split text by "/" into lines
+function split_text(txt) =
+    search("/", txt) == [] ? [txt] : str_split(txt, "/");
+
+// Render multiple lines of text
+module render_text_lines(lines, size, line_height, font, halign) {
+    total_lines = len(lines);
+    start_y = (total_lines - 1) * line_height / 2;
+
+    for (i = [0:total_lines-1]) {
+        translate([0, start_y - i * line_height, 0])
+            text(lines[i], size=size, font=font,
+                 halign=halign, valign="center");
+    }
+}
+
 // Preview message
 echo("=================================");
-echo("Parametric Stamp Generator v1.2.0");
+echo("Parametric Stamp Generator v1.3.0");
 echo("=================================");
 echo(str("Rendering: ", render_part));
 echo(str("Stamp shape: ", stamp_shape));
@@ -574,5 +668,11 @@ if (enable_handle && handle_style != "none") {
     }
 }
 echo(str("Image type: ", image_type));
-echo(str("Text: ", enable_text ? text_content : "none"));
+if (enable_text) {
+    text_lines = split_text(text_content);
+    echo(str("Text: ", len(text_lines), " line(s) - ", text_halign, " aligned"));
+}
+if (enable_border) {
+    echo(str("Border: ", border_stroke_width, "mm width, ", border_inset, "mm inset"));
+}
 echo("=================================");
