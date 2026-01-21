@@ -1,6 +1,6 @@
 /*
  * Parametric Stamp Generator
- * Version: 1.3.0
+ * Version: 1.4.0
  *
  * A customizable 3D printable stamp with:
  * - Variable stamp size (width, height, depth)
@@ -10,7 +10,7 @@
  * - Decorative border/stroke options
  * - Multiple stamp shapes
  * - Recessed face with raised border (prevents ink overflow)
- * - Separate handle printing with socket mount system
+ * - Separate handle printing with fully customizable socket/insert system
  *
  * Based on BOSL2 library examples
  * Author: Claude Code
@@ -113,14 +113,25 @@ grip_ridges = 8; // [4:1:20]
 // Ridge depth (mm)
 ridge_depth = 0.5; // [0.2:0.1:2]
 
-// Socket depth (for separate handle, mm)
-socket_depth = 8; // [2:0.5:15]
+/* [Socket/Insert Settings] */
 
-// Socket diameter (for separate handle, mm)
-socket_diameter = 12; // [8:0.5:20]
+// Socket hole depth in stamp (mm)
+socket_depth = 6; // [2:0.5:15]
 
-// Socket clearance (extra space for fit, mm)
+// Socket hole diameter in stamp (mm)
+socket_diameter = 10; // [6:0.5:25]
+
+// Socket clearance for fit (mm)
 socket_clearance = 0.2; // [0:0.05:0.5]
+
+// Insert peg length on handle (mm)
+insert_length = 6; // [2:0.5:15]
+
+// Insert peg diameter on handle (mm)
+insert_diameter = 10; // [6:0.5:25]
+
+// Chamfer on peg tip for easy insertion (mm)
+insert_chamfer = 0.5; // [0:0.1:2]
 
 /* [Text/Script Options] */
 
@@ -519,11 +530,11 @@ module separate_handle() {
 
         // Add mounting peg if using socket mount
         if (handle_mount == "socket") {
-            translate([0, 0, -socket_depth/2])
-                cyl(d=socket_diameter,
-                    h=socket_depth,
+            translate([0, 0, -insert_length/2])
+                cyl(d=insert_diameter,
+                    h=insert_length,
                     anchor=TOP,
-                    chamfer2=0.5);
+                    chamfer2=insert_chamfer);
         }
     }
 }
@@ -664,7 +675,7 @@ module render_text_lines(lines, size, line_height, font, halign) {
 
 // Preview message
 echo("=================================");
-echo("Parametric Stamp Generator v1.3.0");
+echo("Parametric Stamp Generator v1.4.0");
 echo("=================================");
 echo(str("Rendering: ", render_part));
 echo(str("Stamp shape: ", stamp_shape));
@@ -675,7 +686,8 @@ if (enable_face_recess) {
 if (enable_handle && handle_style != "none") {
     echo(str("Handle: ", handle_style, " (", handle_mount, " mount)"));
     if (handle_mount == "socket") {
-        echo(str("Socket: ", socket_diameter, "mm dia x ", socket_depth, "mm deep"));
+        echo(str("Socket hole: ", socket_diameter, "mm dia x ", socket_depth, "mm deep (", socket_clearance, "mm clearance)"));
+        echo(str("Insert peg: ", insert_diameter, "mm dia x ", insert_length, "mm long"));
     }
 }
 echo(str("Image type: ", image_type));
