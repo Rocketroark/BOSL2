@@ -182,7 +182,7 @@ module handle_with_peg() {
         // Add mounting peg if using socket mount
         if (handle_mount == "socket") {
             translate([0, 0, 0])
-                cyl(d=insert_diameter, h=insert_length, anchor=TOP, chamfer2=0.5);
+                cyl(d=insert_diameter, h=insert_length, anchor=TOP, chamfer1=0.5);
         }
     }
 }
@@ -240,8 +240,8 @@ module create_handle() {
             cuboid([handle_size, handle_size, handle_height],
                    rounding=1, edges="Z", anchor=BOTTOM);
             translate([0, 0, handle_height])
-                cuboid([handle_size, handle_size, handle_size/2],
-                       rounding=2, anchor=BOTTOM);
+                cuboid([handle_size * 0.9, handle_size * 0.9, handle_size/4],
+                       rounding=1.5, anchor=BOTTOM);
         }
     }
 }
