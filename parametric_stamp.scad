@@ -530,7 +530,7 @@ module separate_handle() {
 
         // Add mounting peg if using socket mount
         if (handle_mount == "socket") {
-            translate([0, 0, -insert_length/2])
+            translate([0, 0, 0])
                 cyl(d=insert_diameter,
                     h=insert_length,
                     anchor=TOP,
@@ -579,12 +579,12 @@ module rectangular_handle() {
         union() {
             // Main rectangular body
             cuboid([handle_diameter, handle_diameter, handle_height],
-                   rounding=2, edges="Z", anchor=BOTTOM);
+                   rounding=1, edges="Z", anchor=BOTTOM);
 
             // Top rounded cap
             translate([0, 0, handle_height])
                 cuboid([handle_diameter, handle_diameter, handle_diameter/2],
-                       rounding=handle_diameter/4, anchor=BOTTOM);
+                       rounding=2, anchor=BOTTOM);
         }
 
         // Apply grip pattern
