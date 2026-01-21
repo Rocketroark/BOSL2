@@ -238,10 +238,10 @@ module create_handle() {
     else if (handle == "rectangular") {
         union() {
             cuboid([handle_size, handle_size, handle_height],
-                   rounding=2, edges="Z", anchor=BOTTOM);
+                   rounding=1, edges="Z", anchor=BOTTOM);
             translate([0, 0, handle_height])
                 cuboid([handle_size, handle_size, handle_size/2],
-                       rounding=handle_size/4, anchor=BOTTOM);
+                       rounding=2, anchor=BOTTOM);
         }
     }
 }

@@ -579,12 +579,12 @@ module rectangular_handle() {
         union() {
             // Main rectangular body
             cuboid([handle_diameter, handle_diameter, handle_height],
-                   rounding=2, edges="Z", anchor=BOTTOM);
+                   rounding=1, edges="Z", anchor=BOTTOM);
 
             // Top rounded cap
             translate([0, 0, handle_height])
                 cuboid([handle_diameter, handle_diameter, handle_diameter/2],
-                       rounding=handle_diameter/4, anchor=BOTTOM);
+                       rounding=2, anchor=BOTTOM);
         }
 
         // Apply grip pattern
