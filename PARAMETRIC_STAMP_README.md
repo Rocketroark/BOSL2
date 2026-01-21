@@ -62,12 +62,23 @@ Two mounting options:
 
 ### 📝 Text/Script Options
 - Custom text engraving
+- **Multiline text support** - Use "/" for line breaks (v1.3.0)
+- **Adjustable line spacing** - Control spacing between lines (v1.3.0)
+- **Text alignment** - Left, center, or right for multiline text (v1.3.0)
 - Multiple positioning: top, bottom, center, or custom
 - **Fine-tunable offsets** - X and Y offsets always applied for precise positioning (v1.2.0)
 - Font selection support
 - Adjustable text size (3-20mm)
 - Emboss or deboss modes
 - Automatic text mirroring for stamping
+
+### 🎨 Border/Stroke Options (NEW in v1.3.0)
+- **Decorative border** around stamp design
+- Adjustable stroke width (0.5-3mm)
+- Configurable inset from edge
+- Border depth control
+- Works with all stamp shapes
+- Automatically raised on recessed face
 
 ## Files
 
@@ -251,6 +262,15 @@ image_depth = 1.2
 - Use F5 (preview) instead of F6 (render)
 
 ## Version History
+
+- **v1.3.0** - Multiline Text & Decorative Borders
+  - **Multiline text support** - Use "/" as line separator (e.g., "LINE 1/LINE 2")
+  - Line spacing control for multiline text
+  - Text alignment options (left, center, right)
+  - **Decorative border/stroke system** - Add visual borders around stamp
+  - Border width, inset, and depth controls
+  - Borders work with all stamp shapes
+  - Integrated BOSL2 beziers library for stroke functions
 
 - **v1.2.0** - Socket Mount System & Text Offset Fix
   - Added socket mount system for separate handle printing

@@ -111,7 +111,7 @@ module stamp_body() {
         // Add socket hole if using socket mount
         if (handle != "none" && handle_mount == "socket") {
             translate([0, 0, depth])
-                cyl(d=socket_diameter + 0.2, h=socket_depth*2, anchor=TOP);
+                cyl(d=socket_diameter + 0.2, h=socket_depth, anchor=TOP);
         }
     }
 }
