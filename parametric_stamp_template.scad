@@ -70,7 +70,7 @@ border = 3; // [1:0.5:10]
 socket_diameter = 12; // [8:0.5:20]
 
 // Socket depth (for separate handle, mm)
-socket_depth = 8; // [5:0.5:15]
+socket_depth = 8; // [2:0.5:15]
 
 // ===========================
 // Main Model

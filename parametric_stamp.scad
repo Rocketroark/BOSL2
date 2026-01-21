@@ -114,7 +114,7 @@ grip_ridges = 8; // [4:1:20]
 ridge_depth = 0.5; // [0.2:0.1:2]
 
 // Socket depth (for separate handle, mm)
-socket_depth = 8; // [5:0.5:15]
+socket_depth = 8; // [2:0.5:15]
 
 // Socket diameter (for separate handle, mm)
 socket_diameter = 12; // [8:0.5:20]
