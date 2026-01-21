@@ -530,7 +530,7 @@ module separate_handle() {
 
         // Add mounting peg if using socket mount
         if (handle_mount == "socket") {
-            translate([0, 0, -insert_length/2])
+            translate([0, 0, 0])
                 cyl(d=insert_diameter,
                     h=insert_length,
                     anchor=TOP,
