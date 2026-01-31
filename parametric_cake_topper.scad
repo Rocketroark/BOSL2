@@ -100,22 +100,10 @@ tab_count = 2; // [1:1:5]
 // Tab extension length (mm)
 tab_length = 3; // [1:0.5:5]
 
-// Tab width (mm)
-tab_width = 5; // [2:0.5:15]
-
-// Tab thickness (mm) - defaults to text thickness if 0
-tab_thickness = 0; // [0:0.5:5]
-
-// Tab spacing (mm, for multiple tabs)
-tab_spacing = 20; // [5:5:80]
-
-// Round tab ends
-tab_rounded = true;
-
 /* [Advanced Options] */
 
 // What to render
-render_part = "complete"; // [complete, topper_only, attachment_only]
+render_part = "complete"; // [complete, topper_only]
 
 // Horizontal offset for text on topper (mm)
 text_offset_x = 0; // [-50:1:50]
@@ -143,8 +131,6 @@ if (render_part == "complete") {
     complete_topper();
 } else if (render_part == "topper_only") {
     topper_assembly();
-} else if (render_part == "attachment_only") {
-    attachment_assembly();
 }
 
 // ===========================
@@ -152,15 +138,8 @@ if (render_part == "complete") {
 // ===========================
 
 module complete_topper() {
-    union() {
-        // Main topper with text
-        topper_assembly();
-
-        // Attachment mechanism
-        if (attachment_type != "none") {
-            attachment_assembly();
-        }
-    }
+    // Topper with integrated attachment tabs
+    topper_assembly();
 }
 
 module topper_assembly() {
@@ -181,34 +160,54 @@ module topper_assembly() {
     }
 }
 
-module attachment_assembly() {
-    if (attachment_type == "vertical") {
-        vertical_attachment();
-    } else if (attachment_type == "horizontal") {
-        horizontal_attachment();
-    }
-}
 
 // ===========================
 // Topper Style Modules
 // ===========================
 
 module script_topper() {
-    // Pure text topper - text stands alone
+    // Pure text topper with integrated attachment tabs
+    text_bounds = get_text_bounds();
+
     color_part("topper") {
         translate([text_offset_x, text_offset_y, 0])
-            linear_extrude(height=text_thickness, convexity=10)
-                render_multiline_text();
+            linear_extrude(height=text_thickness, convexity=10) {
+                union() {
+                    // Main text
+                    render_multiline_text();
+
+                    // Integrated attachment tabs (same 2D shape, extruded together)
+                    if (attachment_type == "vertical") {
+                        for (i = [0:tab_count-1]) {
+                            x_offset = (i - (tab_count-1)/2) * (text_bounds[0] / max(tab_count, 1));
+                            // Tab extending down from bottom of text
+                            translate([x_offset, -text_bounds[1]/2 - tab_length/2])
+                                square([3, tab_length], center=true);
+                        }
+                    }
+                }
+            }
+
+        // Horizontal tabs extend from the face (Z direction)
+        if (attachment_type == "horizontal") {
+            for (i = [0:tab_count-1]) {
+                x_offset = (i - (tab_count-1)/2) * (text_bounds[0] / max(tab_count, 1));
+                translate([x_offset, -text_bounds[1]/2 - 1.5, text_thickness])
+                    cube([3, 3, tab_length]);
+            }
+        }
     }
 }
 
 module block_topper() {
-    // Text with optional backing plate
+    // Text with optional backing plate and integrated tabs
+    text_bounds = get_text_bounds();
+
     union() {
-        // Backing plate if enabled
+        // Backing plate if enabled (with integrated tabs)
         if (enable_backing) {
             color_part("backing") {
-                backing_plate();
+                backing_plate_with_tabs();
             }
         }
 
@@ -217,6 +216,13 @@ module block_topper() {
             translate([text_offset_x, text_offset_y, enable_backing ? backing_thickness : 0])
                 linear_extrude(height=text_thickness, convexity=10)
                     render_multiline_text();
+        }
+
+        // If no backing, add tabs directly to text
+        if (!enable_backing && attachment_type != "none") {
+            color_part("topper") {
+                attachment_tabs(text_bounds);
+            }
         }
 
         // Optional border
@@ -238,12 +244,33 @@ module block_topper() {
 }
 
 module heart_topper() {
-    // Heart-shaped backing with text
+    // Heart-shaped backing with text and integrated tabs
     union() {
-        // Heart backing
+        // Heart backing with tabs
         color_part("backing") {
-            linear_extrude(height=backing_thickness, convexity=10)
-                heart_shape(shape_width, shape_height);
+            linear_extrude(height=backing_thickness, convexity=10) {
+                union() {
+                    heart_shape(shape_width, shape_height);
+
+                    // Vertical tabs at bottom of heart
+                    if (attachment_type == "vertical") {
+                        for (i = [0:tab_count-1]) {
+                            x_offset = (i - (tab_count-1)/2) * (shape_width * 0.4 / max(tab_count, 1));
+                            translate([x_offset, -shape_height * 0.65 - tab_length/2])
+                                square([3, tab_length], center=true);
+                        }
+                    }
+                }
+            }
+
+            // Horizontal tabs
+            if (attachment_type == "horizontal") {
+                for (i = [0:tab_count-1]) {
+                    x_offset = (i - (tab_count-1)/2) * (shape_width * 0.4 / max(tab_count, 1));
+                    translate([x_offset - 1.5, -shape_height * 0.65 - 1.5, backing_thickness])
+                        cube([3, 3, tab_length]);
+                }
+            }
         }
 
         // Text on heart
@@ -265,11 +292,14 @@ module heart_topper() {
 }
 
 module banner_topper() {
-    // Ribbon/banner shaped backing with text
+    // Ribbon/banner shaped backing with text and integrated tabs
+    text_bounds = get_text_bounds();
+    banner_height = text_bounds[1] + backing_margin * 2;
+
     union() {
-        // Banner backing
+        // Banner backing with tabs
         color_part("backing") {
-            banner_shape();
+            banner_shape_with_tabs();
         }
 
         // Text on banner
@@ -282,13 +312,34 @@ module banner_topper() {
 }
 
 module oval_topper() {
-    // Oval-shaped backing with text
+    // Oval-shaped backing with text and integrated tabs
     union() {
-        // Oval backing
+        // Oval backing with tabs
         color_part("backing") {
-            linear_extrude(height=backing_thickness, convexity=10)
-                scale([shape_width/shape_height, 1])
-                    circle(d=shape_height);
+            linear_extrude(height=backing_thickness, convexity=10) {
+                union() {
+                    scale([shape_width/shape_height, 1])
+                        circle(d=shape_height);
+
+                    // Vertical tabs
+                    if (attachment_type == "vertical") {
+                        for (i = [0:tab_count-1]) {
+                            x_offset = (i - (tab_count-1)/2) * (shape_width * 0.5 / max(tab_count, 1));
+                            translate([x_offset, -shape_height/2 - tab_length/2])
+                                square([3, tab_length], center=true);
+                        }
+                    }
+                }
+            }
+
+            // Horizontal tabs
+            if (attachment_type == "horizontal") {
+                for (i = [0:tab_count-1]) {
+                    x_offset = (i - (tab_count-1)/2) * (shape_width * 0.5 / max(tab_count, 1));
+                    translate([x_offset - 1.5, -shape_height/2 - 1.5, backing_thickness])
+                        cube([3, 3, tab_length]);
+                }
+            }
         }
 
         // Text on oval
@@ -315,16 +366,37 @@ module oval_topper() {
 }
 
 module rectangular_topper() {
-    // Rectangular backing with rounded corners
+    // Rectangular backing with rounded corners and integrated tabs
     text_bounds = get_text_bounds();
     plate_width = text_bounds[0] + backing_margin * 2;
     plate_height = text_bounds[1] + backing_margin * 2;
 
     union() {
-        // Rectangular backing
+        // Rectangular backing with tabs
         color_part("backing") {
-            linear_extrude(height=backing_thickness, convexity=10)
-                rect([plate_width, plate_height], rounding=backing_corner_radius);
+            linear_extrude(height=backing_thickness, convexity=10) {
+                union() {
+                    rect([plate_width, plate_height], rounding=backing_corner_radius);
+
+                    // Vertical tabs
+                    if (attachment_type == "vertical") {
+                        for (i = [0:tab_count-1]) {
+                            x_offset = (i - (tab_count-1)/2) * (plate_width * 0.6 / max(tab_count, 1));
+                            translate([x_offset, -plate_height/2 - tab_length/2])
+                                square([3, tab_length], center=true);
+                        }
+                    }
+                }
+            }
+
+            // Horizontal tabs
+            if (attachment_type == "horizontal") {
+                for (i = [0:tab_count-1]) {
+                    x_offset = (i - (tab_count-1)/2) * (plate_width * 0.6 / max(tab_count, 1));
+                    translate([x_offset - 1.5, -plate_height/2 - 1.5, backing_thickness])
+                        cube([3, 3, tab_length]);
+                }
+            }
         }
 
         // Text
@@ -354,64 +426,6 @@ module rectangular_topper() {
             color_part("decoration") {
                 translate([0, 0, backing_thickness])
                     apply_rectangular_decorations(plate_width, plate_height);
-            }
-        }
-    }
-}
-
-// ===========================
-// Attachment Modules
-// ===========================
-
-module vertical_attachment() {
-    // Short tabs extending down from bottom of text (for inserting into cake)
-    text_bounds = get_text_bounds();
-    actual_thickness = tab_thickness > 0 ? tab_thickness : text_thickness;
-
-    color_part("attachment") {
-        for (i = [0:tab_count-1]) {
-            x_offset = (i - (tab_count-1)/2) * tab_spacing;
-            // Position at bottom of text, extending downward
-            translate([x_offset, -text_bounds[1]/2 - tab_length/2, actual_thickness/2]) {
-                if (tab_rounded) {
-                    // Rounded tab (pill shape)
-                    hull() {
-                        translate([0, tab_length/2 - tab_width/2, 0])
-                            cyl(d=tab_width, h=actual_thickness, anchor=CENTER);
-                        translate([0, -tab_length/2 + tab_width/2, 0])
-                            cyl(d=tab_width, h=actual_thickness, anchor=CENTER);
-                    }
-                } else {
-                    // Rectangular tab
-                    cuboid([tab_width, tab_length, actual_thickness], anchor=CENTER);
-                }
-            }
-        }
-    }
-}
-
-module horizontal_attachment() {
-    // Flat tabs extending from the face of the text (for laying flat on cake)
-    text_bounds = get_text_bounds();
-    actual_thickness = tab_thickness > 0 ? tab_thickness : text_thickness;
-
-    color_part("attachment") {
-        for (i = [0:tab_count-1]) {
-            x_offset = (i - (tab_count-1)/2) * tab_spacing;
-            // Position at bottom of text, extending outward from face (in Z direction)
-            translate([x_offset, -text_bounds[1]/2, text_thickness + tab_length/2]) {
-                if (tab_rounded) {
-                    // Rounded tab (pill shape)
-                    hull() {
-                        translate([0, 0, -tab_length/2 + tab_width/2])
-                            cyl(d=tab_width, h=actual_thickness, anchor=CENTER, orient=FRONT);
-                        translate([0, 0, tab_length/2 - tab_width/2])
-                            cyl(d=tab_width, h=actual_thickness, anchor=CENTER, orient=FRONT);
-                    }
-                } else {
-                    // Rectangular tab
-                    cuboid([tab_width, actual_thickness, tab_length], anchor=CENTER);
-                }
             }
         }
     }
@@ -455,37 +469,66 @@ module heart_border() {
 }
 
 module banner_shape() {
-    // Ribbon/banner shape
+    // Ribbon/banner shape (2D)
     text_bounds = get_text_bounds();
     banner_width = text_bounds[0] + backing_margin * 4;
     banner_height = text_bounds[1] + backing_margin * 2;
     ribbon_extend = banner_width * 0.15;
     ribbon_notch = banner_height * 0.3;
 
+    union() {
+        // Main banner body
+        rect([banner_width, banner_height], rounding=2);
+
+        // Left ribbon tail
+        translate([-banner_width/2 - ribbon_extend/2, 0, 0])
+            polygon(points=[
+                [ribbon_extend/2, banner_height/2],
+                [-ribbon_extend/2, banner_height/2],
+                [-ribbon_extend/2, -banner_height/2],
+                [ribbon_extend/2, -banner_height/2],
+                [ribbon_extend/2 - ribbon_notch, 0]
+            ]);
+
+        // Right ribbon tail
+        translate([banner_width/2 + ribbon_extend/2, 0, 0])
+            polygon(points=[
+                [-ribbon_extend/2, banner_height/2],
+                [ribbon_extend/2, banner_height/2],
+                [ribbon_extend/2, -banner_height/2],
+                [-ribbon_extend/2, -banner_height/2],
+                [-ribbon_extend/2 + ribbon_notch, 0]
+            ]);
+    }
+}
+
+module banner_shape_with_tabs() {
+    // Ribbon/banner shape with integrated tabs
+    text_bounds = get_text_bounds();
+    banner_width = text_bounds[0] + backing_margin * 4;
+    banner_height = text_bounds[1] + backing_margin * 2;
+
     linear_extrude(height=backing_thickness, convexity=10) {
         union() {
-            // Main banner body
-            rect([banner_width, banner_height], rounding=2);
+            banner_shape();
 
-            // Left ribbon tail
-            translate([-banner_width/2 - ribbon_extend/2, 0, 0])
-                polygon(points=[
-                    [ribbon_extend/2, banner_height/2],
-                    [-ribbon_extend/2, banner_height/2],
-                    [-ribbon_extend/2, -banner_height/2],
-                    [ribbon_extend/2, -banner_height/2],
-                    [ribbon_extend/2 - ribbon_notch, 0]
-                ]);
+            // Vertical tabs
+            if (attachment_type == "vertical") {
+                for (i = [0:tab_count-1]) {
+                    x_offset = (i - (tab_count-1)/2) * (banner_width * 0.5 / max(tab_count, 1));
+                    translate([x_offset, -banner_height/2 - tab_length/2])
+                        square([3, tab_length], center=true);
+                }
+            }
+        }
+    }
 
-            // Right ribbon tail
-            translate([banner_width/2 + ribbon_extend/2, 0, 0])
-                polygon(points=[
-                    [-ribbon_extend/2, banner_height/2],
-                    [ribbon_extend/2, banner_height/2],
-                    [ribbon_extend/2, -banner_height/2],
-                    [-ribbon_extend/2, -banner_height/2],
-                    [-ribbon_extend/2 + ribbon_notch, 0]
-                ]);
+    // Horizontal tabs
+    if (attachment_type == "horizontal") {
+        for (i = [0:tab_count-1]) {
+            x_offset = (i - (tab_count-1)/2) * (banner_width * 0.5 / max(tab_count, 1));
+            translate([x_offset - 1.5, -banner_height/2 - 1.5, backing_thickness])
+                cube([3, 3, tab_length]);
         }
     }
 }
@@ -498,6 +541,57 @@ module backing_plate() {
 
     linear_extrude(height=backing_thickness, convexity=10)
         rect([plate_width, plate_height], rounding=backing_corner_radius);
+}
+
+module backing_plate_with_tabs() {
+    // Backing plate with integrated attachment tabs
+    text_bounds = get_text_bounds();
+    plate_width = text_bounds[0] + backing_margin * 2;
+    plate_height = text_bounds[1] + backing_margin * 2;
+
+    linear_extrude(height=backing_thickness, convexity=10) {
+        union() {
+            // Main plate
+            rect([plate_width, plate_height], rounding=backing_corner_radius);
+
+            // Vertical tabs
+            if (attachment_type == "vertical") {
+                for (i = [0:tab_count-1]) {
+                    x_offset = (i - (tab_count-1)/2) * (plate_width * 0.6 / max(tab_count, 1));
+                    translate([x_offset, -plate_height/2 - tab_length/2])
+                        square([3, tab_length], center=true);
+                }
+            }
+        }
+    }
+
+    // Horizontal tabs extend from face
+    if (attachment_type == "horizontal") {
+        for (i = [0:tab_count-1]) {
+            x_offset = (i - (tab_count-1)/2) * (plate_width * 0.6 / max(tab_count, 1));
+            translate([x_offset - 1.5, -plate_height/2 - 1.5, backing_thickness])
+                cube([3, 3, tab_length]);
+        }
+    }
+}
+
+module attachment_tabs(bounds) {
+    // Standalone attachment tabs for toppers without backing
+    if (attachment_type == "vertical") {
+        linear_extrude(height=text_thickness, convexity=10) {
+            for (i = [0:tab_count-1]) {
+                x_offset = (i - (tab_count-1)/2) * (bounds[0] * 0.6 / max(tab_count, 1));
+                translate([x_offset, -bounds[1]/2 - tab_length/2])
+                    square([3, tab_length], center=true);
+            }
+        }
+    } else if (attachment_type == "horizontal") {
+        for (i = [0:tab_count-1]) {
+            x_offset = (i - (tab_count-1)/2) * (bounds[0] * 0.6 / max(tab_count, 1));
+            translate([x_offset - 1.5, -bounds[1]/2 - 1.5, text_thickness])
+                cube([3, 3, tab_length]);
+        }
+    }
 }
 
 // ===========================
@@ -685,9 +779,7 @@ echo(str("Font: ", text_font));
 echo(str("Text size: ", text_size, "mm"));
 echo(str("Attachment: ", attachment_type));
 if (attachment_type != "none") {
-    echo(str("  Tabs: ", tab_count, " x ", tab_width, "mm wide x ", tab_length, "mm long"));
-    echo(str("  Spacing: ", tab_spacing, "mm"));
-    echo(str("  Rounded: ", tab_rounded));
+    echo(str("  Tabs: ", tab_count, " x ", tab_length, "mm long"));
 }
 if (enable_backing) {
     echo(str("Backing: ", backing_margin, "mm margin, ", backing_thickness, "mm thick"));
