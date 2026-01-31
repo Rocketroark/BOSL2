@@ -179,33 +179,46 @@ module script_topper() {
     tab_overlap = 2;
 
     color_part("topper") {
-        translate([text_offset_x, text_offset_y, 0])
-            linear_extrude(height=text_thickness, convexity=10) {
-                union() {
-                    // Main text
-                    render_multiline_text();
-
-                    // Vertical: tabs extend from inside text area downward
-                    // Tab overlaps with text by tab_overlap mm to ensure connection
-                    if (attachment_type == "vertical") {
+        translate([text_offset_x, text_offset_y, 0]) {
+            if (attachment_type == "vertical") {
+                // Vertical: extrude text + tabs together as one 2D shape
+                linear_extrude(height=text_thickness, convexity=10) {
+                    union() {
+                        render_multiline_text();
+                        // Tabs extend from inside text area downward
                         for (i = [0:tab_count-1]) {
                             x_offset = (i - (tab_count-1)/2) * (text_bounds[0] / max(tab_count, 1));
-                            // Tab starts inside text area and extends down
                             translate([x_offset, -text_bounds[1]/2 + tab_overlap/2 - tab_length/2])
                                 square([3, tab_length + tab_overlap], center=true);
                         }
                     }
                 }
-            }
+            } else if (attachment_type == "horizontal") {
+                // Horizontal: extrude text normally, then extend parts of the text further in -Z
+                union() {
+                    // Base text at normal thickness
+                    linear_extrude(height=text_thickness, convexity=10)
+                        render_multiline_text();
 
-        // Horizontal: pegs extend DOWN from back face, overlapping with text
-        // Peg starts inside text (z=0) and extends down
-        if (attachment_type == "horizontal") {
-            for (i = [0:tab_count-1]) {
-                x_offset = (i - (tab_count-1)/2) * (text_bounds[0] / max(tab_count, 1));
-                // Position at bottom of text area (y) where letters sit on baseline
-                translate([x_offset, -text_bounds[1]/4, 0])
-                    cyl(d=3, h=tab_length, anchor=TOP);
+                    // Extended pegs: the TEXT ITSELF extruded further down
+                    // Use intersection so only the text shape (not empty space) extends
+                    for (i = [0:tab_count-1]) {
+                        x_offset = (i - (tab_count-1)/2) * (text_bounds[0] / max(tab_count, 1));
+                        intersection() {
+                            // The text shape extruded downward
+                            translate([0, 0, -tab_length])
+                                linear_extrude(height=tab_length, convexity=10)
+                                    render_multiline_text();
+                            // Mask cylinder to limit where the extension happens
+                            translate([x_offset, 0, -tab_length])
+                                cyl(d=text_size * 0.8, h=tab_length, anchor=BOTTOM, $fn=32);
+                        }
+                    }
+                }
+            } else {
+                // No attachment - just the text
+                linear_extrude(height=text_thickness, convexity=10)
+                    render_multiline_text();
             }
         }
     }
@@ -214,6 +227,7 @@ module script_topper() {
 module block_topper() {
     // Text with optional backing plate and integrated tabs
     text_bounds = get_text_bounds();
+    tab_overlap = 2;
 
     union() {
         // Backing plate if enabled (with integrated tabs)
@@ -221,19 +235,49 @@ module block_topper() {
             color_part("backing") {
                 backing_plate_with_tabs();
             }
-        }
-
-        // Raised text on top of backing
-        color_part("topper") {
-            translate([text_offset_x, text_offset_y, enable_backing ? backing_thickness : 0])
-                linear_extrude(height=text_thickness, convexity=10)
-                    render_multiline_text();
-        }
-
-        // If no backing, add tabs directly to text
-        if (!enable_backing && attachment_type != "none") {
+            // Raised text on top of backing
             color_part("topper") {
-                attachment_tabs(text_bounds);
+                translate([text_offset_x, text_offset_y, backing_thickness])
+                    linear_extrude(height=text_thickness, convexity=10)
+                        render_multiline_text();
+            }
+        } else {
+            // No backing - handle attachments integrated with text
+            color_part("topper") {
+                translate([text_offset_x, text_offset_y, 0]) {
+                    if (attachment_type == "vertical") {
+                        // Vertical tabs as part of 2D shape
+                        linear_extrude(height=text_thickness, convexity=10) {
+                            union() {
+                                render_multiline_text();
+                                for (i = [0:tab_count-1]) {
+                                    x_offset = (i - (tab_count-1)/2) * (text_bounds[0] * 0.6 / max(tab_count, 1));
+                                    translate([x_offset, -text_bounds[1]/2 + tab_overlap/2 - tab_length/2])
+                                        square([3, tab_length + tab_overlap], center=true);
+                                }
+                            }
+                        }
+                    } else if (attachment_type == "horizontal") {
+                        // Horizontal: text extended in -Z direction
+                        union() {
+                            linear_extrude(height=text_thickness, convexity=10)
+                                render_multiline_text();
+                            for (i = [0:tab_count-1]) {
+                                x_offset = (i - (tab_count-1)/2) * (text_bounds[0] * 0.6 / max(tab_count, 1));
+                                intersection() {
+                                    translate([0, 0, -tab_length])
+                                        linear_extrude(height=tab_length, convexity=10)
+                                            render_multiline_text();
+                                    translate([x_offset, 0, -tab_length])
+                                        cyl(d=text_size * 0.8, h=tab_length, anchor=BOTTOM, $fn=32);
+                                }
+                            }
+                        }
+                    } else {
+                        linear_extrude(height=text_thickness, convexity=10)
+                            render_multiline_text();
+                    }
+                }
             }
         }
 
