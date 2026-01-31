@@ -40,6 +40,12 @@ text_alignment = "center"; // [left, center, right]
 // Letter spacing adjustment
 letter_spacing = 1.0; // [0.5:0.05:2]
 
+// Add connecting bar for multiline text (keeps lines as one piece)
+enable_connector = false;
+
+// Connector bar width (mm)
+connector_width = 2; // [1:0.5:5]
+
 /* [Topper Style] */
 
 // Topper style
@@ -169,6 +175,9 @@ module script_topper() {
     // Pure text topper with integrated attachment tabs
     text_bounds = get_text_bounds();
 
+    // Tab overlap: how far tabs extend INTO the text area to ensure connection
+    tab_overlap = 2;
+
     color_part("topper") {
         translate([text_offset_x, text_offset_y, 0])
             linear_extrude(height=text_thickness, convexity=10) {
@@ -176,23 +185,27 @@ module script_topper() {
                     // Main text
                     render_multiline_text();
 
-                    // Vertical: tabs extend down from bottom edge (same plane as text)
+                    // Vertical: tabs extend from inside text area downward
+                    // Tab overlaps with text by tab_overlap mm to ensure connection
                     if (attachment_type == "vertical") {
                         for (i = [0:tab_count-1]) {
                             x_offset = (i - (tab_count-1)/2) * (text_bounds[0] / max(tab_count, 1));
-                            translate([x_offset, -text_bounds[1]/2 - tab_length/2])
-                                square([3, tab_length], center=true);
+                            // Tab starts inside text area and extends down
+                            translate([x_offset, -text_bounds[1]/2 + tab_overlap/2 - tab_length/2])
+                                square([3, tab_length + tab_overlap], center=true);
                         }
                     }
                 }
             }
 
-        // Horizontal: small pegs extend DOWN from back face of text (into cake when laid flat)
+        // Horizontal: pegs extend DOWN from back face, overlapping with text
+        // Peg starts inside text (z=0) and extends down
         if (attachment_type == "horizontal") {
             for (i = [0:tab_count-1]) {
                 x_offset = (i - (tab_count-1)/2) * (text_bounds[0] / max(tab_count, 1));
-                translate([x_offset, 0, -tab_length])
-                    cyl(d=3, h=tab_length, anchor=BOTTOM);
+                // Position at bottom of text area (y) where letters sit on baseline
+                translate([x_offset, -text_bounds[1]/4, 0])
+                    cyl(d=3, h=tab_length, anchor=TOP);
             }
         }
     }
@@ -576,20 +589,25 @@ module backing_plate_with_tabs() {
 
 module attachment_tabs(bounds) {
     // Standalone attachment tabs for toppers without backing
+    // Tab overlap ensures connection with text geometry
+    tab_overlap = 2;
+
     if (attachment_type == "vertical") {
         linear_extrude(height=text_thickness, convexity=10) {
             for (i = [0:tab_count-1]) {
                 x_offset = (i - (tab_count-1)/2) * (bounds[0] * 0.6 / max(tab_count, 1));
-                translate([x_offset, -bounds[1]/2 - tab_length/2])
-                    square([3, tab_length], center=true);
+                // Tab extends into text area by tab_overlap to ensure connection
+                translate([x_offset, -bounds[1]/2 + tab_overlap/2 - tab_length/2])
+                    square([3, tab_length + tab_overlap], center=true);
             }
         }
     } else if (attachment_type == "horizontal") {
         // Horizontal: pegs extend DOWN from back face (into cake when laid flat)
         for (i = [0:tab_count-1]) {
             x_offset = (i - (tab_count-1)/2) * (bounds[0] * 0.6 / max(tab_count, 1));
-            translate([x_offset, 0, -tab_length])
-                cyl(d=3, h=tab_length, anchor=BOTTOM);
+            // Position at bottom of text area where letters sit
+            translate([x_offset, -bounds[1]/4, 0])
+                cyl(d=3, h=tab_length, anchor=TOP);
         }
     }
 }
@@ -697,18 +715,29 @@ module star(n, r, ir) {
 module render_multiline_text() {
     lines = split_text(text_content);
     line_height = text_size * line_spacing;
+    total_height = len(lines) * line_height;
 
     // Center the text block vertically
     start_y = (len(lines) - 1) * line_height / 2;
 
-    for (i = [0:len(lines)-1]) {
-        translate([0, start_y - i * line_height, 0])
-            text(lines[i],
-                 size=text_size,
-                 font=text_font,
-                 halign=text_alignment,
-                 valign="center",
-                 spacing=letter_spacing);
+    union() {
+        // Render each line of text
+        for (i = [0:len(lines)-1]) {
+            translate([0, start_y - i * line_height, 0])
+                text(lines[i],
+                     size=text_size,
+                     font=text_font,
+                     halign=text_alignment,
+                     valign="center",
+                     spacing=letter_spacing);
+        }
+
+        // Add connecting bar for multiline text if enabled
+        if (enable_connector && len(lines) > 1) {
+            // Vertical bar connecting all lines
+            translate([0, 0, 0])
+                square([connector_width, total_height], center=true);
+        }
     }
 }
 
