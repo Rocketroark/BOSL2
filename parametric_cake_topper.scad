@@ -1,12 +1,12 @@
 /*
  * Parametric Cake Topper Generator
- * Version: 1.0.0
+ * Version: 1.2.0
  *
  * A customizable 3D printable cake topper with:
  * - Custom text with multiple fonts and sizes
  * - Multiline text support (use "/" for line breaks)
  * - Multiple topper styles (script, block, heart, banner, oval)
- * - Various attachment methods (sticks, stakes, posts, base, clip)
+ * - Simple attachment tabs (vertical or horizontal, 1-5mm)
  * - Decorative elements and borders
  *
  * Based on BOSL2 library
@@ -69,7 +69,7 @@ shape_height = 60; // [30:1:150]
 enable_border = false;
 
 // Border style
-border_style = "simple"; // [simple, double, dotted, wavy]
+border_style = "simple"; // [simple, double, dotted]
 
 // Border width (mm)
 border_width = 1.5; // [0.5:0.1:5]
@@ -91,38 +91,26 @@ decoration_size = 4; // [2:0.5:15]
 
 /* [Attachment Settings] */
 
-// Attachment type
-attachment_type = "sticks"; // [sticks, stake, single_post, flat_base, clip, none]
+// Attachment orientation
+attachment_type = "vertical"; // [vertical, horizontal, none]
 
-// Number of sticks/stakes
-stick_count = 2; // [1:1:5]
+// Number of tabs/extensions
+tab_count = 2; // [1:1:5]
 
-// Stick/stake length (mm)
-stick_length = 80; // [30:5:150]
+// Tab extension length (mm)
+tab_length = 3; // [1:0.5:5]
 
-// Stick/stake diameter (mm)
-stick_diameter = 3; // [2:0.5:8]
+// Tab width (mm)
+tab_width = 5; // [2:0.5:15]
 
-// Stick spacing (mm, for multiple sticks)
-stick_spacing = 40; // [10:5:100]
+// Tab thickness (mm) - defaults to text thickness if 0
+tab_thickness = 0; // [0:0.5:5]
 
-// Stick taper (pointed end)
-stick_taper = true;
+// Tab spacing (mm, for multiple tabs)
+tab_spacing = 20; // [5:5:80]
 
-// Taper length (mm)
-taper_length = 15; // [5:1:30]
-
-// Post/stake base plate diameter (mm)
-base_diameter = 20; // [10:1:50]
-
-// Base plate thickness (mm)
-base_thickness = 3; // [1:0.5:8]
-
-// Clip opening width (mm)
-clip_opening = 8; // [3:0.5:20]
-
-// Clip depth (mm)
-clip_depth = 15; // [5:1:30]
+// Round tab ends
+tab_rounded = true;
 
 /* [Advanced Options] */
 
@@ -194,16 +182,10 @@ module topper_assembly() {
 }
 
 module attachment_assembly() {
-    if (attachment_type == "sticks") {
-        stick_attachment();
-    } else if (attachment_type == "stake") {
-        stake_attachment();
-    } else if (attachment_type == "single_post") {
-        single_post_attachment();
-    } else if (attachment_type == "flat_base") {
-        flat_base_attachment();
-    } else if (attachment_type == "clip") {
-        clip_attachment();
+    if (attachment_type == "vertical") {
+        vertical_attachment();
+    } else if (attachment_type == "horizontal") {
+        horizontal_attachment();
     }
 }
 
@@ -381,138 +363,55 @@ module rectangular_topper() {
 // Attachment Modules
 // ===========================
 
-module stick_attachment() {
-    // Multiple sticks for inserting into cake
-    color_part("attachment") {
-        for (i = [0:stick_count-1]) {
-            x_offset = (i - (stick_count-1)/2) * stick_spacing;
-            translate([x_offset, 0, -stick_length]) {
-                if (stick_taper) {
-                    tapered_stick();
-                } else {
-                    cyl(d=stick_diameter, h=stick_length, anchor=BOTTOM);
-                }
-            }
-        }
-    }
-}
-
-module tapered_stick() {
-    // Stick with pointed end for easy insertion
-    union() {
-        // Main stick body
-        cyl(d=stick_diameter, h=stick_length - taper_length, anchor=BOTTOM);
-
-        // Tapered point
-        translate([0, 0, 0])
-            cyl(d1=0.5, d2=stick_diameter, h=taper_length, anchor=TOP);
-    }
-}
-
-module stake_attachment() {
-    // Wide stake-style attachment with base
-    color_part("attachment") {
-        // Base plate
-        translate([0, 0, 0])
-            cyl(d=base_diameter, h=base_thickness, anchor=TOP);
-
-        // Stakes
-        for (i = [0:stick_count-1]) {
-            x_offset = (i - (stick_count-1)/2) * (base_diameter * 0.5);
-            translate([x_offset, 0, -stick_length - base_thickness]) {
-                if (stick_taper) {
-                    tapered_stick();
-                } else {
-                    cyl(d=stick_diameter, h=stick_length, anchor=BOTTOM);
-                }
-            }
-        }
-    }
-}
-
-module single_post_attachment() {
-    // Single central post
-    color_part("attachment") {
-        // Reinforced base
-        hull() {
-            translate([0, 0, 0])
-                cyl(d=base_diameter, h=base_thickness, anchor=TOP);
-            translate([0, 0, -base_thickness * 2])
-                cyl(d=stick_diameter * 2, h=base_thickness, anchor=TOP);
-        }
-
-        // Main post
-        translate([0, 0, -stick_length - base_thickness * 2]) {
-            if (stick_taper) {
-                union() {
-                    cyl(d=stick_diameter * 1.5, h=stick_length - taper_length, anchor=BOTTOM);
-                    translate([0, 0, 0])
-                        cyl(d1=0.5, d2=stick_diameter * 1.5, h=taper_length, anchor=TOP);
-                }
-            } else {
-                cyl(d=stick_diameter * 1.5, h=stick_length, anchor=BOTTOM);
-            }
-        }
-    }
-}
-
-module flat_base_attachment() {
-    // Flat base for sitting on top of cake (no insertion)
+module vertical_attachment() {
+    // Short tabs extending down from bottom of text (for inserting into cake)
     text_bounds = get_text_bounds();
-    base_width = max(text_bounds[0] + backing_margin * 4, base_diameter * 2);
-    base_depth = base_diameter;
+    actual_thickness = tab_thickness > 0 ? tab_thickness : text_thickness;
 
     color_part("attachment") {
-        translate([0, -text_bounds[1]/2 - base_depth/2, 0]) {
-            // Main base
-            difference() {
-                hull() {
-                    translate([0, 0, -base_thickness/2])
-                        cuboid([base_width, base_depth, base_thickness],
-                               rounding=2, edges="Z", anchor=TOP);
-                    translate([0, base_depth/4, 0])
-                        cuboid([base_width * 0.8, base_depth/2, base_thickness/2],
-                               rounding=1, anchor=TOP);
+        for (i = [0:tab_count-1]) {
+            x_offset = (i - (tab_count-1)/2) * tab_spacing;
+            // Position at bottom of text, extending downward
+            translate([x_offset, -text_bounds[1]/2 - tab_length/2, actual_thickness/2]) {
+                if (tab_rounded) {
+                    // Rounded tab (pill shape)
+                    hull() {
+                        translate([0, tab_length/2 - tab_width/2, 0])
+                            cyl(d=tab_width, h=actual_thickness, anchor=CENTER);
+                        translate([0, -tab_length/2 + tab_width/2, 0])
+                            cyl(d=tab_width, h=actual_thickness, anchor=CENTER);
+                    }
+                } else {
+                    // Rectangular tab
+                    cuboid([tab_width, tab_length, actual_thickness], anchor=CENTER);
                 }
-
-                // Optional adhesive recess
-                translate([0, 0, -base_thickness + 0.5])
-                    cuboid([base_width * 0.6, base_depth * 0.6, 1], anchor=TOP);
             }
         }
     }
 }
 
-module clip_attachment() {
-    // Clip for attaching to edge of cake
+module horizontal_attachment() {
+    // Flat tabs extending from the face of the text (for laying flat on cake)
     text_bounds = get_text_bounds();
-    clip_width = max(text_bounds[0] * 0.6, 30);
-    wall_thickness = 2;
+    actual_thickness = tab_thickness > 0 ? tab_thickness : text_thickness;
 
     color_part("attachment") {
-        translate([0, -text_bounds[1]/2 - clip_depth/2 + wall_thickness, 0]) {
-            difference() {
-                // Outer clip body
-                hull() {
-                    translate([0, 0, 0])
-                        cuboid([clip_width, wall_thickness * 2, base_thickness],
-                               rounding=1, anchor=TOP);
-                    translate([0, -clip_depth/2, -clip_opening - base_thickness])
-                        cuboid([clip_width, clip_depth, wall_thickness],
-                               rounding=1, anchor=TOP);
+        for (i = [0:tab_count-1]) {
+            x_offset = (i - (tab_count-1)/2) * tab_spacing;
+            // Position at bottom of text, extending outward from face (in Z direction)
+            translate([x_offset, -text_bounds[1]/2, text_thickness + tab_length/2]) {
+                if (tab_rounded) {
+                    // Rounded tab (pill shape)
+                    hull() {
+                        translate([0, 0, -tab_length/2 + tab_width/2])
+                            cyl(d=tab_width, h=actual_thickness, anchor=CENTER, orient=FRONT);
+                        translate([0, 0, tab_length/2 - tab_width/2])
+                            cyl(d=tab_width, h=actual_thickness, anchor=CENTER, orient=FRONT);
+                    }
+                } else {
+                    // Rectangular tab
+                    cuboid([tab_width, actual_thickness, tab_length], anchor=CENTER);
                 }
-
-                // Inner clip opening
-                translate([0, -clip_depth/2 + wall_thickness, -base_thickness])
-                    cuboid([clip_width - wall_thickness * 2, clip_depth, clip_opening + 1],
-                           rounding=0.5, anchor=TOP);
-            }
-
-            // Grip ridges inside clip
-            for (i = [0:2]) {
-                translate([0, -wall_thickness - i * 3, -base_thickness - clip_opening/2])
-                    rotate([0, 90, 0])
-                        cyl(d=1, h=clip_width - wall_thickness * 4, $fn=20);
             }
         }
     }
@@ -635,10 +534,8 @@ module decorative_border() {
     } else if (border_style == "dotted") {
         // Dotted border
         dot_count = floor((plate_width + plate_height) * 2 / (border_width * 3));
-        perimeter = (plate_width + plate_height) * 2;
 
         for (i = [0:dot_count-1]) {
-            angle = i * 360 / dot_count;
             pos = get_rect_perimeter_point(plate_width - border_offset * 2,
                                            plate_height - border_offset * 2,
                                            i / dot_count);
@@ -706,7 +603,6 @@ module star(n, r, ir) {
 module render_multiline_text() {
     lines = split_text(text_content);
     line_height = text_size * line_spacing;
-    total_height = len(lines) * line_height;
 
     // Center the text block vertically
     start_y = (len(lines) - 1) * line_height / 2;
@@ -747,14 +643,9 @@ function get_rect_perimeter_point(w, h, t) =
     let(
         perimeter = 2 * (w + h),
         pos = t * perimeter,
-        // Top edge
         top_end = w,
-        // Right edge
         right_end = w + h,
-        // Bottom edge
-        bottom_end = 2 * w + h,
-        // Left edge
-        left_end = perimeter
+        bottom_end = 2 * w + h
     )
     pos < top_end ? [pos - w/2, h/2] :
     pos < right_end ? [w/2, h/2 - (pos - top_end)] :
@@ -785,7 +676,7 @@ module color_part(part_type) {
 // ===========================
 
 echo("=====================================");
-echo("Parametric Cake Topper Generator v1.0.0");
+echo("Parametric Cake Topper Generator v1.2.0");
 echo("=====================================");
 echo(str("Rendering: ", render_part));
 echo(str("Topper style: ", topper_style));
@@ -793,10 +684,10 @@ echo(str("Text: \"", text_content, "\""));
 echo(str("Font: ", text_font));
 echo(str("Text size: ", text_size, "mm"));
 echo(str("Attachment: ", attachment_type));
-if (attachment_type == "sticks" || attachment_type == "stake") {
-    echo(str("  Sticks: ", stick_count, " x ", stick_diameter, "mm dia x ", stick_length, "mm long"));
-    echo(str("  Spacing: ", stick_spacing, "mm"));
-    echo(str("  Tapered: ", stick_taper));
+if (attachment_type != "none") {
+    echo(str("  Tabs: ", tab_count, " x ", tab_width, "mm wide x ", tab_length, "mm long"));
+    echo(str("  Spacing: ", tab_spacing, "mm"));
+    echo(str("  Rounded: ", tab_rounded));
 }
 if (enable_backing) {
     echo(str("Backing: ", backing_margin, "mm margin, ", backing_thickness, "mm thick"));
