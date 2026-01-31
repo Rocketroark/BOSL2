@@ -176,11 +176,10 @@ module script_topper() {
                     // Main text
                     render_multiline_text();
 
-                    // Integrated attachment tabs (same 2D shape, extruded together)
+                    // Vertical: tabs extend down from bottom edge (same plane as text)
                     if (attachment_type == "vertical") {
                         for (i = [0:tab_count-1]) {
                             x_offset = (i - (tab_count-1)/2) * (text_bounds[0] / max(tab_count, 1));
-                            // Tab extending down from bottom of text
                             translate([x_offset, -text_bounds[1]/2 - tab_length/2])
                                 square([3, tab_length], center=true);
                         }
@@ -188,12 +187,12 @@ module script_topper() {
                 }
             }
 
-        // Horizontal tabs extend from the face (Z direction)
+        // Horizontal: small pegs extend DOWN from back face of text (into cake when laid flat)
         if (attachment_type == "horizontal") {
             for (i = [0:tab_count-1]) {
                 x_offset = (i - (tab_count-1)/2) * (text_bounds[0] / max(tab_count, 1));
-                translate([x_offset, -text_bounds[1]/2 - 1.5, text_thickness])
-                    cube([3, 3, tab_length]);
+                translate([x_offset, 0, -tab_length])
+                    cyl(d=3, h=tab_length, anchor=BOTTOM);
             }
         }
     }
@@ -263,12 +262,12 @@ module heart_topper() {
                 }
             }
 
-            // Horizontal tabs
+            // Horizontal: pegs extend DOWN from back face (into cake when laid flat)
             if (attachment_type == "horizontal") {
                 for (i = [0:tab_count-1]) {
                     x_offset = (i - (tab_count-1)/2) * (shape_width * 0.4 / max(tab_count, 1));
-                    translate([x_offset - 1.5, -shape_height * 0.65 - 1.5, backing_thickness])
-                        cube([3, 3, tab_length]);
+                    translate([x_offset, 0, -tab_length])
+                        cyl(d=3, h=tab_length, anchor=BOTTOM);
                 }
             }
         }
@@ -332,12 +331,12 @@ module oval_topper() {
                 }
             }
 
-            // Horizontal tabs
+            // Horizontal: pegs extend DOWN from back face (into cake when laid flat)
             if (attachment_type == "horizontal") {
                 for (i = [0:tab_count-1]) {
                     x_offset = (i - (tab_count-1)/2) * (shape_width * 0.5 / max(tab_count, 1));
-                    translate([x_offset - 1.5, -shape_height/2 - 1.5, backing_thickness])
-                        cube([3, 3, tab_length]);
+                    translate([x_offset, 0, -tab_length])
+                        cyl(d=3, h=tab_length, anchor=BOTTOM);
                 }
             }
         }
@@ -389,12 +388,12 @@ module rectangular_topper() {
                 }
             }
 
-            // Horizontal tabs
+            // Horizontal: pegs extend DOWN from back face (into cake when laid flat)
             if (attachment_type == "horizontal") {
                 for (i = [0:tab_count-1]) {
                     x_offset = (i - (tab_count-1)/2) * (plate_width * 0.6 / max(tab_count, 1));
-                    translate([x_offset - 1.5, -plate_height/2 - 1.5, backing_thickness])
-                        cube([3, 3, tab_length]);
+                    translate([x_offset, 0, -tab_length])
+                        cyl(d=3, h=tab_length, anchor=BOTTOM);
                 }
             }
         }
@@ -523,12 +522,12 @@ module banner_shape_with_tabs() {
         }
     }
 
-    // Horizontal tabs
+    // Horizontal: pegs extend DOWN from back face (into cake when laid flat)
     if (attachment_type == "horizontal") {
         for (i = [0:tab_count-1]) {
             x_offset = (i - (tab_count-1)/2) * (banner_width * 0.5 / max(tab_count, 1));
-            translate([x_offset - 1.5, -banner_height/2 - 1.5, backing_thickness])
-                cube([3, 3, tab_length]);
+            translate([x_offset, 0, -tab_length])
+                cyl(d=3, h=tab_length, anchor=BOTTOM);
         }
     }
 }
@@ -565,12 +564,12 @@ module backing_plate_with_tabs() {
         }
     }
 
-    // Horizontal tabs extend from face
+    // Horizontal: pegs extend DOWN from back face (into cake when laid flat)
     if (attachment_type == "horizontal") {
         for (i = [0:tab_count-1]) {
             x_offset = (i - (tab_count-1)/2) * (plate_width * 0.6 / max(tab_count, 1));
-            translate([x_offset - 1.5, -plate_height/2 - 1.5, backing_thickness])
-                cube([3, 3, tab_length]);
+            translate([x_offset, 0, -tab_length])
+                cyl(d=3, h=tab_length, anchor=BOTTOM);
         }
     }
 }
@@ -586,10 +585,11 @@ module attachment_tabs(bounds) {
             }
         }
     } else if (attachment_type == "horizontal") {
+        // Horizontal: pegs extend DOWN from back face (into cake when laid flat)
         for (i = [0:tab_count-1]) {
             x_offset = (i - (tab_count-1)/2) * (bounds[0] * 0.6 / max(tab_count, 1));
-            translate([x_offset - 1.5, -bounds[1]/2 - 1.5, text_thickness])
-                cube([3, 3, tab_length]);
+            translate([x_offset, 0, -tab_length])
+                cyl(d=3, h=tab_length, anchor=BOTTOM);
         }
     }
 }
