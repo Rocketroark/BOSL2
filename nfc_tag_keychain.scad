@@ -47,6 +47,9 @@ stlFile1 = "default.stl"; // file
 // Logo raised height above surface (in mm)
 logo1Thickness = 0.5;
 
+// Keep logo flush with keychain face so it can lie flat
+logo1Flush = true;
+
 // Logo color (for multi-color printing)
 logo1Color = "#00FF00";  // color
 
@@ -83,6 +86,9 @@ logo2Thickness = 0.5;
 
 // Logo color for back side
 logo2Color = "#00FF00";  // color
+
+// Keep back logo flush with keychain face so it can lie flat
+logo2Flush = true;
 
 // Logo dimensions for back side
 logo2Width = 22;
@@ -283,6 +289,31 @@ module logo(logoType, logoOffsetX, logoOffsetY, logoWidth, logoHeight, logoThick
     }
 }
 
+// True when an actual logo file is selected (not placeholder default)
+function logo_present(logoType, svgFile, pngFile, stlFile) =
+    (logoType == "svg" && svgFile != "default.svg") ||
+    (logoType == "png" && pngFile != "default.png") ||
+    (logoType == "stl" && stlFile != "default.stl");
+
+// Front logo recess used to make the logo inlay sit flush with the face
+module logo1_recess() {
+    if (logo1Flush && logo_present(logo1Type, svgFile1, pngFile1, stlFile1)) {
+        translate([0, 0, keychain_thickness + bevel_radius - logo1Thickness])
+            logo(logo1Type, logo1OffsetX, logo1OffsetY, logo1Width, logo1Height,
+                 logo1Thickness + 0.02, svgFile1, pngFile1, stlFile1);
+    }
+}
+
+// Back logo recess used to make the logo inlay sit flush with the face
+module logo2_recess() {
+    if (logo2Enabled && logo2Flush && logo_present(logo2Type, svgFile2, pngFile2, stlFile2)) {
+        translate([0, 0, -bevel_radius])
+            rotate([0, 180, 0])
+                logo(logo2Type, logo2OffsetX, logo2OffsetY, logo2Width, logo2Height,
+                     logo2Thickness + 0.02, svgFile2, pngFile2, stlFile2);
+    }
+}
+
 /*
  * Creates a recessed hole for embedding the NFC tag
  */
@@ -307,12 +338,14 @@ color(tag_color)
             keychain_square();
         }
         nfc_hole();
+        logo1_recess();
+        logo2_recess();
     }
 
 // Front side logo (Logo 1)
 logo1ZOffset = logo1Type == "svg"
-    ? keychain_thickness + bevel_radius - logo1Thickness/2
-    : keychain_thickness + bevel_radius - logo1Thickness + 0.01;
+    ? keychain_thickness + bevel_radius - (logo1Flush ? logo1Thickness/2 : -logo1Thickness/2)
+    : keychain_thickness + bevel_radius - (logo1Flush ? logo1Thickness : 0);
 
 color(logo1Color)
     translate([0, 0, logo1ZOffset])
@@ -322,8 +355,8 @@ color(logo1Color)
 // Back side logo (Logo 2) - Optional
 if(logo2Enabled) {
     logo2ZOffset = logo2Type == "svg"
-        ? -bevel_radius + logo2Thickness/2
-        : -bevel_radius - 0.01 + logo2Thickness;
+        ? -bevel_radius + (logo2Flush ? logo2Thickness/2 : -logo2Thickness/2)
+        : -bevel_radius + (logo2Flush ? logo2Thickness : 0);
 
     color(logo2Color)
         translate([0, 0, logo2ZOffset])
