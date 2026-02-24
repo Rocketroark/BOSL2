@@ -47,6 +47,9 @@ stlFile1 = "default.stl"; // file
 // Logo raised height above surface (in mm)
 logo1Thickness = 0.5;
 
+// Additional inset depth into the face (0 = flush; positive = deeper inlay)
+logo1EmbedDepth = 0;
+
 // Keep logo flush with keychain face so it can lie flat
 logo1Flush = true;
 
@@ -83,6 +86,9 @@ stlFile2 = "default.stl"; // file
 
 // Logo raised height above surface (in mm)
 logo2Thickness = 0.5;
+
+// Additional inset depth into the face (0 = flush; positive = deeper inlay)
+logo2EmbedDepth = 0;
 
 // Logo color for back side
 logo2Color = "#00FF00";  // color
@@ -295,22 +301,33 @@ function logo_present(logoType, svgFile, pngFile, stlFile) =
     (logoType == "png" && pngFile != "default.png") ||
     (logoType == "stl" && stlFile != "default.stl");
 
+// SVG/STL imports are centered in Z; PNG surfaces are not
+function logo_centered_z(logoType) = logoType != "png";
+
 // Front logo recess used to make the logo inlay sit flush with the face
 module logo1_recess() {
     if (logo1Flush && logo_present(logo1Type, svgFile1, pngFile1, stlFile1)) {
-        translate([0, 0, keychain_thickness + bevel_radius - logo1Thickness])
+        recessThickness = logo1Thickness + logo1EmbedDepth + 0.02;
+        recessZOffset = logo_centered_z(logo1Type)
+            ? keychain_thickness + bevel_radius - logo1EmbedDepth - recessThickness/2
+            : keychain_thickness + bevel_radius - logo1EmbedDepth - recessThickness;
+        translate([0, 0, recessZOffset])
             logo(logo1Type, logo1OffsetX, logo1OffsetY, logo1Width, logo1Height,
-                 logo1Thickness + 0.02, svgFile1, pngFile1, stlFile1);
+                 recessThickness, svgFile1, pngFile1, stlFile1);
     }
 }
 
 // Back logo recess used to make the logo inlay sit flush with the face
 module logo2_recess() {
     if (logo2Enabled && logo2Flush && logo_present(logo2Type, svgFile2, pngFile2, stlFile2)) {
-        translate([0, 0, -bevel_radius])
+        recessThickness = logo2Thickness + logo2EmbedDepth + 0.02;
+        recessZOffset = logo_centered_z(logo2Type)
+            ? -bevel_radius + logo2EmbedDepth + recessThickness/2
+            : -bevel_radius + logo2EmbedDepth;
+        translate([0, 0, recessZOffset])
             rotate([0, 180, 0])
                 logo(logo2Type, logo2OffsetX, logo2OffsetY, logo2Width, logo2Height,
-                     logo2Thickness + 0.02, svgFile2, pngFile2, stlFile2);
+                     recessThickness, svgFile2, pngFile2, stlFile2);
     }
 }
 
@@ -343,9 +360,9 @@ color(tag_color)
     }
 
 // Front side logo (Logo 1)
-logo1ZOffset = logo1Type == "svg"
-    ? keychain_thickness + bevel_radius - (logo1Flush ? logo1Thickness/2 : -logo1Thickness/2)
-    : keychain_thickness + bevel_radius - (logo1Flush ? logo1Thickness : 0);
+logo1ZOffset = logo_centered_z(logo1Type)
+    ? keychain_thickness + bevel_radius - (logo1Flush ? (logo1EmbedDepth + logo1Thickness/2) : -logo1Thickness/2)
+    : keychain_thickness + bevel_radius - (logo1Flush ? (logo1EmbedDepth + logo1Thickness) : 0);
 
 color(logo1Color)
     translate([0, 0, logo1ZOffset])
@@ -354,9 +371,9 @@ color(logo1Color)
 
 // Back side logo (Logo 2) - Optional
 if(logo2Enabled) {
-    logo2ZOffset = logo2Type == "svg"
-        ? -bevel_radius + (logo2Flush ? logo2Thickness/2 : -logo2Thickness/2)
-        : -bevel_radius + (logo2Flush ? logo2Thickness : 0);
+    logo2ZOffset = logo_centered_z(logo2Type)
+        ? -bevel_radius + (logo2Flush ? (logo2EmbedDepth + logo2Thickness/2) : -logo2Thickness/2)
+        : -bevel_radius + (logo2Flush ? logo2EmbedDepth : 0);
 
     color(logo2Color)
         translate([0, 0, logo2ZOffset])
