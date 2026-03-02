@@ -160,6 +160,51 @@ module hanging_hole() {
     }
 }
 
+/* [Additional Shape Dimensions] */
+// Circle body diameter (only used if keychain_shape = "circle")
+circle_diameter = 35;
+
+// Rectangle body width (only used if keychain_shape = "rectangle")
+rectangle_width = 35;
+
+// Rectangle body height (only used if keychain_shape = "rectangle")
+rectangle_height = 50;
+
+// Rectangle corner radius (only used if keychain_shape = "rectangle")
+rectangle_corner_radius = 4;
+
+// Hexagon body diameter point-to-point (only used if keychain_shape = "hexagon")
+hexagon_diameter = 38;
+
+// Custom SVG body file (only used if keychain_shape = "custom_svg")
+body_svg_file = "default_body.svg"; // file
+
+// Width target for custom SVG body
+body_svg_width = 40;
+
+// Height target for custom SVG body
+body_svg_height = 50;
+
+/* [Hanging Hole Placement] */
+// Enable the hanging hole
+hanging_hole_enabled = true;
+
+// X position of hanging hole center
+hole_center_x = 0;
+
+// Y position of hanging hole center
+hole_center_y = 18.7;
+
+// Rotation of the hanging hole (degrees)
+hole_rotation = 0;
+
+/* [NFC Recess Placement] */
+// X position of NFC recess center
+nfc_offset_x = 0;
+
+// Y position of NFC recess center
+nfc_offset_y = 0;
+
 
 // ============================================================
 // BODY SHAPES
