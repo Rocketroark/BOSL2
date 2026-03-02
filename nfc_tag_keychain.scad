@@ -167,15 +167,27 @@ module rounded_rectangle_2d(w, h, r) {
 
 module hanging_hole() {
     if (hanging_hole_enabled) {
-        translate([resolved_hole_x(), resolved_hole_y(), -bevel_radius - 1])
+        ch = bevel_radius;
+        r  = hole_diameter / 2;
+        full_h = keychain_thickness + 2*ch + 2;
+        translate([resolved_hole_x(), resolved_hole_y(), -ch - 1])
             rotate([0, 0, hole_rotation])
                 union() {
-                    translate([-hole_length / 2, 0, 0])
-                        cylinder(h = keychain_thickness + 2*bevel_radius + 2, r = hole_diameter / 2, $fn=50);
-                    translate([ hole_length / 2, 0, 0])
-                        cylinder(h = keychain_thickness + 2*bevel_radius + 2, r = hole_diameter / 2, $fn=50);
-                    translate([-hole_length / 2, -hole_diameter / 2, 0])
-                        cube([hole_length, hole_diameter, keychain_thickness + 2*bevel_radius + 2]);
+                    // Main obround through-cut
+                    hull()
+                        for (dx = [-hole_length/2, hole_length/2])
+                            translate([dx, 0, 0])
+                                cylinder(h = full_h, r = r, $fn=50);
+                    // Bottom chamfer — tapers from r+ch at the bevel start to r at the flat face
+                    hull()
+                        for (dx = [-hole_length/2, hole_length/2])
+                            translate([dx, 0, 1])
+                                cylinder(h = ch, r1 = r + ch, r2 = r, $fn=50);
+                    // Top chamfer — tapers from r at the flat face to r+ch at the bevel end
+                    hull()
+                        for (dx = [-hole_length/2, hole_length/2])
+                            translate([dx, 0, ch + 1 + keychain_thickness])
+                                cylinder(h = ch, r1 = r, r2 = r + ch, $fn=50);
                 }
     }
 }
