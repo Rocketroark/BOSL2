@@ -363,6 +363,18 @@ color(tag_color)
                 }
         hanging_hole();
     }
+}
+
+color(tag_color)
+    rotate([0, 0, body_rotation])
+        scale([body_scale, body_scale, 1])
+            difference() {
+                keychain_body();
+                hanging_hole();
+                nfc_hole();
+                logo1_recess();
+                logo2_recess();
+            }
 
 logo1ZOffset = logo_centered_z(logo1Type)
     ? keychain_thickness + bevel_radius - (logo1Flush ? (logo1EmbedDepth + logo1Thickness/2) : -logo1Thickness/2)
