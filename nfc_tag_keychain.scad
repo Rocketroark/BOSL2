@@ -53,6 +53,9 @@ hanging_hole_enabled = true;
 // [top_center, manual]
 hole_position_mode = "top_center";
 
+// Keep top_center hole pinned to the visual top after body rotation
+hole_top_uses_body_rotation = true;
+
 // Hole diameter and obround length
 hole_diameter = 7;
 hole_length = 3;
@@ -115,20 +118,39 @@ logo2Rotation = 0;
 // SHAPE HELPERS
 // ============================================================
 
-function body_top_y() =
-    (keychain_shape == "oval" ? max(oval_main_diameter/2, oval_center_distance + oval_top_diameter/2) :
-     keychain_shape == "square" ? square_height/2 :
-     keychain_shape == "circle" ? circle_diameter/2 :
-     keychain_shape == "rectangle" ? rectangle_height/2 :
-     keychain_shape == "hexagon" ? hexagon_diameter/2 :
-     keychain_shape == "custom_svg" ? body_svg_height/2 :
-     max(oval_main_diameter/2, oval_center_distance + oval_top_diameter/2)) + bevel_radius;
+
+function degcos(a) = cos(a);
+function degsin(a) = sin(a);
+
+function body_half_width() =
+    keychain_shape == "oval" ? max(oval_main_diameter/2, oval_top_diameter/2) + bevel_radius :
+    keychain_shape == "square" ? square_width/2 + bevel_radius :
+    keychain_shape == "circle" ? circle_diameter/2 + bevel_radius :
+    keychain_shape == "rectangle" ? rectangle_width/2 + bevel_radius :
+    keychain_shape == "hexagon" ? hexagon_diameter/2 + bevel_radius :
+    keychain_shape == "custom_svg" ? body_svg_width/2 + bevel_radius :
+    max(oval_main_diameter/2, oval_top_diameter/2) + bevel_radius;
+
+function body_half_height() =
+    keychain_shape == "oval" ? max(oval_main_diameter/2, oval_center_distance + oval_top_diameter/2) + bevel_radius :
+    keychain_shape == "square" ? square_height/2 + bevel_radius :
+    keychain_shape == "circle" ? circle_diameter/2 + bevel_radius :
+    keychain_shape == "rectangle" ? rectangle_height/2 + bevel_radius :
+    keychain_shape == "hexagon" ? hexagon_diameter/2 + bevel_radius :
+    keychain_shape == "custom_svg" ? body_svg_height/2 + bevel_radius :
+    max(oval_main_diameter/2, oval_center_distance + oval_top_diameter/2) + bevel_radius;
+
+function rotated_body_top_y() =
+    body_scale * (
+        abs(degsin(body_rotation)) * body_half_width() +
+        abs(degcos(body_rotation)) * body_half_height()
+    );
 
 function resolved_hole_x() = hole_position_mode == "top_center" ? 0 : hole_center_x;
 
 function resolved_hole_y() =
     hole_position_mode == "top_center"
-        ? body_top_y() - hole_margin_from_top - hole_diameter/2
+        ? ((hole_top_uses_body_rotation ? rotated_body_top_y() : body_scale * body_half_height()) - hole_margin_from_top - hole_diameter/2)
         : hole_center_y;
 
 module rounded_rectangle_2d(w, h, r) {
@@ -147,15 +169,15 @@ module rounded_rectangle_2d(w, h, r) {
 
 module hanging_hole() {
     if (hanging_hole_enabled) {
-        translate([resolved_hole_x(), resolved_hole_y(), -0.1])
+        translate([resolved_hole_x(), resolved_hole_y(), -bevel_radius - 1])
             rotate([0, 0, hole_rotation])
                 union() {
                     translate([-hole_length / 2, 0, 0])
-                        cylinder(h = keychain_thickness + 3, r = hole_diameter / 2, $fn=50);
+                        cylinder(h = keychain_thickness + 2*bevel_radius + 2, r = hole_diameter / 2, $fn=50);
                     translate([ hole_length / 2, 0, 0])
-                        cylinder(h = keychain_thickness + 3, r = hole_diameter / 2, $fn=50);
+                        cylinder(h = keychain_thickness + 2*bevel_radius + 2, r = hole_diameter / 2, $fn=50);
                     translate([-hole_length / 2, -hole_diameter / 2, 0])
-                        cube([hole_length, hole_diameter, keychain_thickness + 3]);
+                        cube([hole_length, hole_diameter, keychain_thickness + 2*bevel_radius + 2]);
                 }
     }
 }
@@ -326,6 +348,20 @@ module keychain_body() {
         keychain_custom_svg();
     } else {
         keychain_oval();
+    }
+}
+
+color(tag_color)
+    difference() {
+        rotate([0, 0, body_rotation])
+            scale([body_scale, body_scale, 1])
+                difference() {
+                    keychain_body();
+                    nfc_hole();
+                    logo1_recess();
+                    logo2_recess();
+                }
+        hanging_hole();
     }
 }
 
