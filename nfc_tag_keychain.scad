@@ -1,310 +1,293 @@
 /*
- * NFC Tag Keychain with Custom Logo - Parametric Design
+ * NFC Tag Keychain - Simple Parametric Design
  *
- * This OpenSCAD file creates a custom keychain designed to hold an NFC tag
- * with support for adding custom logos/images on one or both sides.
- *
- * AVAILABLE VERSIONS:
- * - Set keychain_shape = "oval" for classic teardrop design
- * - Set keychain_shape = "square" for rectangular design with rounded corners
- * - Set nfc_tag_hole = true/false to include/exclude NFC tag recess
- *
- * To use your own photo/logo:
- * 1. Save your image file in the same directory as this .scad file
- * 2. Update the svgFile1, pngFile1, or stlFile1 parameter below with your filename
- * 3. Adjust logo1Width and logo1Height to resize as needed
- * 4. Set logo1Type to match your file type (svg, png, or stl)
- *
- * For best results with photos:
- * - Convert photos to SVG or PNG format
- * - Resize images to approximately 200-500px for faster rendering
- * - High contrast images work best for 3D printing
+ * Supports multiple body shapes, optional front/back logos, centered NFC recess,
+ * and an automatically centered hanging hole at the top of the selected body.
  */
 
-/* [Basic Parameters] */
-// Keychain base color
-tag_color = "#FFFFFF";  // color
+/* [Body] */
+tag_color = "#FFFFFF"; // color
 
-// Keychain shape style
-keychain_shape = "oval"; // [oval, square]
+// [oval, square, circle, rectangle, hexagon, custom_svg]
+keychain_shape = "oval";
 
-// Create a recessed hole for embedding NFC tag
+// Rotate entire keychain body in XY (degrees)
+body_rotation = 0;
+
+// Uniform body scale in XY
+body_scale = 1;
+
+// Base thickness before edge rounding
+keychain_thickness = 1;
+
+// Edge rounding radius
+bevel_radius = 1.5;
+
+/* [Shape Sizes] */
+// Oval shape parameters
+oval_main_diameter = 30;
+oval_top_diameter = 15;
+oval_center_distance = 15;
+oval_side_angle = 30;
+
+// Square (teardrop-like rectangle) parameters
+square_width = 35;
+square_height = 50;
+square_corner_radius = 3;
+
+// Circle/rectangle/hexagon parameters
+circle_diameter = 35;
+rectangle_width = 35;
+rectangle_height = 50;
+rectangle_corner_radius = 4;
+hexagon_diameter = 38;
+
+// Custom SVG body (used when keychain_shape = "custom_svg")
+body_svg_file = "default_body.svg"; // file
+body_svg_width = 40;
+body_svg_height = 50;
+
+/* [Hanging Hole] */
+hanging_hole_enabled = true;
+
+// [top_center, manual]
+hole_position_mode = "top_center";
+
+// Hole diameter and obround length
+hole_diameter = 7;
+hole_length = 3;
+
+// Distance from top edge to hole outer edge (top_center mode)
+hole_margin_from_top = 2;
+
+// Manual position (used only when hole_position_mode = "manual")
+hole_center_x = 0;
+hole_center_y = 18.7;
+
+// Hole rotation (degrees)
+hole_rotation = 0;
+
+/* [NFC Recess] */
 nfc_tag_hole = true;
+nfc_tag_diameter = 26;
+nfc_tag_height = 1.25;
 
-/* [Logo 1 Options - Front Side] */
-// Logo file type: svg (recommended), png, or stl
+// Keep NFC cutout centered on the keychain body
+nfc_centered = true;
+
+// Optional manual offsets if nfc_centered = false
+nfc_offset_x = 0;
+nfc_offset_y = 0;
+
+/* [Logo 1 - Front] */
 logo1Type = "svg"; // [svg,png,stl]
-
-// SVG logo file (click to upload)
 svgFile1 = "default.svg"; // file
-
-// PNG logo file (click to upload)
 pngFile1 = "default.png"; // file
-
-// STL logo file (click to upload)
 stlFile1 = "default.stl"; // file
-
-// Logo raised height above surface (in mm)
 logo1Thickness = 0.5;
-
-// Additional inset depth into the face (0 = flush; positive = deeper inlay)
 logo1EmbedDepth = 0;
-
-// Keep logo flush with keychain face so it can lie flat
 logo1Flush = true;
-
-// Logo color (for multi-color printing)
-logo1Color = "#00FF00";  // color
-
-// Logo width (warps/scales the image)
+logo1Color = "#00FF00"; // color
 logo1Width = 22;
-
-// Logo height (warps/scales the image)
 logo1Height = 22;
-
-// Horizontal offset of logo from center
 logo1OffsetX = 0;
-
-// Vertical offset of logo from center
 logo1OffsetY = 0;
+logo1Rotation = 0;
 
-/* [Logo 2 Options - Back Side] */
-// Enable second logo on back side
+/* [Logo 2 - Back] */
 logo2Enabled = false;
-
-// Logo file type for back side
 logo2Type = "svg"; // [svg,png,stl]
-
-// SVG logo file (click to upload)
 svgFile2 = "default.svg"; // file
-
-// PNG logo file (click to upload)
 pngFile2 = "default.png"; // file
-
-// STL logo file (click to upload)
 stlFile2 = "default.stl"; // file
-
-// Logo raised height above surface (in mm)
 logo2Thickness = 0.5;
-
-// Additional inset depth into the face (0 = flush; positive = deeper inlay)
 logo2EmbedDepth = 0;
-
-// Logo color for back side
-logo2Color = "#00FF00";  // color
-
-// Keep back logo flush with keychain face so it can lie flat
 logo2Flush = true;
-
-// Logo dimensions for back side
+logo2Color = "#00FF00"; // color
 logo2Width = 22;
 logo2Height = 22;
 logo2OffsetX = 0;
 logo2OffsetY = 0;
-
-/* [Advanced Keychain Dimensions] */
-// Angle for the tapered sides (in degrees)
-angle = 30;
-
-// Radius for the beveled (rounded) edges
-bevel_radius = 1.5;
-
-// Distance from center to hanging hole
-distance_hole = 18.7;
-
-// Diameter of the bottom (main) circle
-diameter1 = 30;
-
-// Diameter of the top (hanging) circle
-diameter2 = 15;
-
-// Distance between the centers of the two circles
-distance_centers = 15;
-
-// Base thickness of the keychain (before beveling)
-keychain_thickness = 1;
-
-// Diameter of the pill-shaped hanging hole
-hole_diameter = 7;
-
-// Length of the pill-shaped hanging hole
-hole_length = 3;
-
-/* [NFC Tag Specifications] */
-// NFC tag diameter (NTAG216 is typically 25mm)
-nfc_tag_diameter = 26;
-
-// NFC tag recess depth
-nfc_tag_height = 1.25;
-
-/* [Square Shape Dimensions] */
-// Width of square keychain body (only used if keychain_shape = "square")
-square_width = 35;
-
-// Height of square keychain body (only used if keychain_shape = "square")
-square_height = 50;
-
-// Corner radius for rounded corners (only used if keychain_shape = "square")
-square_corner_radius = 3;
-
-// Distance from bottom to center of hanging hole (only used if keychain_shape = "square")
-square_hole_distance = 43;
+logo2Rotation = 0;
 
 
 // ============================================================
-// MODULES - Main Construction Code
+// SHAPE HELPERS
 // ============================================================
 
-/*
- * Main keychain body with oval shape and rounded edges
- */
-module keychain_oval_with_ends() {
-    radius1 = diameter1 / 2;
-    radius2 = diameter2 / 2;
+function body_top_y() =
+    keychain_shape == "oval" ? max(oval_main_diameter/2, oval_center_distance + oval_top_diameter/2) :
+    keychain_shape == "square" ? square_height/2 :
+    keychain_shape == "circle" ? circle_diameter/2 :
+    keychain_shape == "rectangle" ? rectangle_height/2 :
+    keychain_shape == "hexagon" ? hexagon_diameter/2 :
+    keychain_shape == "custom_svg" ? body_svg_height/2 :
+    max(oval_main_diameter/2, oval_center_distance + oval_top_diameter/2);
 
-    // Apply minkowski to create smooth, beveled edges
+function resolved_hole_x() = hole_position_mode == "top_center" ? 0 : hole_center_x;
+
+function resolved_hole_y() =
+    hole_position_mode == "top_center"
+        ? body_top_y() - hole_margin_from_top - hole_diameter/2
+        : hole_center_y;
+
+module rounded_rectangle_2d(w, h, r) {
+    rr = min(r, min(w, h)/2 - 0.01);
+    if (rr > 0) {
+        hull() {
+            translate([-w/2 + rr, -h/2 + rr]) circle(r = rr, $fn=40);
+            translate([ w/2 - rr, -h/2 + rr]) circle(r = rr, $fn=40);
+            translate([-w/2 + rr,  h/2 - rr]) circle(r = rr, $fn=40);
+            translate([ w/2 - rr,  h/2 - rr]) circle(r = rr, $fn=40);
+        }
+    } else {
+        square([w, h], center = true);
+    }
+}
+
+module hanging_hole() {
+    if (hanging_hole_enabled) {
+        translate([resolved_hole_x(), resolved_hole_y(), -0.1])
+            rotate([0, 0, hole_rotation])
+                union() {
+                    translate([-hole_length / 2, 0, 0])
+                        cylinder(h = keychain_thickness + 3, r = hole_diameter / 2, $fn=50);
+                    translate([ hole_length / 2, 0, 0])
+                        cylinder(h = keychain_thickness + 3, r = hole_diameter / 2, $fn=50);
+                    translate([-hole_length / 2, -hole_diameter / 2, 0])
+                        cube([hole_length, hole_diameter, keychain_thickness + 3]);
+                }
+    }
+}
+
+
+// ============================================================
+// BODY SHAPES
+// ============================================================
+
+module keychain_oval() {
+    radius1 = oval_main_diameter / 2;
+    radius2 = oval_top_diameter / 2;
+
     minkowski() {
         difference() {
-            // Main body union
             union() {
-                // Bottom circular end (main body for NFC tag)
-                translate([0, 0, 0])
-                    cylinder(h = keychain_thickness, r = radius1, $fn=200);
+                cylinder(h = keychain_thickness, r = radius1, $fn=200);
 
-                // Top circular end (hanging hole area)
-                translate([0, distance_centers, 0])
+                translate([0, oval_center_distance, 0])
                     cylinder(h = keychain_thickness, r = radius2, $fn=100);
 
-                // Connecting walls between the two circles
                 linear_extrude(height = keychain_thickness)
                     polygon(points=[
-                        [radius1 * cos(angle), radius1 * sin(angle)],
-                        [radius2 * cos(angle), distance_centers + radius2 * sin(angle)],
-                        [-radius2 * cos(angle), distance_centers + radius2 * sin(angle)],
-                        [-radius1 * cos(angle), radius1 * sin(angle)]
+                        [ radius1 * cos(oval_side_angle), radius1 * sin(oval_side_angle)],
+                        [ radius2 * cos(oval_side_angle), oval_center_distance + radius2 * sin(oval_side_angle)],
+                        [-radius2 * cos(oval_side_angle), oval_center_distance + radius2 * sin(oval_side_angle)],
+                        [-radius1 * cos(oval_side_angle), radius1 * sin(oval_side_angle)]
                     ]);
             }
-
-            // Cut out the hanging hole
-            pill_hole();
+            hanging_hole();
         }
-
-        // Sphere used for rounding/beveling all edges
         sphere(r = bevel_radius, $fn=50);
     }
 }
 
-/*
- * Main keychain body with square/rectangular shape and rounded corners
- */
 module keychain_square() {
-    // Apply minkowski to create smooth, beveled edges
     minkowski() {
         difference() {
-            // Main square body with rounded corners
-            translate([-square_width/2, 0, 0])
-                hull() {
-                    // Four corners with rounded edges
-                    translate([square_corner_radius, square_corner_radius, 0])
-                        cylinder(h = keychain_thickness, r = square_corner_radius, $fn=50);
-
-                    translate([square_width - square_corner_radius, square_corner_radius, 0])
-                        cylinder(h = keychain_thickness, r = square_corner_radius, $fn=50);
-
-                    translate([square_corner_radius, square_height - square_corner_radius, 0])
-                        cylinder(h = keychain_thickness, r = square_corner_radius, $fn=50);
-
-                    translate([square_width - square_corner_radius, square_height - square_corner_radius, 0])
-                        cylinder(h = keychain_thickness, r = square_corner_radius, $fn=50);
-                }
-
-            // Cut out the hanging hole at top
-            pill_hole_square();
+            linear_extrude(height = keychain_thickness)
+                rounded_rectangle_2d(square_width, square_height, square_corner_radius);
+            hanging_hole();
         }
-
-        // Sphere used for rounding/beveling all edges
         sphere(r = bevel_radius, $fn=50);
     }
 }
 
-/*
- * Creates a pill-shaped (obround) hole for hanging the keychain (oval version)
- */
-module pill_hole() {
-    translate([0, distance_hole, -0.1]) {
-        union() {
-            // Left rounded end
-            translate([-hole_length / 2, 0, 0])
-                cylinder(h = keychain_thickness + 3, r = hole_diameter / 2, $fn=50);
-
-            // Right rounded end
-            translate([hole_length / 2, 0, 0])
-                cylinder(h = keychain_thickness + 3, r = hole_diameter / 2, $fn=50);
-
-            // Connecting rectangle
-            translate([-hole_length / 2, -hole_diameter / 2, 0])
-                cube([hole_length, hole_diameter, keychain_thickness + 3]);
+module keychain_circle() {
+    minkowski() {
+        difference() {
+            cylinder(h = keychain_thickness, r = circle_diameter / 2, $fn=180);
+            hanging_hole();
         }
+        sphere(r = bevel_radius, $fn=50);
     }
 }
 
-/*
- * Creates a pill-shaped (obround) hole for hanging the keychain (square version)
- */
-module pill_hole_square() {
-    translate([0, square_hole_distance, -0.1]) {
-        union() {
-            // Left rounded end
-            translate([-hole_length / 2, 0, 0])
-                cylinder(h = keychain_thickness + 3, r = hole_diameter / 2, $fn=50);
-
-            // Right rounded end
-            translate([hole_length / 2, 0, 0])
-                cylinder(h = keychain_thickness + 3, r = hole_diameter / 2, $fn=50);
-
-            // Connecting rectangle
-            translate([-hole_length / 2, -hole_diameter / 2, 0])
-                cube([hole_length, hole_diameter, keychain_thickness + 3]);
+module keychain_rectangle() {
+    minkowski() {
+        difference() {
+            linear_extrude(height = keychain_thickness)
+                rounded_rectangle_2d(rectangle_width, rectangle_height, rectangle_corner_radius);
+            hanging_hole();
         }
+        sphere(r = bevel_radius, $fn=50);
     }
 }
 
-/*
- * Generic logo module that handles SVG, PNG, or STL files
- */
-module logo(logoType, logoOffsetX, logoOffsetY, logoWidth, logoHeight, logoThickness, svgFile, pngFile, stlFile) {
+module keychain_hexagon() {
+    minkowski() {
+        difference() {
+            linear_extrude(height = keychain_thickness)
+                circle(d = hexagon_diameter, $fn=6);
+            hanging_hole();
+        }
+        sphere(r = bevel_radius, $fn=50);
+    }
+}
+
+module keychain_custom_svg() {
+    if (body_svg_file != "default_body.svg") {
+        minkowski() {
+            difference() {
+                linear_extrude(height = keychain_thickness)
+                    resize([body_svg_width, body_svg_height], auto = true)
+                        import(file = body_svg_file, center = true);
+                hanging_hole();
+            }
+            sphere(r = bevel_radius, $fn=50);
+        }
+    } else {
+        echo("Set body_svg_file to a valid SVG when keychain_shape = custom_svg");
+    }
+}
+
+
+// ============================================================
+// LOGO + NFC HELPERS
+// ============================================================
+
+module logo(logoType, logoOffsetX, logoOffsetY, logoRotation, logoWidth, logoHeight, logoThickness, svgFile, pngFile, stlFile) {
     if(logoType == "svg") {
         if (svgFile != "default.svg") {
             translate([logoOffsetX, logoOffsetY, 0])
-                resize([logoWidth, logoHeight, logoThickness], auto=true)
-                    linear_extrude(height = logoThickness, center = true)
-                        import(file = svgFile, center = true);
+                rotate([0, 0, logoRotation])
+                    resize([logoWidth, logoHeight, logoThickness], auto=true)
+                        linear_extrude(height = logoThickness, center = true)
+                            import(file = svgFile, center = true);
         }
     } else if(logoType == "png") {
         if (pngFile != "default.png") {
             translate([logoOffsetX, logoOffsetY, 0])
-                resize([logoWidth, logoHeight, logoThickness], auto=true)
-                    surface(file = pngFile, center = true);
+                rotate([0, 0, logoRotation])
+                    resize([logoWidth, logoHeight, logoThickness], auto=true)
+                        surface(file = pngFile, center = true);
         }
     } else if(logoType == "stl") {
         if (stlFile != "default.stl") {
             translate([logoOffsetX, logoOffsetY, 0])
-                resize([logoWidth, logoHeight, logoThickness], auto=true)
-                    import(file = stlFile, center = true);
+                rotate([0, 0, logoRotation])
+                    resize([logoWidth, logoHeight, logoThickness], auto=true)
+                        import(file = stlFile, center = true);
         }
     }
 }
 
-// True when an actual logo file is selected (not placeholder default)
 function logo_present(logoType, svgFile, pngFile, stlFile) =
     (logoType == "svg" && svgFile != "default.svg") ||
     (logoType == "png" && pngFile != "default.png") ||
     (logoType == "stl" && stlFile != "default.stl");
 
-// SVG/STL imports are centered in Z; PNG surfaces are not
 function logo_centered_z(logoType) = logoType != "png";
 
-// Front logo recess used to make the logo inlay sit flush with the face
 module logo1_recess() {
     if (logo1Flush && logo_present(logo1Type, svgFile1, pngFile1, stlFile1)) {
         recessThickness = logo1Thickness + logo1EmbedDepth + 0.02;
@@ -312,12 +295,11 @@ module logo1_recess() {
             ? keychain_thickness + bevel_radius - logo1EmbedDepth - recessThickness/2
             : keychain_thickness + bevel_radius - logo1EmbedDepth - recessThickness;
         translate([0, 0, recessZOffset])
-            logo(logo1Type, logo1OffsetX, logo1OffsetY, logo1Width, logo1Height,
+            logo(logo1Type, logo1OffsetX, logo1OffsetY, logo1Rotation, logo1Width, logo1Height,
                  recessThickness, svgFile1, pngFile1, stlFile1);
     }
 }
 
-// Back logo recess used to make the logo inlay sit flush with the face
 module logo2_recess() {
     if (logo2Enabled && logo2Flush && logo_present(logo2Type, svgFile2, pngFile2, stlFile2)) {
         recessThickness = logo2Thickness + logo2EmbedDepth + 0.02;
@@ -326,50 +308,64 @@ module logo2_recess() {
             : -bevel_radius + logo2EmbedDepth;
         translate([0, 0, recessZOffset])
             rotate([0, 180, 0])
-                logo(logo2Type, logo2OffsetX, logo2OffsetY, logo2Width, logo2Height,
+                logo(logo2Type, logo2OffsetX, logo2OffsetY, logo2Rotation, logo2Width, logo2Height,
                      recessThickness, svgFile2, pngFile2, stlFile2);
     }
 }
 
-/*
- * Creates a recessed hole for embedding the NFC tag
- */
 module nfc_hole() {
     if(nfc_tag_hole) {
-        translate([0, 0, 0])
+        translate([
+            nfc_centered ? 0 : nfc_offset_x,
+            nfc_centered ? 0 : nfc_offset_y,
+            0
+        ])
             cylinder(h = nfc_tag_height, r = nfc_tag_diameter / 2, $fn=100);
     }
 }
 
+
 // ============================================================
-// RENDERING - Final Assembly
+// FINAL ASSEMBLY
 // ============================================================
 
-// Main keychain body with NFC tag recess
-color(tag_color)
-    difference() {
-        // Render selected shape
-        if (keychain_shape == "oval") {
-            keychain_oval_with_ends();
-        } else if (keychain_shape == "square") {
-            keychain_square();
-        }
-        nfc_hole();
-        logo1_recess();
-        logo2_recess();
+module keychain_body() {
+    if (keychain_shape == "oval") {
+        keychain_oval();
+    } else if (keychain_shape == "square") {
+        keychain_square();
+    } else if (keychain_shape == "circle") {
+        keychain_circle();
+    } else if (keychain_shape == "rectangle") {
+        keychain_rectangle();
+    } else if (keychain_shape == "hexagon") {
+        keychain_hexagon();
+    } else if (keychain_shape == "custom_svg") {
+        keychain_custom_svg();
+    } else {
+        keychain_oval();
     }
+}
 
-// Front side logo (Logo 1)
+color(tag_color)
+    rotate([0, 0, body_rotation])
+        scale([body_scale, body_scale, 1])
+            difference() {
+                keychain_body();
+                nfc_hole();
+                logo1_recess();
+                logo2_recess();
+            }
+
 logo1ZOffset = logo_centered_z(logo1Type)
     ? keychain_thickness + bevel_radius - (logo1Flush ? (logo1EmbedDepth + logo1Thickness/2) : -logo1Thickness/2)
     : keychain_thickness + bevel_radius - (logo1Flush ? (logo1EmbedDepth + logo1Thickness) : 0);
 
 color(logo1Color)
     translate([0, 0, logo1ZOffset])
-        logo(logo1Type, logo1OffsetX, logo1OffsetY, logo1Width, logo1Height,
+        logo(logo1Type, logo1OffsetX, logo1OffsetY, logo1Rotation, logo1Width, logo1Height,
              logo1Thickness, svgFile1, pngFile1, stlFile1);
 
-// Back side logo (Logo 2) - Optional
 if(logo2Enabled) {
     logo2ZOffset = logo_centered_z(logo2Type)
         ? -bevel_radius + (logo2Flush ? (logo2EmbedDepth + logo2Thickness/2) : -logo2Thickness/2)
@@ -378,56 +374,6 @@ if(logo2Enabled) {
     color(logo2Color)
         translate([0, 0, logo2ZOffset])
             rotate([0, 180, 0])
-                logo(logo2Type, logo2OffsetX, logo2OffsetY, logo2Width, logo2Height,
+                logo(logo2Type, logo2OffsetX, logo2OffsetY, logo2Rotation, logo2Width, logo2Height,
                      logo2Thickness, svgFile2, pngFile2, stlFile2);
 }
-
-// ============================================================
-// USAGE NOTES
-// ============================================================
-/*
- * QUICK START GUIDE:
- *
- * SELECT YOUR VERSION:
- *    Version 1 - Oval with NFC recess:
- *       keychain_shape = "oval"
- *       nfc_tag_hole = true
- *
- *    Version 2 - Oval without NFC recess:
- *       keychain_shape = "oval"
- *       nfc_tag_hole = false
- *
- *    Version 3 - Square with NFC recess:
- *       keychain_shape = "square"
- *       nfc_tag_hole = true
- *
- *    Version 4 - Square without NFC recess:
- *       keychain_shape = "square"
- *       nfc_tag_hole = false
- *
- * 1. PREPARE YOUR IMAGE:
- *    - For photos: Convert to SVG using online tools like:
- *      * vectorizer.io
- *      * convertio.co/jpg-svg/
- *    - Or use PNG directly (may need post-processing)
- *
- * 2. ADD YOUR IMAGE:
- *    - Save image file in the same folder as this .scad file
- *    - Set logo1Type to match your file type
- *    - Update svgFile1 (or pngFile1) with your filename
- *
- * 3. ADJUST SIZE:
- *    - Modify logo1Width and logo1Height to fit
- *    - Oval: Default 22mm x 22mm fits well on 30mm diameter
- *    - Square: Default 22mm x 22mm fits well on 35mm width
- *
- * 4. PRINT SETTINGS:
- *    - Layer height: 0.1-0.2mm recommended
- *    - Enable supports if needed for hanging hole
- *    - Consider pause at layer for multi-color printing
- *    - Insert NFC tag into recess before final layers (if desired)
- *
- * NFC TAG COMPATIBILITY:
- *    - NTAG213/215/216 tags typically 25mm diameter, 0.5mm thick
- *    - Adjust nfc_tag_diameter and nfc_tag_height if needed
- */
