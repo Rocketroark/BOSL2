@@ -8,8 +8,7 @@
 /* [Body] */
 tag_color = "#FFFFFF"; // color
 
-// [oval, square, circle, rectangle, hexagon, custom_svg]
-keychain_shape = "oval";
+keychain_shape = "oval"; // [oval, square, circle, rectangle, hexagon, custom_svg]
 
 // Rotate entire keychain body in XY (degrees)
 body_rotation = 0;
@@ -50,8 +49,7 @@ body_svg_height = 50;
 /* [Hanging Hole] */
 hanging_hole_enabled = true;
 
-// [top_center, manual]
-hole_position_mode = "top_center";
+hole_position_mode = "top_center"; // [top_center, manual]
 
 // Keep top_center hole pinned to the visual top after body rotation
 hole_top_uses_body_rotation = true;
@@ -363,18 +361,6 @@ color(tag_color)
                 }
         hanging_hole();
     }
-}
-
-color(tag_color)
-    rotate([0, 0, body_rotation])
-        scale([body_scale, body_scale, 1])
-            difference() {
-                keychain_body();
-                hanging_hole();
-                nfc_hole();
-                logo1_recess();
-                logo2_recess();
-            }
 
 logo1ZOffset = logo_centered_z(logo1Type)
     ? keychain_thickness + bevel_radius - (logo1Flush ? (logo1EmbedDepth + logo1Thickness/2) : -logo1Thickness/2)
