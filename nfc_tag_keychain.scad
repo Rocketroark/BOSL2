@@ -116,13 +116,13 @@ logo2Rotation = 0;
 // ============================================================
 
 function body_top_y() =
-    keychain_shape == "oval" ? max(oval_main_diameter/2, oval_center_distance + oval_top_diameter/2) :
-    keychain_shape == "square" ? square_height/2 :
-    keychain_shape == "circle" ? circle_diameter/2 :
-    keychain_shape == "rectangle" ? rectangle_height/2 :
-    keychain_shape == "hexagon" ? hexagon_diameter/2 :
-    keychain_shape == "custom_svg" ? body_svg_height/2 :
-    max(oval_main_diameter/2, oval_center_distance + oval_top_diameter/2);
+    (keychain_shape == "oval" ? max(oval_main_diameter/2, oval_center_distance + oval_top_diameter/2) :
+     keychain_shape == "square" ? square_height/2 :
+     keychain_shape == "circle" ? circle_diameter/2 :
+     keychain_shape == "rectangle" ? rectangle_height/2 :
+     keychain_shape == "hexagon" ? hexagon_diameter/2 :
+     keychain_shape == "custom_svg" ? body_svg_height/2 :
+     max(oval_main_diameter/2, oval_center_distance + oval_top_diameter/2)) + bevel_radius;
 
 function resolved_hole_x() = hole_position_mode == "top_center" ? 0 : hole_center_x;
 
@@ -160,51 +160,6 @@ module hanging_hole() {
     }
 }
 
-/* [Additional Shape Dimensions] */
-// Circle body diameter (only used if keychain_shape = "circle")
-circle_diameter = 35;
-
-// Rectangle body width (only used if keychain_shape = "rectangle")
-rectangle_width = 35;
-
-// Rectangle body height (only used if keychain_shape = "rectangle")
-rectangle_height = 50;
-
-// Rectangle corner radius (only used if keychain_shape = "rectangle")
-rectangle_corner_radius = 4;
-
-// Hexagon body diameter point-to-point (only used if keychain_shape = "hexagon")
-hexagon_diameter = 38;
-
-// Custom SVG body file (only used if keychain_shape = "custom_svg")
-body_svg_file = "default_body.svg"; // file
-
-// Width target for custom SVG body
-body_svg_width = 40;
-
-// Height target for custom SVG body
-body_svg_height = 50;
-
-/* [Hanging Hole Placement] */
-// Enable the hanging hole
-hanging_hole_enabled = true;
-
-// X position of hanging hole center
-hole_center_x = 0;
-
-// Y position of hanging hole center
-hole_center_y = 18.7;
-
-// Rotation of the hanging hole (degrees)
-hole_rotation = 0;
-
-/* [NFC Recess Placement] */
-// X position of NFC recess center
-nfc_offset_x = 0;
-
-// Y position of NFC recess center
-nfc_offset_y = 0;
-
 
 // ============================================================
 // BODY SHAPES
@@ -215,22 +170,19 @@ module keychain_oval() {
     radius2 = oval_top_diameter / 2;
 
     minkowski() {
-        difference() {
-            union() {
-                cylinder(h = keychain_thickness, r = radius1, $fn=200);
+        union() {
+            cylinder(h = keychain_thickness, r = radius1, $fn=200);
 
-                translate([0, oval_center_distance, 0])
-                    cylinder(h = keychain_thickness, r = radius2, $fn=100);
+            translate([0, oval_center_distance, 0])
+                cylinder(h = keychain_thickness, r = radius2, $fn=100);
 
-                linear_extrude(height = keychain_thickness)
-                    polygon(points=[
-                        [ radius1 * cos(oval_side_angle), radius1 * sin(oval_side_angle)],
-                        [ radius2 * cos(oval_side_angle), oval_center_distance + radius2 * sin(oval_side_angle)],
-                        [-radius2 * cos(oval_side_angle), oval_center_distance + radius2 * sin(oval_side_angle)],
-                        [-radius1 * cos(oval_side_angle), radius1 * sin(oval_side_angle)]
-                    ]);
-            }
-            hanging_hole();
+            linear_extrude(height = keychain_thickness)
+                polygon(points=[
+                    [ radius1 * cos(oval_side_angle), radius1 * sin(oval_side_angle)],
+                    [ radius2 * cos(oval_side_angle), oval_center_distance + radius2 * sin(oval_side_angle)],
+                    [-radius2 * cos(oval_side_angle), oval_center_distance + radius2 * sin(oval_side_angle)],
+                    [-radius1 * cos(oval_side_angle), radius1 * sin(oval_side_angle)]
+                ]);
         }
         sphere(r = bevel_radius, $fn=50);
     }
@@ -238,43 +190,31 @@ module keychain_oval() {
 
 module keychain_square() {
     minkowski() {
-        difference() {
-            linear_extrude(height = keychain_thickness)
-                rounded_rectangle_2d(square_width, square_height, square_corner_radius);
-            hanging_hole();
-        }
+        linear_extrude(height = keychain_thickness)
+            rounded_rectangle_2d(square_width, square_height, square_corner_radius);
         sphere(r = bevel_radius, $fn=50);
     }
 }
 
 module keychain_circle() {
     minkowski() {
-        difference() {
-            cylinder(h = keychain_thickness, r = circle_diameter / 2, $fn=180);
-            hanging_hole();
-        }
+        cylinder(h = keychain_thickness, r = circle_diameter / 2, $fn=180);
         sphere(r = bevel_radius, $fn=50);
     }
 }
 
 module keychain_rectangle() {
     minkowski() {
-        difference() {
-            linear_extrude(height = keychain_thickness)
-                rounded_rectangle_2d(rectangle_width, rectangle_height, rectangle_corner_radius);
-            hanging_hole();
-        }
+        linear_extrude(height = keychain_thickness)
+            rounded_rectangle_2d(rectangle_width, rectangle_height, rectangle_corner_radius);
         sphere(r = bevel_radius, $fn=50);
     }
 }
 
 module keychain_hexagon() {
     minkowski() {
-        difference() {
-            linear_extrude(height = keychain_thickness)
-                circle(d = hexagon_diameter, $fn=6);
-            hanging_hole();
-        }
+        linear_extrude(height = keychain_thickness)
+            circle(d = hexagon_diameter, $fn=6);
         sphere(r = bevel_radius, $fn=50);
     }
 }
@@ -282,12 +222,9 @@ module keychain_hexagon() {
 module keychain_custom_svg() {
     if (body_svg_file != "default_body.svg") {
         minkowski() {
-            difference() {
-                linear_extrude(height = keychain_thickness)
-                    resize([body_svg_width, body_svg_height], auto = true)
-                        import(file = body_svg_file, center = true);
-                hanging_hole();
-            }
+            linear_extrude(height = keychain_thickness)
+                resize([body_svg_width, body_svg_height], auto = true)
+                    import(file = body_svg_file, center = true);
             sphere(r = bevel_radius, $fn=50);
         }
     } else {
@@ -397,6 +334,7 @@ color(tag_color)
         scale([body_scale, body_scale, 1])
             difference() {
                 keychain_body();
+                hanging_hole();
                 nfc_hole();
                 logo1_recess();
                 logo2_recess();
