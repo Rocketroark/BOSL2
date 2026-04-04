@@ -212,11 +212,19 @@ module rounded_rectangle_2d(w, h, r) {
 module attachment_circle_body() {
     if (attachment_circle_enabled) {
         abr = attachment_circle_bevel_radius;
-        act = attachment_circle_thickness > 0 ? attachment_circle_thickness : keychain_thickness;
+        // Auto height: compute cylinder height so total (cylinder + 2*abr) equals
+        // the keychain's total height (keychain_thickness + 2*bevel_radius),
+        // keeping both faces flush regardless of independent bevel settings.
+        act = attachment_circle_thickness > 0
+            ? attachment_circle_thickness
+            : max(keychain_thickness + 2*bevel_radius - 2*abr, 0.01);
+        // Z shift to align the attachment circle's bottom face with the keychain's bottom face.
+        // Keychain bottom is at -bevel_radius; attachment bottom is at -abr.
+        z_align = abr - bevel_radius;
         r = max(attachment_circle_diameter / 2 - abr, 0.01);
         ch = abr;
         full_h = act + 2*ch + 2;
-        translate([resolved_attach_x(), resolved_attach_y(), 0])
+        translate([resolved_attach_x(), resolved_attach_y(), z_align])
             difference() {
                 minkowski() {
                     cylinder(h = act, r = r, $fn=100);
