@@ -58,6 +58,9 @@ attachment_circle_diameter = 10;
 // Diameter of the hole cut through the attachment circle (for key ring)
 attachment_circle_hole_diameter = 5;
 
+// Thickness (height) of the attachment circle; 0 = match keychain_thickness
+attachment_circle_thickness = 0;
+
 // Edge bevel radius for the attachment circle (independent of main body bevel)
 attachment_circle_bevel_radius = 1.5;
 
@@ -209,13 +212,14 @@ module rounded_rectangle_2d(w, h, r) {
 module attachment_circle_body() {
     if (attachment_circle_enabled) {
         abr = attachment_circle_bevel_radius;
+        act = attachment_circle_thickness > 0 ? attachment_circle_thickness : keychain_thickness;
         r = max(attachment_circle_diameter / 2 - abr, 0.01);
         ch = abr;
-        full_h = keychain_thickness + 2*ch + 2;
+        full_h = act + 2*ch + 2;
         translate([resolved_attach_x(), resolved_attach_y(), 0])
             difference() {
                 minkowski() {
-                    cylinder(h = keychain_thickness, r = r, $fn=100);
+                    cylinder(h = act, r = r, $fn=100);
                     sphere(r = abr, $fn=50);
                 }
                 // Key ring hole with chamfers matching the hanging hole style
@@ -226,7 +230,7 @@ module attachment_circle_body() {
                         translate([0, 0, 1])
                             cylinder(h = ch, r1 = attachment_circle_hole_diameter/2 + ch, r2 = attachment_circle_hole_diameter/2, $fn=60);
                         // Top chamfer
-                        translate([0, 0, ch + 1 + keychain_thickness])
+                        translate([0, 0, ch + 1 + act])
                             cylinder(h = ch, r1 = attachment_circle_hole_diameter/2, r2 = attachment_circle_hole_diameter/2 + ch, $fn=60);
                     }
             }
