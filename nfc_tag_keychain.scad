@@ -58,6 +58,9 @@ attachment_circle_diameter = 10;
 // Diameter of the hole cut through the attachment circle (for key ring)
 attachment_circle_hole_diameter = 5;
 
+// Edge bevel radius for the attachment circle (independent of main body bevel)
+attachment_circle_bevel_radius = 1.5;
+
 // How much the circle overlaps into the body edge (ensures a solid connection)
 attachment_circle_overlap = 2;
 
@@ -205,14 +208,15 @@ module rounded_rectangle_2d(w, h, r) {
 
 module attachment_circle_body() {
     if (attachment_circle_enabled) {
-        r = max(attachment_circle_diameter / 2 - bevel_radius, 0.01);
-        ch = bevel_radius;
+        abr = attachment_circle_bevel_radius;
+        r = max(attachment_circle_diameter / 2 - abr, 0.01);
+        ch = abr;
         full_h = keychain_thickness + 2*ch + 2;
         translate([resolved_attach_x(), resolved_attach_y(), 0])
             difference() {
                 minkowski() {
                     cylinder(h = keychain_thickness, r = r, $fn=100);
-                    sphere(r = bevel_radius, $fn=50);
+                    sphere(r = abr, $fn=50);
                 }
                 // Key ring hole with chamfers matching the hanging hole style
                 translate([0, 0, -ch - 1])
