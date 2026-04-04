@@ -52,8 +52,11 @@ attachment_circle_enabled = false;
 // Position mode for the attachment circle
 attachment_circle_position_mode = "bottom_center"; // [top_center, bottom_center, left_center, right_center, manual]
 
-// Diameter of the attachment circle
-attachment_circle_diameter = 8;
+// Outer diameter of the attachment circle
+attachment_circle_diameter = 10;
+
+// Diameter of the hole cut through the attachment circle (for key ring)
+attachment_circle_hole_diameter = 5;
 
 // How much the circle overlaps into the body edge (ensures a solid connection)
 attachment_circle_overlap = 2;
@@ -203,10 +206,25 @@ module rounded_rectangle_2d(w, h, r) {
 module attachment_circle_body() {
     if (attachment_circle_enabled) {
         r = max(attachment_circle_diameter / 2 - bevel_radius, 0.01);
+        ch = bevel_radius;
+        full_h = keychain_thickness + 2*ch + 2;
         translate([resolved_attach_x(), resolved_attach_y(), 0])
-            minkowski() {
-                cylinder(h = keychain_thickness, r = r, $fn=100);
-                sphere(r = bevel_radius, $fn=50);
+            difference() {
+                minkowski() {
+                    cylinder(h = keychain_thickness, r = r, $fn=100);
+                    sphere(r = bevel_radius, $fn=50);
+                }
+                // Key ring hole with chamfers matching the hanging hole style
+                translate([0, 0, -ch - 1])
+                    union() {
+                        cylinder(h = full_h, r = attachment_circle_hole_diameter/2, $fn=60);
+                        // Bottom chamfer
+                        translate([0, 0, 1])
+                            cylinder(h = ch, r1 = attachment_circle_hole_diameter/2 + ch, r2 = attachment_circle_hole_diameter/2, $fn=60);
+                        // Top chamfer
+                        translate([0, 0, ch + 1 + keychain_thickness])
+                            cylinder(h = ch, r1 = attachment_circle_hole_diameter/2, r2 = attachment_circle_hole_diameter/2 + ch, $fn=60);
+                    }
             }
     }
 }
