@@ -46,6 +46,22 @@ body_svg_file = "default_body.svg"; // file
 body_svg_width = 40;
 body_svg_height = 50;
 
+/* [Attachment Circle] */
+attachment_circle_enabled = false;
+
+// Position mode for the attachment circle
+attachment_circle_position_mode = "bottom_center"; // [top_center, bottom_center, left_center, right_center, manual]
+
+// Diameter of the attachment circle
+attachment_circle_diameter = 8;
+
+// How much the circle overlaps into the body edge (ensures a solid connection)
+attachment_circle_overlap = 2;
+
+// Manual center position (used only when attachment_circle_position_mode = "manual")
+attachment_circle_x = 0;
+attachment_circle_y = -25;
+
 /* [Hanging Hole] */
 hanging_hole_enabled = true;
 
@@ -144,6 +160,25 @@ function rotated_body_top_y() =
         abs(degcos(body_rotation)) * body_half_height()
     );
 
+// Maximum X extent of the rotated body bounding box
+function rotated_body_right_x() =
+    body_scale * (
+        abs(degcos(body_rotation)) * body_half_width() +
+        abs(degsin(body_rotation)) * body_half_height()
+    );
+
+function resolved_attach_x() =
+    attachment_circle_position_mode == "manual"        ? attachment_circle_x :
+    attachment_circle_position_mode == "right_center"  ?  (rotated_body_right_x() + attachment_circle_diameter/2 - attachment_circle_overlap) :
+    attachment_circle_position_mode == "left_center"   ? -(rotated_body_right_x() + attachment_circle_diameter/2 - attachment_circle_overlap) :
+    0;
+
+function resolved_attach_y() =
+    attachment_circle_position_mode == "manual"         ? attachment_circle_y :
+    attachment_circle_position_mode == "top_center"     ?  (rotated_body_top_y() + attachment_circle_diameter/2 - attachment_circle_overlap) :
+    attachment_circle_position_mode == "bottom_center"  ? -(rotated_body_top_y() + attachment_circle_diameter/2 - attachment_circle_overlap) :
+    0;
+
 function resolved_hole_x() = hole_position_mode == "top_center" ? 0 : hole_center_x;
 
 function resolved_hole_y() =
@@ -162,6 +197,17 @@ module rounded_rectangle_2d(w, h, r) {
         }
     } else {
         square([w, h], center = true);
+    }
+}
+
+module attachment_circle_body() {
+    if (attachment_circle_enabled) {
+        r = max(attachment_circle_diameter / 2 - bevel_radius, 0.01);
+        translate([resolved_attach_x(), resolved_attach_y(), 0])
+            minkowski() {
+                cylinder(h = keychain_thickness, r = r, $fn=100);
+                sphere(r = bevel_radius, $fn=50);
+            }
     }
 }
 
@@ -363,14 +409,17 @@ module keychain_body() {
 
 color(tag_color)
     difference() {
-        rotate([0, 0, body_rotation])
-            scale([body_scale, body_scale, 1])
-                difference() {
-                    keychain_body();
-                    nfc_hole();
-                    logo1_recess();
-                    logo2_recess();
-                }
+        union() {
+            rotate([0, 0, body_rotation])
+                scale([body_scale, body_scale, 1])
+                    difference() {
+                        keychain_body();
+                        nfc_hole();
+                        logo1_recess();
+                        logo2_recess();
+                    }
+            attachment_circle_body();
+        }
         hanging_hole();
     }
 
