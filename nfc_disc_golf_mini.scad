@@ -29,6 +29,9 @@ rim_width = 6;
 // Outer edge bevel/rounding radius (gives the disc a softer flying-disc edge)
 edge_radius = 1.2;
 
+// Vertical height of the sloped/chamfered outer edge (larger = more mini-like rim)
+outer_edge_bevel = 1.1;
+
 // Rounding radius at the inner top corner of the rim (where rim meets flight plate)
 inner_rim_radius = 1.0;
 
@@ -128,6 +131,7 @@ module disc_profile_2d() {
     rW  = rim_width;
     er  = max(min(edge_radius, min(rim_width, rim_height, fpH) / 2 - 0.01), 0);
     irr = max(min(inner_rim_radius, min(rim_width, rim_height) / 2 - 0.01), 0);
+    oeb = max(min(outer_edge_bevel, H/2 - 0.01), 0);
 
     // Build the offset profile, then expand it with offset(r=er) to round the
     // outer corners of the rim. The inner-rim transition is handled by an
@@ -135,8 +139,10 @@ module disc_profile_2d() {
     offset(r = er) offset(r = -er)
         polygon(points = [
             [0,            0],
-            [R,            0],
-            [R,            H],
+            [R - oeb,      0],
+            [R,            oeb],
+            [R,            H - oeb],
+            [R - oeb,      H],
             [R - rW + irr, H],
             // round the inner top corner of the rim
             [R - rW,       H - irr],
