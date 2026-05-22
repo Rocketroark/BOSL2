@@ -16,14 +16,14 @@ corner_radius  = 6;  // [0:0.5:30]  // Rounded sign panel corners
 
 /* [Foot] */
 // Depth the foot extends forward from the sign face (mm)
-foot_depth  = 45; // [10:1:180]
+foot_depth  = 6; // [2:0.5:30]
 
 // Height of the vertical foot wall above the sign face (mm)
-foot_height = 25;  // [5:0.5:80]
+foot_height = 35;  // [5:0.5:120]
 
 // Lean angle of the foot wall from vertical (degrees).
 // 0 = straight up, positive leans toward +Y
-foot_angle  = 12; // [-20:1:45]
+foot_angle  = 0; // [-20:1:45]
 
 // Fillet radius at the outside lower corner of the L (mm)
 fillet_radius = 6; // [0:0.5:20]
@@ -90,7 +90,7 @@ module _foot_profile_2d() {
     fd = max(0.6, foot_depth);
     lean = _foot_lean();
 
-    // Vertical wall + base, all above the sign face plane.
+    // Vertical support wall with constant thickness (foot_depth).
     // y=0 is attached at sign bottom edge; z=0 starts at sign top surface.
     polygon([
         [0, 0],
