@@ -16,13 +16,13 @@ corner_radius  = 6;  // [0:0.5:30]
 
 /* [Foot] */
 // Depth the foot extends forward from the sign face (mm)
-foot_depth  = 45; // [15:1:120]
+foot_depth  = 45; // [10:1:180]
 
 // Height of the foot slab (mm)
-foot_height = 5;  // [2:0.5:20]
+foot_height = 5;  // [1:0.5:40]
 
 // Angle of foot relative to sign face — 90 = flat L, < 90 tilts sign back (degrees)
-foot_angle  = 90; // [60:1:100]
+foot_angle  = 90; // [45:1:120]
 
 // Fillet radius at the inside corner of the L (mm)
 fillet_radius = 6; // [0:0.5:20]
@@ -78,8 +78,8 @@ $fn = 64;
 //   90° → classic right-angle L
 //  <90° → foot tilts so the sign leans back when stood upright
 
-function _foot_dy() = foot_depth * sin(foot_angle);   // Y extent of foot
-function _foot_dz() = foot_depth * cos(foot_angle);   // Z rise/drop of foot tip
+function _foot_dy() = max(0.01, foot_depth) * sin(foot_angle);   // Y extent of foot
+function _foot_dz() = max(0.01, foot_depth) * cos(foot_angle);   // Z rise/drop of foot tip
 
 module _L_profile_2d() {
     dy = _foot_dy();
@@ -210,6 +210,7 @@ module _text_add() {
 }
 
 // ── Full assembly ─────────────────────────────────────────────
+// Single-piece L-shaped body: sign plate + foot are one continuous solid
 module pedestal() {
     color(sign_color)
         difference() {
