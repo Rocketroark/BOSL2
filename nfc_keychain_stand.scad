@@ -12,25 +12,27 @@ sign_color    = "#FFFFFF"; // color
 sign_width    = 100; // [40:1:250]
 sign_height   = 120; // [40:1:300]
 sign_thickness = 3;  // [2:0.5:10]
-corner_radius  = 6;  // [0:0.5:30]
+corner_radius  = 6;  // [0:0.5:30]  // Rounded sign panel corners
 
 /* [Foot] */
 // Depth the foot extends forward from the sign face (mm)
-foot_depth  = 45; // [15:1:120]
+foot_depth  = 45; // [10:1:180]
 
-// Height of the foot slab (mm)
-foot_height = 5;  // [2:0.5:20]
+// Height of the vertical foot wall above the sign face (mm)
+foot_height = 25;  // [5:0.5:80]
 
-// Angle of foot relative to sign face — 90 = flat L, < 90 tilts sign back (degrees)
-foot_angle  = 90; // [60:1:100]
+// Lean angle of the foot wall from vertical (degrees).
+// 0 = straight up, positive leans toward +Y
+foot_angle  = 12; // [-20:1:45]
 
-// Fillet radius at the inside corner of the L (mm)
+// Fillet radius at the outside lower corner of the L (mm)
 fillet_radius = 6; // [0:0.5:20]
 
 /* [NFC Tag] */
 enable_nfc   = true;
 nfc_diameter = 26;   // [20:0.5:35]
 nfc_depth    = 1.25; // [0.5:0.1:3]
+nfc_position = "center"; // [front, back, center]
 nfc_offset_x = 0;    // [-60:1:60]
 nfc_offset_y = 0;    // [-60:1:80]
 
@@ -68,88 +70,70 @@ render_mode = "print_ready"; // [print_ready, display_view]
 /* [Advanced] */
 $fn = 64;
 
-// ── L-profile in the YZ plane ────────────────────────────────
-// In print orientation:  Z = up,  Y = depth axis
-//   sign face at Z = 0
-//   sign back  at Z = sign_thickness
-//   foot runs from sign bottom in the +Y direction
-//
-// foot_angle: angle between foot surface and sign face plane.
-//   90° → classic right-angle L
-//  <90° → foot tilts so the sign leans back when stood upright
+// ── Print geometry ───────────────────────────────────────────
+// print_ready orientation:
+// - Sign panel lies flat on the build plate (Z from 0..sign_thickness)
+// - Foot is attached along the bottom edge and rises upward as one piece
 
-function _foot_dy() = foot_depth * sin(foot_angle);   // Y extent of foot
-function _foot_dz() = foot_depth * cos(foot_angle);   // Z rise/drop of foot tip
+function _foot_lean() = max(0.01, foot_height) * tan(foot_angle); // Y offset at top
 
-module _L_profile_2d() {
-    dy = _foot_dy();
-    dz = _foot_dz();
-    fr = min(fillet_radius, min(sign_height, foot_depth) / 2 - 0.01);
+module _sign_panel() {
+    cr = min(max(0, corner_radius), sign_width/2 - 0.01, sign_height/2 - 0.01);
+    linear_extrude(height = sign_thickness)
+        offset(r = cr)
+            offset(delta = -cr)
+                square([sign_width, sign_height], center=true);
+}
 
-    // Outer boundary of the L (CCW)
-    //   A = top of sign face       (y=0,  z=sign_height)
-    //   B = top of sign back       (y=st, z=sign_height)
-    //   C = inside corner back     (y=st, z=0)
-    //   D = foot tip back          (y=st+dy, z=dz+foot_height)  adjusted for angle
-    //   E = foot tip face          (y=st+dy, z=dz)
-    //   F = sign bottom face       (y=0,  z=0)
-    //
-    // Y → horizontal (depth), Z → vertical (height)  [in 2D: X=Y, Y=Z]
+module _foot_profile_2d() {
+    fh = max(0.01, foot_height);
+    fd = max(0.6, foot_depth);
+    lean = _foot_lean();
 
-    st = sign_thickness;
-    fh = foot_height;
+    // Vertical wall + base, all above the sign face plane.
+    // y=0 is attached at sign bottom edge; z=0 starts at sign top surface.
+    polygon([
+        [0, 0],
+        [fd, 0],
+        [fd + lean, fh],
+        [lean, fh]
+    ]);
+}
 
-    pts = [
-        [0,       sign_height],          // A  top-front
-        [st,      sign_height],          // B  top-back
-        [st,      fr],                   // C1 inside corner (above fillet)
-        [st + fr, 0],                    // C2 inside corner (right of fillet)
-        [st + dy, dz + fh],              // D  foot back tip top
-        [st + dy, dz],                   // E  foot back tip bottom
-        [fr,      0],                    // F1 sign bottom (right of fillet)
-        [0,       fr],                   // F2 sign bottom (above fillet)
-    ];
+module _foot_solid() {
+    // Extrude across sign width; attach along the bottom edge of the sign panel.
+    translate([0, -sign_height/2, sign_thickness])
+        rotate([90,0,0])
+            linear_extrude(height = sign_width, center=true)
+                _foot_profile_2d();
+}
 
-    if (fr > 0.001) {
-        // Use offset trick for corner rounding at inside corner only;
-        // the two fillet points make a simple arc manually.
-        difference() {
-            polygon(pts);
-            // carve the inside fillet arc
-            translate([st, 0]) circle(r = fr);
-        }
-        // fill the inside fillet
-        translate([st, 0])
-            intersection() {
-                circle(r = fr);
-                square([fr + 1, fr + 1]);
-            }
-    } else {
-        polygon([
-            [0,    sign_height],
-            [st,   sign_height],
-            [st,   0],
-            [st + dy, dz + fh],
-            [st + dy, dz],
-            [0,    0],
-        ]);
+module _model_solid() {
+    union() {
+        _sign_panel();
+        _foot_solid();
     }
 }
 
-// ── Extrude L-profile to full sign width ─────────────────────
-module _L_solid() {
-    rotate([90, 0, 90])
-        linear_extrude(height = sign_width, center = true)
-            _L_profile_2d();
-}
-
-// ── NFC recess (back face of sign = Z=sign_thickness top) ───
+// ── NFC recess ───────────────────────────────────────────────
 module _nfc_cut() {
     if (enable_nfc) {
-        translate([nfc_offset_x, nfc_offset_y, sign_thickness - nfc_depth])
+        z_start =
+            (nfc_position == "front")  ? 0 :
+            (nfc_position == "back")   ? sign_thickness - nfc_depth :
+                                        (sign_thickness - nfc_depth)/2;
+
+        translate([nfc_offset_x, nfc_offset_y, z_start])
             cylinder(d = nfc_diameter, h = nfc_depth + 0.01);
-        translate([nfc_offset_x, nfc_offset_y, sign_thickness - 0.4])
-            cylinder(d1 = nfc_diameter, d2 = nfc_diameter + 0.8, h = 0.41);
+
+        // Entrance chamfer on the selected access face.
+        if (nfc_position == "front") {
+            translate([nfc_offset_x, nfc_offset_y, 0])
+                cylinder(d1 = nfc_diameter + 0.8, d2 = nfc_diameter, h = 0.41);
+        } else if (nfc_position == "back") {
+            translate([nfc_offset_x, nfc_offset_y, sign_thickness - 0.4])
+                cylinder(d1 = nfc_diameter, d2 = nfc_diameter + 0.8, h = 0.41);
+        }
     }
 }
 
@@ -210,10 +194,11 @@ module _text_add() {
 }
 
 // ── Full assembly ─────────────────────────────────────────────
+// Single-piece L-shaped body: sign plate + foot are one continuous solid
 module pedestal() {
     color(sign_color)
         difference() {
-            _L_solid();
+            _model_solid();
             _nfc_cut();
             _logo_cut();
             _text_cut();
