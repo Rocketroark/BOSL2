@@ -31,6 +31,7 @@ fillet_radius = 6; // [0:0.5:20]
 enable_nfc   = true;
 nfc_diameter = 26;   // [20:0.5:35]
 nfc_depth    = 1.25; // [0.5:0.1:3]
+nfc_position = "center"; // [front, back, center]
 nfc_offset_x = 0;    // [-60:1:60]
 nfc_offset_y = 0;    // [-60:1:80]
 
@@ -82,34 +83,31 @@ function _foot_dy() = max(0.01, foot_depth) * sin(foot_angle);   // Y extent of 
 function _foot_dz() = max(0.01, foot_depth) * cos(foot_angle);   // Z rise/drop of foot tip
 
 module _L_profile_2d() {
-    // Build a constant-thickness "folded sheet" profile from a centerline:
-    // vertical sign segment + angled foot segment, with a smoothed outer fold.
+    // Flat-on-plate profile: sign face is on Z=0 with no geometry below the plate.
+    // Geometry is a single continuous folded strip with a smoothed OUTSIDE bend.
     dy = _foot_dy();
     dz = _foot_dz();
-    t  = sign_thickness;
-    r  = max(0.01, t/2);
+    st = sign_thickness;
+    fh = max(0.01, foot_height);
+    fr = min(max(0, fillet_radius), st-0.01, fh-0.01);
 
-    p_top  = [0, sign_height];
-    p_fold = [0, 0];
-    // foot_height acts as the raised end height of the folded foot segment
-    p_tip  = [dy, dz + (foot_height - sign_thickness)];
+    // Main L body with a flat build-plate contact (z=0) to avoid bottom nubs.
+    polygon([
+        [0,          sign_height],          // sign face top
+        [st,         sign_height],          // sign back top
+        [st,         0],                    // sign/foot inner junction
+        [st + dy,    dz + fh],              // foot top tip (angled)
+        [st + dy,    0],                    // foot bottom tip (on plate)
+        [0,          0]                     // sign face bottom (on plate)
+    ]);
 
-    // Rounded folded sheet (constant thickness) from hulled centerline circles.
-    // This removes the odd "attachment lump" by using one continuous strip body.
-    union() {
-        hull() {
-            translate(p_top)  circle(r=r);
-            translate(p_fold) circle(r=r);
-        }
-        hull() {
-            translate(p_fold) circle(r=r);
-            translate(p_tip)  circle(r=r);
-        }
-
-        // Optional outside fold reinforcement / smoothing at the bend.
-        if (fillet_radius > 0.001)
-            translate(p_fold) circle(r=min(fillet_radius, r*2));
-    }
+    // Smooth ONLY the outside bend (top of the fold), not the plate-contact edge.
+    if (fr > 0.001)
+        translate([st, fh])
+            intersection() {
+                circle(r = fr);
+                translate([0, -fr]) square([fr, fr]);
+            }
 }
 
 // ── Extrude L-profile to full sign width ─────────────────────
@@ -119,13 +117,25 @@ module _L_solid() {
             _L_profile_2d();
 }
 
-// ── NFC recess (back face of sign = Z=sign_thickness top) ───
+// ── NFC recess ───────────────────────────────────────────────
 module _nfc_cut() {
     if (enable_nfc) {
-        translate([nfc_offset_x, nfc_offset_y, sign_thickness - nfc_depth])
+        z_start =
+            (nfc_position == "front")  ? 0 :
+            (nfc_position == "back")   ? sign_thickness - nfc_depth :
+                                        (sign_thickness - nfc_depth)/2;
+
+        translate([nfc_offset_x, nfc_offset_y, z_start])
             cylinder(d = nfc_diameter, h = nfc_depth + 0.01);
-        translate([nfc_offset_x, nfc_offset_y, sign_thickness - 0.4])
-            cylinder(d1 = nfc_diameter, d2 = nfc_diameter + 0.8, h = 0.41);
+
+        // Entrance chamfer on the selected access face.
+        if (nfc_position == "front") {
+            translate([nfc_offset_x, nfc_offset_y, 0])
+                cylinder(d1 = nfc_diameter + 0.8, d2 = nfc_diameter, h = 0.41);
+        } else if (nfc_position == "back") {
+            translate([nfc_offset_x, nfc_offset_y, sign_thickness - 0.4])
+                cylinder(d1 = nfc_diameter, d2 = nfc_diameter + 0.8, h = 0.41);
+        }
     }
 }
 
