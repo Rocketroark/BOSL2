@@ -16,15 +16,15 @@ corner_radius  = 6;  // [0:0.5:30]
 
 /* [Foot] */
 // Depth the foot extends forward from the sign face (mm)
-foot_depth  = 45; // [15:1:120]
+foot_depth  = 45; // [10:1:180]
 
 // Height of the foot slab (mm)
-foot_height = 5;  // [2:0.5:20]
+foot_height = 5;  // [1:0.5:40]
 
 // Angle of foot relative to sign face — 90 = flat L, < 90 tilts sign back (degrees)
-foot_angle  = 90; // [60:1:100]
+foot_angle  = 90; // [45:1:120]
 
-// Fillet radius at the inside corner of the L (mm)
+// Fillet radius at the outside lower corner of the L (mm)
 fillet_radius = 6; // [0:0.5:20]
 
 /* [NFC Tag] */
@@ -78,61 +78,37 @@ $fn = 64;
 //   90° → classic right-angle L
 //  <90° → foot tilts so the sign leans back when stood upright
 
-function _foot_dy() = foot_depth * sin(foot_angle);   // Y extent of foot
-function _foot_dz() = foot_depth * cos(foot_angle);   // Z rise/drop of foot tip
+function _foot_dy() = max(0.01, foot_depth) * sin(foot_angle);   // Y extent of foot
+function _foot_dz() = max(0.01, foot_depth) * cos(foot_angle);   // Z rise/drop of foot tip
 
 module _L_profile_2d() {
+    // Build a constant-thickness "folded sheet" profile from a centerline:
+    // vertical sign segment + angled foot segment, with a smoothed outer fold.
     dy = _foot_dy();
     dz = _foot_dz();
-    fr = min(fillet_radius, min(sign_height, foot_depth) / 2 - 0.01);
+    t  = sign_thickness;
+    r  = max(0.01, t/2);
 
-    // Outer boundary of the L (CCW)
-    //   A = top of sign face       (y=0,  z=sign_height)
-    //   B = top of sign back       (y=st, z=sign_height)
-    //   C = inside corner back     (y=st, z=0)
-    //   D = foot tip back          (y=st+dy, z=dz+foot_height)  adjusted for angle
-    //   E = foot tip face          (y=st+dy, z=dz)
-    //   F = sign bottom face       (y=0,  z=0)
-    //
-    // Y → horizontal (depth), Z → vertical (height)  [in 2D: X=Y, Y=Z]
+    p_top  = [0, sign_height];
+    p_fold = [0, 0];
+    // foot_height acts as the raised end height of the folded foot segment
+    p_tip  = [dy, dz + (foot_height - sign_thickness)];
 
-    st = sign_thickness;
-    fh = foot_height;
-
-    pts = [
-        [0,       sign_height],          // A  top-front
-        [st,      sign_height],          // B  top-back
-        [st,      fr],                   // C1 inside corner (above fillet)
-        [st + fr, 0],                    // C2 inside corner (right of fillet)
-        [st + dy, dz + fh],              // D  foot back tip top
-        [st + dy, dz],                   // E  foot back tip bottom
-        [fr,      0],                    // F1 sign bottom (right of fillet)
-        [0,       fr],                   // F2 sign bottom (above fillet)
-    ];
-
-    if (fr > 0.001) {
-        // Use offset trick for corner rounding at inside corner only;
-        // the two fillet points make a simple arc manually.
-        difference() {
-            polygon(pts);
-            // carve the inside fillet arc
-            translate([st, 0]) circle(r = fr);
+    // Rounded folded sheet (constant thickness) from hulled centerline circles.
+    // This removes the odd "attachment lump" by using one continuous strip body.
+    union() {
+        hull() {
+            translate(p_top)  circle(r=r);
+            translate(p_fold) circle(r=r);
         }
-        // fill the inside fillet
-        translate([st, 0])
-            intersection() {
-                circle(r = fr);
-                square([fr + 1, fr + 1]);
-            }
-    } else {
-        polygon([
-            [0,    sign_height],
-            [st,   sign_height],
-            [st,   0],
-            [st + dy, dz + fh],
-            [st + dy, dz],
-            [0,    0],
-        ]);
+        hull() {
+            translate(p_fold) circle(r=r);
+            translate(p_tip)  circle(r=r);
+        }
+
+        // Optional outside fold reinforcement / smoothing at the bend.
+        if (fillet_radius > 0.001)
+            translate(p_fold) circle(r=min(fillet_radius, r*2));
     }
 }
 
@@ -210,6 +186,7 @@ module _text_add() {
 }
 
 // ── Full assembly ─────────────────────────────────────────────
+// Single-piece L-shaped body: sign plate + foot are one continuous solid
 module pedestal() {
     color(sign_color)
         difference() {
