@@ -18,11 +18,12 @@ corner_radius  = 6;  // [0:0.5:30]  // Rounded sign panel corners
 // Depth the foot extends forward from the sign face (mm)
 foot_depth  = 45; // [10:1:180]
 
-// Height of the foot slab (mm)
-foot_height = 5;  // [1:0.5:40]
+// Height of the vertical foot wall above the sign face (mm)
+foot_height = 25;  // [5:0.5:80]
 
-// Angle of foot relative to sign face — 90 = flat L, < 90 tilts sign back (degrees)
-foot_angle  = 90; // [45:1:120]
+// Lean angle of the foot wall from vertical (degrees).
+// 0 = straight up, positive leans toward +Y
+foot_angle  = 12; // [-20:1:45]
 
 // Fillet radius at the outside lower corner of the L (mm)
 fillet_radius = 6; // [0:0.5:20]
@@ -74,8 +75,7 @@ $fn = 64;
 // - Sign panel lies flat on the build plate (Z from 0..sign_thickness)
 // - Foot is attached along the bottom edge and rises upward as one piece
 
-function _foot_dx() = max(0.01, foot_depth) * sin(foot_angle);   // in +Y direction
-function _foot_dz() = max(0.01, foot_depth) * cos(foot_angle);   // vertical rise at foot tip
+function _foot_lean() = max(0.01, foot_height) * tan(foot_angle); // Y offset at top
 
 module _sign_panel() {
     cr = min(max(0, corner_radius), sign_width/2 - 0.01, sign_height/2 - 0.01);
@@ -86,20 +86,22 @@ module _sign_panel() {
 }
 
 module _foot_profile_2d() {
-    dx = _foot_dx();
-    dz = _foot_dz();
     fh = max(0.01, foot_height);
-    // Profile in YZ plane, with bottom fully on plate (z=0), no underside nub.
+    fd = max(0.6, foot_depth);
+    lean = _foot_lean();
+
+    // Vertical wall + base, all above the sign face plane.
+    // y=0 is attached at sign bottom edge; z=0 starts at sign top surface.
     polygon([
         [0, 0],
-        [dx, 0],
-        [dx, dz + fh],
-        [0, fh]
+        [fd, 0],
+        [fd + lean, fh],
+        [lean, fh]
     ]);
 }
 
 module _foot_solid() {
-    // Foot runs along X (sign width) and is attached to sign bottom edge (Y = -sign_height/2)
+    // Extrude across sign width; attach along the bottom edge of the sign panel.
     translate([0, -sign_height/2, sign_thickness])
         rotate([90,0,0])
             linear_extrude(height = sign_width, center=true)
