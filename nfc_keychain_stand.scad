@@ -12,7 +12,7 @@ sign_color    = "#FFFFFF"; // color
 sign_width    = 100; // [40:1:250]
 sign_height   = 120; // [40:1:300]
 sign_thickness = 3;  // [2:0.5:10]
-corner_radius  = 6;  // [0:0.5:30]
+corner_radius  = 6;  // [0:0.5:30]  // Rounded sign panel corners
 
 /* [Foot] */
 // Depth the foot extends forward from the sign face (mm)
@@ -69,52 +69,48 @@ render_mode = "print_ready"; // [print_ready, display_view]
 /* [Advanced] */
 $fn = 64;
 
-// ── L-profile in the YZ plane ────────────────────────────────
-// In print orientation:  Z = up,  Y = depth axis
-//   sign face at Z = 0
-//   sign back  at Z = sign_thickness
-//   foot runs from sign bottom in the +Y direction
-//
-// foot_angle: angle between foot surface and sign face plane.
-//   90° → classic right-angle L
-//  <90° → foot tilts so the sign leans back when stood upright
+// ── Print geometry ───────────────────────────────────────────
+// print_ready orientation:
+// - Sign panel lies flat on the build plate (Z from 0..sign_thickness)
+// - Foot is attached along the bottom edge and rises upward as one piece
 
-function _foot_dy() = max(0.01, foot_depth) * sin(foot_angle);   // Y extent of foot
-function _foot_dz() = max(0.01, foot_depth) * cos(foot_angle);   // Z rise/drop of foot tip
+function _foot_dx() = max(0.01, foot_depth) * sin(foot_angle);   // in +Y direction
+function _foot_dz() = max(0.01, foot_depth) * cos(foot_angle);   // vertical rise at foot tip
 
-module _L_profile_2d() {
-    // Flat-on-plate profile: sign face is on Z=0 with no geometry below the plate.
-    // Geometry is a single continuous folded strip with a smoothed OUTSIDE bend.
-    dy = _foot_dy();
-    dz = _foot_dz();
-    st = sign_thickness;
-    fh = max(0.01, foot_height);
-    fr = min(max(0, fillet_radius), st-0.01, fh-0.01);
-
-    // Main L body with a flat build-plate contact (z=0) to avoid bottom nubs.
-    polygon([
-        [0,          sign_height],          // sign face top
-        [st,         sign_height],          // sign back top
-        [st,         0],                    // sign/foot inner junction
-        [st + dy,    dz + fh],              // foot top tip (angled)
-        [st + dy,    0],                    // foot bottom tip (on plate)
-        [0,          0]                     // sign face bottom (on plate)
-    ]);
-
-    // Smooth ONLY the outside bend (top of the fold), not the plate-contact edge.
-    if (fr > 0.001)
-        translate([st, fh])
-            intersection() {
-                circle(r = fr);
-                translate([0, -fr]) square([fr, fr]);
-            }
+module _sign_panel() {
+    cr = min(max(0, corner_radius), sign_width/2 - 0.01, sign_height/2 - 0.01);
+    linear_extrude(height = sign_thickness)
+        offset(r = cr)
+            offset(delta = -cr)
+                square([sign_width, sign_height], center=true);
 }
 
-// ── Extrude L-profile to full sign width ─────────────────────
-module _L_solid() {
-    rotate([90, 0, 90])
-        linear_extrude(height = sign_width, center = true)
-            _L_profile_2d();
+module _foot_profile_2d() {
+    dx = _foot_dx();
+    dz = _foot_dz();
+    fh = max(0.01, foot_height);
+    // Profile in YZ plane, with bottom fully on plate (z=0), no underside nub.
+    polygon([
+        [0, 0],
+        [dx, 0],
+        [dx, dz + fh],
+        [0, fh]
+    ]);
+}
+
+module _foot_solid() {
+    // Foot runs along X (sign width) and is attached to sign bottom edge (Y = -sign_height/2)
+    translate([0, -sign_height/2, sign_thickness])
+        rotate([90,0,0])
+            linear_extrude(height = sign_width, center=true)
+                _foot_profile_2d();
+}
+
+module _model_solid() {
+    union() {
+        _sign_panel();
+        _foot_solid();
+    }
 }
 
 // ── NFC recess ───────────────────────────────────────────────
@@ -200,7 +196,7 @@ module _text_add() {
 module pedestal() {
     color(sign_color)
         difference() {
-            _L_solid();
+            _model_solid();
             _nfc_cut();
             _logo_cut();
             _text_cut();
