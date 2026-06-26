@@ -1,0 +1,453 @@
+/*
+ * NFC Tag Keychain & UV Printer Jig Generator
+ *
+ * Merged Production Update: 
+ * - Tag protrusion logic (jig sits 2mm lower than tags)
+ * - Neptune/H2S plate sizing (335x320 max)
+ * - Row-spanning thumb grooves for quick extraction
+ * - Restored explicit individual shape parameters
+ * - Stripped color/logo logic for streamlined use
+ */
+
+/* [Output Settings] */
+output_type = "jig"; // [keychain:Single Keychain, jig:Jig Plate]
+
+/* [Jig Plate Settings] */
+plate_size = "large"; // [small:Small (333x88), large:Large (335x320)]
+cutout_tolerance = 0.3; // mm
+grid_spacing = 3; // mm
+jig_base_thickness = 2; // mm
+
+// How far the tag sticks up above the top surface of the jig (mm)
+tag_protrusion = 2.0; 
+
+/* [Jig Extraction Grooves] */
+thumb_grooves = true;
+// Width of the channel across the row (mm)
+thumb_groove_width = 16; 
+// How much deeper than the tag the groove cuts (gives fingernail access)
+thumb_groove_depth = 1.0; 
+
+/* [Jig Interlocking Grid] */
+jig_interlocking = true; 
+jig_row_compression = 0.866; 
+
+/* [Body] */
+keychain_shape = "oval"; // [oval, square, circle, rectangle, hexagon, custom_svg]
+
+// Rotate entire keychain body in XY (degrees)
+body_rotation = 0;
+
+// Uniform body scale in XY
+body_scale = 1;
+
+// Base thickness before edge rounding
+keychain_thickness = 1;
+
+// Edge rounding radius
+bevel_radius = 1.5;
+
+/* [Shape Sizes] */
+// Oval shape parameters
+oval_main_diameter = 30;
+oval_top_diameter = 15;
+oval_center_distance = 15;
+oval_side_angle = 30;
+
+// Square (teardrop-like rectangle) parameters
+square_width = 35;
+square_height = 50;
+square_corner_radius = 3;
+
+// Circle/rectangle/hexagon parameters
+circle_diameter = 35;
+rectangle_width = 35;
+rectangle_height = 50;
+rectangle_corner_radius = 4;
+hexagon_diameter = 38;
+
+// Custom SVG body (used when keychain_shape = "custom_svg")
+body_svg_file = "default_body.svg"; // file
+body_svg_width = 40;
+body_svg_height = 50;
+
+/* [Attachment Circle] */
+attachment_circle_enabled = false;
+
+// Position mode for the attachment circle
+attachment_circle_position_mode = "bottom_center"; // [top_center, bottom_center, left_center, right_center, manual]
+
+// Outer diameter of the attachment circle
+attachment_circle_diameter = 10;
+
+// Diameter of the hole cut through the attachment circle (for key ring)
+attachment_circle_hole_diameter = 5;
+
+// Thickness (height) of the attachment circle; 0 = match keychain_thickness
+attachment_circle_thickness = 0;
+
+// Edge bevel radius for the attachment circle (independent of main body bevel)
+attachment_circle_bevel_radius = 1.5;
+
+// How much the circle overlaps into the body edge (ensures a solid connection)
+attachment_circle_overlap = 2;
+
+// Manual center position (used only when attachment_circle_position_mode = "manual")
+attachment_circle_x = 0;
+attachment_circle_y = -25;
+
+/* [Hanging Hole] */
+hanging_hole_enabled = true;
+
+hole_position_mode = "top_center"; // [top_center, manual]
+
+// Keep top_center hole pinned to the visual top after body rotation
+hole_top_uses_body_rotation = true;
+
+// Hole diameter and obround length
+hole_diameter = 7;
+hole_length = 3;
+
+// Distance from top edge to hole outer edge (top_center mode)
+hole_margin_from_top = 2;
+
+// Manual position (used only when hole_position_mode = "manual")
+hole_center_x = 0;
+hole_center_y = 18.7;
+
+// Hole rotation (degrees)
+hole_rotation = 0;
+
+/* [NFC Recess] */
+nfc_tag_hole = true;
+nfc_tag_diameter = 26;
+nfc_tag_height = 1.25;
+
+// Keep NFC cutout centered on the keychain body
+nfc_centered = true;
+
+// Optional manual offsets if nfc_centered = false
+nfc_offset_x = 0;
+nfc_offset_y = 0;
+
+// ============================================================
+// MATH & SHAPE HELPERS
+// ============================================================
+
+function degcos(a) = cos(a);
+function degsin(a) = sin(a);
+
+function body_half_width() =
+    keychain_shape == "oval" ? max(oval_main_diameter/2, oval_top_diameter/2) + bevel_radius :
+    keychain_shape == "square" ? square_width/2 + bevel_radius :
+    keychain_shape == "circle" ? circle_diameter/2 + bevel_radius :
+    keychain_shape == "rectangle" ? rectangle_width/2 + bevel_radius :
+    keychain_shape == "hexagon" ? hexagon_diameter/2 + bevel_radius :
+    keychain_shape == "custom_svg" ? body_svg_width/2 + bevel_radius :
+    max(oval_main_diameter/2, oval_top_diameter/2) + bevel_radius;
+
+function body_half_height() =
+    keychain_shape == "oval" ? max(oval_main_diameter/2, oval_center_distance + oval_top_diameter/2) + bevel_radius :
+    keychain_shape == "square" ? square_height/2 + bevel_radius :
+    keychain_shape == "circle" ? circle_diameter/2 + bevel_radius :
+    keychain_shape == "rectangle" ? rectangle_height/2 + bevel_radius :
+    keychain_shape == "hexagon" ? hexagon_diameter/2 + bevel_radius :
+    keychain_shape == "custom_svg" ? body_svg_height/2 + bevel_radius :
+    max(oval_main_diameter/2, oval_center_distance + oval_top_diameter/2) + bevel_radius;
+
+function rotated_body_top_y() =
+    body_scale * (
+        abs(degsin(body_rotation)) * body_half_width() +
+        abs(degcos(body_rotation)) * body_half_height()
+    );
+
+function rotated_body_right_x() =
+    body_scale * (
+        abs(degcos(body_rotation)) * body_half_width() +
+        abs(degsin(body_rotation)) * body_half_height()
+    );
+
+function resolved_attach_x() =
+    attachment_circle_position_mode == "manual"        ? attachment_circle_x :
+    attachment_circle_position_mode == "right_center"  ?  (rotated_body_right_x() + attachment_circle_diameter/2 - attachment_circle_overlap) :
+    attachment_circle_position_mode == "left_center"   ? -(rotated_body_right_x() + attachment_circle_diameter/2 - attachment_circle_overlap) :
+    0;
+
+function resolved_attach_y() =
+    attachment_circle_position_mode == "manual"         ? attachment_circle_y :
+    attachment_circle_position_mode == "top_center"     ?  (rotated_body_top_y() + attachment_circle_diameter/2 - attachment_circle_overlap) :
+    attachment_circle_position_mode == "bottom_center"  ? -(rotated_body_top_y() + attachment_circle_diameter/2 - attachment_circle_overlap) :
+    0;
+
+function resolved_hole_x() = hole_position_mode == "top_center" ? 0 : hole_center_x;
+
+function resolved_hole_y() =
+    hole_position_mode == "top_center"
+        ? ((hole_top_uses_body_rotation ? rotated_body_top_y() : body_scale * body_half_height()) - hole_margin_from_top - hole_diameter/2)
+        : hole_center_y;
+
+module rounded_rectangle_2d(w, h, r) {
+    rr = min(r, min(w, h)/2 - 0.01);
+    if (rr > 0) {
+        hull() {
+            translate([-w/2 + rr, -h/2 + rr]) circle(r = rr, $fn=40);
+            translate([ w/2 - rr, -h/2 + rr]) circle(r = rr, $fn=40);
+            translate([-w/2 + rr,  h/2 - rr]) circle(r = rr, $fn=40);
+            translate([ w/2 - rr,  h/2 - rr]) circle(r = rr, $fn=40);
+        }
+    } else {
+        square([w, h], center = true);
+    }
+}
+
+// ============================================================
+// 2D SILHOUETTE (FAST COMPUTATION FOR JIG OFFSET)
+// ============================================================
+
+module keychain_2d_silhouette() {
+    union() {
+        rotate([0, 0, body_rotation])
+            scale([body_scale, body_scale, 1])
+                if (keychain_shape == "oval") {
+                    hull() {
+                        circle(r = oval_main_diameter/2, $fn=60);
+                        translate([0, oval_center_distance]) circle(r = oval_top_diameter/2, $fn=60);
+                    }
+                } else if (keychain_shape == "square") {
+                    rounded_rectangle_2d(square_width, square_height, square_corner_radius);
+                } else if (keychain_shape == "rectangle") {
+                    rounded_rectangle_2d(rectangle_width, rectangle_height, rectangle_corner_radius);
+                } else if (keychain_shape == "circle") {
+                    circle(r = circle_diameter / 2, $fn=60);
+                } else if (keychain_shape == "hexagon") {
+                    circle(d = hexagon_diameter, $fn=6);
+                } else if (keychain_shape == "custom_svg" && body_svg_file != "default_body.svg") {
+                    resize([body_svg_width, body_svg_height], auto = true) import(file = body_svg_file, center = true);
+                }
+        
+        if (attachment_circle_enabled) {
+            translate([resolved_attach_x(), resolved_attach_y()])
+                // Reduced by bevel_radius here because the jig generator's offset() adds it back universally
+                circle(r = max(attachment_circle_diameter/2 - bevel_radius, 0.01), $fn=60);
+        }
+    }
+}
+
+
+// ============================================================
+// BODY SHAPES & COMPONENT MODULES
+// ============================================================
+
+module keychain_oval() {
+    radius1 = oval_main_diameter / 2;
+    radius2 = oval_top_diameter / 2;
+
+    minkowski() {
+        union() {
+            cylinder(h = keychain_thickness, r = radius1, $fn=80);
+            translate([0, oval_center_distance, 0])
+                cylinder(h = keychain_thickness, r = radius2, $fn=60);
+            linear_extrude(height = keychain_thickness)
+                polygon(points=[
+                    [ radius1 * cos(oval_side_angle), radius1 * sin(oval_side_angle)],
+                    [ radius2 * cos(oval_side_angle), oval_center_distance + radius2 * sin(oval_side_angle)],
+                    [-radius2 * cos(oval_side_angle), oval_center_distance + radius2 * sin(oval_side_angle)],
+                    [-radius1 * cos(oval_side_angle), radius1 * sin(oval_side_angle)]
+                ]);
+        }
+        sphere(r = bevel_radius, $fn=30);
+    }
+}
+
+module keychain_square() {
+    minkowski() {
+        linear_extrude(height = keychain_thickness)
+            rounded_rectangle_2d(square_width, square_height, square_corner_radius);
+        sphere(r = bevel_radius, $fn=30);
+    }
+}
+
+module keychain_circle() {
+    minkowski() {
+        cylinder(h = keychain_thickness, r = circle_diameter / 2, $fn=80);
+        sphere(r = bevel_radius, $fn=30);
+    }
+}
+
+module keychain_rectangle() {
+    minkowski() {
+        linear_extrude(height = keychain_thickness)
+            rounded_rectangle_2d(rectangle_width, rectangle_height, rectangle_corner_radius);
+        sphere(r = bevel_radius, $fn=30);
+    }
+}
+
+module keychain_hexagon() {
+    minkowski() {
+        linear_extrude(height = keychain_thickness)
+            circle(d = hexagon_diameter, $fn=6);
+        sphere(r = bevel_radius, $fn=30);
+    }
+}
+
+module keychain_custom_svg() {
+    if (body_svg_file != "default_body.svg") {
+        minkowski() {
+            linear_extrude(height = keychain_thickness)
+                resize([body_svg_width, body_svg_height], auto = true)
+                    import(file = body_svg_file, center = true);
+            sphere(r = bevel_radius, $fn=30);
+        }
+    } else {
+        echo("Set body_svg_file to a valid SVG when keychain_shape = custom_svg");
+    }
+}
+
+module attachment_circle_body() {
+    if (attachment_circle_enabled) {
+        abr = attachment_circle_bevel_radius;
+        act = attachment_circle_thickness > 0
+            ? attachment_circle_thickness
+            : max(keychain_thickness + 2*bevel_radius - 2*abr, 0.01);
+        z_align = abr - bevel_radius;
+        r = max(attachment_circle_diameter / 2 - abr, 0.01);
+        ch = abr;
+        full_h = act + 2*ch + 2;
+        
+        translate([resolved_attach_x(), resolved_attach_y(), z_align])
+            difference() {
+                minkowski() {
+                    cylinder(h = act, r = r, $fn=60);
+                    sphere(r = abr, $fn=30);
+                }
+                translate([0, 0, -ch - 1])
+                    union() {
+                        cylinder(h = full_h, r = attachment_circle_hole_diameter/2, $fn=40);
+                        translate([0, 0, 1]) cylinder(h = ch, r1 = attachment_circle_hole_diameter/2 + ch, r2 = attachment_circle_hole_diameter/2, $fn=40);
+                        translate([0, 0, ch + 1 + act]) cylinder(h = ch, r1 = attachment_circle_hole_diameter/2, r2 = attachment_circle_hole_diameter/2 + ch, $fn=40);
+                    }
+            }
+    }
+}
+
+module hanging_hole() {
+    if (hanging_hole_enabled) {
+        ch = bevel_radius;
+        r = hole_diameter / 2;
+        full_h = keychain_thickness + 2*ch + 2;
+        translate([resolved_hole_x(), resolved_hole_y(), -ch - 1])
+            rotate([0, 0, hole_rotation])
+                union() {
+                    hull() for (dx = [-hole_length/2, hole_length/2]) translate([dx, 0, 0]) cylinder(h = full_h, r = r, $fn=40);
+                    hull() for (dx = [-hole_length/2, hole_length/2]) translate([dx, 0, 1]) cylinder(h = ch, r1 = r + ch, r2 = r, $fn=40);
+                    hull() for (dx = [-hole_length/2, hole_length/2]) translate([dx, 0, ch + 1 + keychain_thickness]) cylinder(h = ch, r1 = r, r2 = r + ch, $fn=40);
+                }
+    }
+}
+
+module nfc_hole() {
+    if(nfc_tag_hole) {
+        translate([nfc_centered ? 0 : nfc_offset_x, nfc_centered ? 0 : nfc_offset_y, 0])
+            cylinder(h = nfc_tag_height, r = nfc_tag_diameter / 2, $fn=60);
+    }
+}
+
+module keychain_body() {
+    if (keychain_shape == "oval") {
+        keychain_oval();
+    } else if (keychain_shape == "square") {
+        keychain_square();
+    } else if (keychain_shape == "circle") {
+        keychain_circle();
+    } else if (keychain_shape == "rectangle") {
+        keychain_rectangle();
+    } else if (keychain_shape == "hexagon") {
+        keychain_hexagon();
+    } else if (keychain_shape == "custom_svg") {
+        keychain_custom_svg();
+    } else {
+        keychain_oval();
+    }
+}
+
+module single_keychain() {
+    difference() {
+        union() {
+            rotate([0, 0, body_rotation])
+                scale([body_scale, body_scale, 1])
+                    difference() {
+                        keychain_body();
+                        nfc_hole();
+                    }
+            attachment_circle_body();
+        }
+        hanging_hole();
+    }
+}
+
+// ============================================================
+// HIGH-DENSITY JIG GENERATOR
+// ============================================================
+
+module generate_jig() {
+    plate_w = (plate_size == "small") ? 333 : 335;
+    plate_h = (plate_size == "small") ? 88 : 320; 
+    
+    item_w = (body_half_width() * 2) + cutout_tolerance * 2;
+    item_h = (body_half_height() * 2) + cutout_tolerance * 2;
+    
+    step_x = item_w + grid_spacing;
+    step_y = jig_interlocking ? (item_h + grid_spacing) * jig_row_compression : (item_h + grid_spacing);
+    
+    cols = floor((plate_w - grid_spacing) / step_x);
+    rows = floor((plate_h - grid_spacing) / step_y);
+    
+    start_x = -(cols * step_x)/2 + step_x/2;
+    start_y = -(rows * step_y)/2 + step_y/2;
+    
+    // Protrusion logic: Calculate depth strictly based on tag height minus desired protrusion
+    keychain_total_height = keychain_thickness + (bevel_radius * 2);
+    jig_cutout_depth = max(0.5, keychain_total_height - tag_protrusion);
+    total_jig_height = jig_base_thickness + jig_cutout_depth;
+
+    difference() {
+        // Main Plate Base
+        translate([0, 0, total_jig_height/2]) cube([plate_w, plate_h, total_jig_height], center=true);
+        
+        // Subtract Grid Cutouts
+        for (r = [0 : rows - 1]) {
+            is_staggered = jig_interlocking && (r % 2 != 0);
+            row_cols = is_staggered ? cols - 1 : cols;
+            x_shift = is_staggered ? (step_x / 2) : 0;
+            
+            for (c = [0 : row_cols - 1]) {
+                translate([start_x + (c * step_x) + x_shift, start_y + (r * step_y), jig_base_thickness])
+                    linear_extrude(height = jig_cutout_depth + 1)
+                        offset(r = bevel_radius + cutout_tolerance, $fn=30)
+                            keychain_2d_silhouette();
+            }
+        }
+        
+        // Subtract Thumb Grooves
+        if (thumb_grooves) {
+            for (r = [0 : rows - 1]) {
+                // Centers channel on each row, cuts deeper than tag base, leaves 4mm walls on sides
+                translate([0, start_y + (r * step_y), jig_base_thickness - thumb_groove_depth + 50])
+                    cube([plate_w - 8, thumb_groove_width, 100], center=true);
+            }
+        }
+    }
+    
+    calc_cap = (floor(rows/2) * (cols - 1)) + (ceil(rows/2) * cols);
+    echo(str("Jig Capacity: ", jig_interlocking ? calc_cap : cols * rows, " units per plate."));
+}
+
+// ============================================================
+// OUTPUT LOGIC
+// ============================================================
+
+if (output_type == "jig") {
+    generate_jig();
+} else {
+    single_keychain();
+}
