@@ -1,0 +1,605 @@
+/*
+ * NFC Tag Keychain & UV Printer Jig Batch Generator
+ *
+ * Architecture Update:
+ * - Restored Corner Radius: Individual corner rounding controls added back for square/rectangle shapes.
+ * - Independent Hole Bevels: Added independent control for the internal attachment hole chamfer.
+ * - Thickness Enforcement: The attachment ring's Z-height is strictly bound to the body thickness.
+ * - Complete File: No truncated code or missing arrays.
+ */
+
+/* [Output Settings] */
+output_type = "combined"; // [tags:Render 3D Tags for Printing, jig:Render UV Jig for Batch, combined:Preview Tags sitting in Jig]
+
+/* [Tag 1] */
+t1_enable = true;
+t1_shape = "oval"; // [oval, square, circle, rectangle, hexagon]
+t1_rotation = 0; // [0:359]
+t1_width_or_main_diameter = 30; 
+t1_height_or_top_diameter = 15; 
+t1_corner_radius = 0; // Used only for square or rectangle
+t1_attach = false;
+t1_attach_pos = "bottom_center"; // [top_center, bottom_center, left_center, right_center, manual]
+t1_att_dia = 10;
+t1_att_hole = 5;
+t1_att_thick = 0;
+t1_att_bevel = 1.5;
+t1_att_hole_bevel = 0.5;
+t1_att_overlap = 2;
+t1_att_x = 0;
+t1_att_y = -25;
+t1_hole = true;
+t1_hole_pos = "top_center"; // [top_center, manual]
+t1_hole_top_rot = true;
+t1_hole_dia = 7;
+t1_hole_len = 3;
+t1_hole_margin = 2;
+t1_hole_x = 0;
+t1_hole_y = 18.7;
+t1_hole_rot = 0;
+
+/* [Tag 2] */
+t2_enable = true;
+t2_shape = "square"; // [oval, square, circle, rectangle, hexagon]
+t2_rotation = 0; // [0:359]
+t2_width_or_main_diameter = 35;
+t2_height_or_top_diameter = 50;
+t2_corner_radius = 3; // Used only for square or rectangle
+t2_attach = true;
+t2_attach_pos = "right_center"; // [top_center, bottom_center, left_center, right_center, manual]
+t2_att_dia = 10;
+t2_att_hole = 5;
+t2_att_thick = 0;
+t2_att_bevel = 1.5;
+t2_att_hole_bevel = 0.5;
+t2_att_overlap = 2;
+t2_att_x = 0;
+t2_att_y = -25;
+t2_hole = true;
+t2_hole_pos = "top_center"; // [top_center, manual]
+t2_hole_top_rot = true;
+t2_hole_dia = 7;
+t2_hole_len = 3;
+t2_hole_margin = 2;
+t2_hole_x = 0;
+t2_hole_y = 18.7;
+t2_hole_rot = 0;
+
+/* [Tag 3] */
+t3_enable = true;
+t3_shape = "circle"; // [oval, square, circle, rectangle, hexagon]
+t3_rotation = 0; // [0:359]
+t3_width_or_main_diameter = 35;
+t3_height_or_top_diameter = 0;
+t3_corner_radius = 0; // Used only for square or rectangle
+t3_attach = true;
+t3_attach_pos = "top_center"; // [top_center, bottom_center, left_center, right_center, manual]
+t3_att_dia = 10;
+t3_att_hole = 5;
+t3_att_thick = 0;
+t3_att_bevel = 1.5;
+t3_att_hole_bevel = 0.5;
+t3_att_overlap = 2;
+t3_att_x = 0;
+t3_att_y = 25;
+t3_hole = false;
+t3_hole_pos = "top_center"; // [top_center, manual]
+t3_hole_top_rot = true;
+t3_hole_dia = 7;
+t3_hole_len = 3;
+t3_hole_margin = 2;
+t3_hole_x = 0;
+t3_hole_y = 18.7;
+t3_hole_rot = 0;
+
+/* [Tag 4] */
+t4_enable = false;
+t4_shape = "hexagon"; // [oval, square, circle, rectangle, hexagon]
+t4_rotation = 0; // [0:359]
+t4_width_or_main_diameter = 38;
+t4_height_or_top_diameter = 0;
+t4_corner_radius = 0; // Used only for square or rectangle
+t4_attach = false;
+t4_attach_pos = "bottom_center"; // [top_center, bottom_center, left_center, right_center, manual]
+t4_att_dia = 10;
+t4_att_hole = 5;
+t4_att_thick = 0;
+t4_att_bevel = 1.5;
+t4_att_hole_bevel = 0.5;
+t4_att_overlap = 2;
+t4_att_x = 0;
+t4_att_y = -25;
+t4_hole = true;
+t4_hole_pos = "top_center"; // [top_center, manual]
+t4_hole_top_rot = true;
+t4_hole_dia = 7;
+t4_hole_len = 3;
+t4_hole_margin = 2;
+t4_hole_x = 0;
+t4_hole_y = 18.7;
+t4_hole_rot = 0;
+
+/* [Tag 5] */
+t5_enable = false;
+t5_shape = "rectangle"; // [oval, square, circle, rectangle, hexagon]
+t5_rotation = 0; // [0:359]
+t5_width_or_main_diameter = 40;
+t5_height_or_top_diameter = 20;
+t5_corner_radius = 4; // Used only for square or rectangle
+t5_attach = false;
+t5_attach_pos = "bottom_center"; // [top_center, bottom_center, left_center, right_center, manual]
+t5_att_dia = 10;
+t5_att_hole = 5;
+t5_att_thick = 0;
+t5_att_bevel = 1.5;
+t5_att_hole_bevel = 0.5;
+t5_att_overlap = 2;
+t5_att_x = 0;
+t5_att_y = -25;
+t5_hole = true;
+t5_hole_pos = "top_center"; // [top_center, manual]
+t5_hole_top_rot = true;
+t5_hole_dia = 7;
+t5_hole_len = 3;
+t5_hole_margin = 2;
+t5_hole_x = 0;
+t5_hole_y = 18.7;
+t5_hole_rot = 0;
+
+/* [Tag 6] */
+t6_enable = false;
+t6_shape = "oval"; // [oval, square, circle, rectangle, hexagon]
+t6_rotation = 0; // [0:359]
+t6_width_or_main_diameter = 30;
+t6_height_or_top_diameter = 15;
+t6_corner_radius = 3; // Used only for square or rectangle
+t6_attach = false;
+t6_attach_pos = "bottom_center"; // [top_center, bottom_center, left_center, right_center, manual]
+t6_att_dia = 10;
+t6_att_hole = 5;
+t6_att_thick = 0;
+t6_att_bevel = 1.5;
+t6_att_hole_bevel = 0.5;
+t6_att_overlap = 2;
+t6_att_x = 0;
+t6_att_y = -25;
+t6_hole = true;
+t6_hole_pos = "top_center"; // [top_center, manual]
+t6_hole_top_rot = true;
+t6_hole_dia = 7;
+t6_hole_len = 3;
+t6_hole_margin = 2;
+t6_hole_x = 0;
+t6_hole_y = 18.7;
+t6_hole_rot = 0;
+
+/* [Tag 7] */
+t7_enable = false;
+t7_shape = "oval"; // [oval, square, circle, rectangle, hexagon]
+t7_rotation = 0; // [0:359]
+t7_width_or_main_diameter = 30;
+t7_height_or_top_diameter = 15;
+t7_corner_radius = 3; // Used only for square or rectangle
+t7_attach = false;
+t7_attach_pos = "bottom_center"; // [top_center, bottom_center, left_center, right_center, manual]
+t7_att_dia = 10;
+t7_att_hole = 5;
+t7_att_thick = 0;
+t7_att_bevel = 1.5;
+t7_att_hole_bevel = 0.5;
+t7_att_overlap = 2;
+t7_att_x = 0;
+t7_att_y = -25;
+t7_hole = true;
+t7_hole_pos = "top_center"; // [top_center, manual]
+t7_hole_top_rot = true;
+t7_hole_dia = 7;
+t7_hole_len = 3;
+t7_hole_margin = 2;
+t7_hole_x = 0;
+t7_hole_y = 18.7;
+t7_hole_rot = 0;
+
+/* [Tag 8] */
+t8_enable = false;
+t8_shape = "oval"; // [oval, square, circle, rectangle, hexagon]
+t8_rotation = 0; // [0:359]
+t8_width_or_main_diameter = 30;
+t8_height_or_top_diameter = 15;
+t8_corner_radius = 3; // Used only for square or rectangle
+t8_attach = false;
+t8_attach_pos = "bottom_center"; // [top_center, bottom_center, left_center, right_center, manual]
+t8_att_dia = 10;
+t8_att_hole = 5;
+t8_att_thick = 0;
+t8_att_bevel = 1.5;
+t8_att_hole_bevel = 0.5;
+t8_att_overlap = 2;
+t8_att_x = 0;
+t8_att_y = -25;
+t8_hole = true;
+t8_hole_pos = "top_center"; // [top_center, manual]
+t8_hole_top_rot = true;
+t8_hole_dia = 7;
+t8_hole_len = 3;
+t8_hole_margin = 2;
+t8_hole_x = 0;
+t8_hole_y = 18.7;
+t8_hole_rot = 0;
+
+/* [Tag 9] */
+t9_enable = false;
+t9_shape = "oval"; // [oval, square, circle, rectangle, hexagon]
+t9_rotation = 0; // [0:359]
+t9_width_or_main_diameter = 30;
+t9_height_or_top_diameter = 15;
+t9_corner_radius = 3; // Used only for square or rectangle
+t9_attach = false;
+t9_attach_pos = "bottom_center"; // [top_center, bottom_center, left_center, right_center, manual]
+t9_att_dia = 10;
+t9_att_hole = 5;
+t9_att_thick = 0;
+t9_att_bevel = 1.5;
+t9_att_hole_bevel = 0.5;
+t9_att_overlap = 2;
+t9_att_x = 0;
+t9_att_y = -25;
+t9_hole = true;
+t9_hole_pos = "top_center"; // [top_center, manual]
+t9_hole_top_rot = true;
+t9_hole_dia = 7;
+t9_hole_len = 3;
+t9_hole_margin = 2;
+t9_hole_x = 0;
+t9_hole_y = 18.7;
+t9_hole_rot = 0;
+
+/* [Tag 10] */
+t10_enable = false;
+t10_shape = "oval"; // [oval, square, circle, rectangle, hexagon]
+t10_rotation = 0; // [0:359]
+t10_width_or_main_diameter = 30;
+t10_height_or_top_diameter = 15;
+t10_corner_radius = 3; // Used only for square or rectangle
+t10_attach = false;
+t10_attach_pos = "bottom_center"; // [top_center, bottom_center, left_center, right_center, manual]
+t10_att_dia = 10;
+t10_att_hole = 5;
+t10_att_thick = 0;
+t10_att_bevel = 1.5;
+t10_att_hole_bevel = 0.5;
+t10_att_overlap = 2;
+t10_att_x = 0;
+t10_att_y = -25;
+t10_hole = true;
+t10_hole_pos = "top_center"; // [top_center, manual]
+t10_hole_top_rot = true;
+t10_hole_dia = 7;
+t10_hole_len = 3;
+t10_hole_margin = 2;
+t10_hole_x = 0;
+t10_hole_y = 18.7;
+t10_hole_rot = 0;
+
+
+/* [Global Plate & Layout Settings] */
+plate_size = "large"; // [small:Small (333x88), large:Large (335x320)]
+jig_interlocking = true; 
+jig_row_compression = 0.866; 
+cutout_tolerance = 0.3; // mm
+grid_spacing = 3; // mm
+jig_base_thickness = 2; // mm
+tag_protrusion = 2.0; // mm
+
+thumb_grooves = true;
+thumb_groove_width = 16; 
+thumb_groove_depth = 1.0; 
+
+/* [Global Profile Settings] */
+keychain_thickness = 1;
+bevel_radius = 1.5;
+body_rotation = 0; // Global offset (leave 0 if using individual rotations)
+body_scale = 1;
+
+/* [Global NFC Recess Settings] */
+nfc_tag_hole = true;
+nfc_tag_diameter = 26;
+nfc_tag_height = 1.25;
+
+// ============================================================
+// INTERNAL ARRAY ASSEMBLY
+// Array Index Map for 'p':
+// 0:enable, 1:shape, 2:rot, 3:d1, 4:d2, 5:corner_rad,
+// 6:att_on, 7:att_pos, 8:att_dia, 9:att_hole, 10:att_thick, 11:att_bevel, 12:att_hole_bevel, 13:att_overlap, 14:att_x, 15:att_y, 
+// 16:hole_on, 17:hole_pos, 18:hole_top_rot, 19:hole_dia, 20:hole_len, 21:hole_margin, 22:hole_x, 23:hole_y, 24:hole_rot
+// ============================================================
+
+raw_batch = [
+    [t1_enable, t1_shape, t1_rotation, t1_width_or_main_diameter, t1_height_or_top_diameter, t1_corner_radius, t1_attach, t1_attach_pos, t1_att_dia, t1_att_hole, t1_att_thick, t1_att_bevel, t1_att_hole_bevel, t1_att_overlap, t1_att_x, t1_att_y, t1_hole, t1_hole_pos, t1_hole_top_rot, t1_hole_dia, t1_hole_len, t1_hole_margin, t1_hole_x, t1_hole_y, t1_hole_rot],
+    [t2_enable, t2_shape, t2_rotation, t2_width_or_main_diameter, t2_height_or_top_diameter, t2_corner_radius, t2_attach, t2_attach_pos, t2_att_dia, t2_att_hole, t2_att_thick, t2_att_bevel, t2_att_hole_bevel, t2_att_overlap, t2_att_x, t2_att_y, t2_hole, t2_hole_pos, t2_hole_top_rot, t2_hole_dia, t2_hole_len, t2_hole_margin, t2_hole_x, t2_hole_y, t2_hole_rot],
+    [t3_enable, t3_shape, t3_rotation, t3_width_or_main_diameter, t3_height_or_top_diameter, t3_corner_radius, t3_attach, t3_attach_pos, t3_att_dia, t3_att_hole, t3_att_thick, t3_att_bevel, t3_att_hole_bevel, t3_att_overlap, t3_att_x, t3_att_y, t3_hole, t3_hole_pos, t3_hole_top_rot, t3_hole_dia, t3_hole_len, t3_hole_margin, t3_hole_x, t3_hole_y, t3_hole_rot],
+    [t4_enable, t4_shape, t4_rotation, t4_width_or_main_diameter, t4_height_or_top_diameter, t4_corner_radius, t4_attach, t4_attach_pos, t4_att_dia, t4_att_hole, t4_att_thick, t4_att_bevel, t4_att_hole_bevel, t4_att_overlap, t4_att_x, t4_att_y, t4_hole, t4_hole_pos, t4_hole_top_rot, t4_hole_dia, t4_hole_len, t4_hole_margin, t4_hole_x, t4_hole_y, t4_hole_rot],
+    [t5_enable, t5_shape, t5_rotation, t5_width_or_main_diameter, t5_height_or_top_diameter, t5_corner_radius, t5_attach, t5_attach_pos, t5_att_dia, t5_att_hole, t5_att_thick, t5_att_bevel, t5_att_hole_bevel, t5_att_overlap, t5_att_x, t5_att_y, t5_hole, t5_hole_pos, t5_hole_top_rot, t5_hole_dia, t5_hole_len, t5_hole_margin, t5_hole_x, t5_hole_y, t5_hole_rot],
+    [t6_enable, t6_shape, t6_rotation, t6_width_or_main_diameter, t6_height_or_top_diameter, t6_corner_radius, t6_attach, t6_attach_pos, t6_att_dia, t6_att_hole, t6_att_thick, t6_att_bevel, t6_att_hole_bevel, t6_att_overlap, t6_att_x, t6_att_y, t6_hole, t6_hole_pos, t6_hole_top_rot, t6_hole_dia, t6_hole_len, t6_hole_margin, t6_hole_x, t6_hole_y, t6_hole_rot],
+    [t7_enable, t7_shape, t7_rotation, t7_width_or_main_diameter, t7_height_or_top_diameter, t7_corner_radius, t7_attach, t7_attach_pos, t7_att_dia, t7_att_hole, t7_att_thick, t7_att_bevel, t7_att_hole_bevel, t7_att_overlap, t7_att_x, t7_att_y, t7_hole, t7_hole_pos, t7_hole_top_rot, t7_hole_dia, t7_hole_len, t7_hole_margin, t7_hole_x, t7_hole_y, t7_hole_rot],
+    [t8_enable, t8_shape, t8_rotation, t8_width_or_main_diameter, t8_height_or_top_diameter, t8_corner_radius, t8_attach, t8_attach_pos, t8_att_dia, t8_att_hole, t8_att_thick, t8_att_bevel, t8_att_hole_bevel, t8_att_overlap, t8_att_x, t8_att_y, t8_hole, t8_hole_pos, t8_hole_top_rot, t8_hole_dia, t8_hole_len, t8_hole_margin, t8_hole_x, t8_hole_y, t8_hole_rot],
+    [t9_enable, t9_shape, t9_rotation, t9_width_or_main_diameter, t9_height_or_top_diameter, t9_corner_radius, t9_attach, t9_attach_pos, t9_att_dia, t9_att_hole, t9_att_thick, t9_att_bevel, t9_att_hole_bevel, t9_att_overlap, t9_att_x, t9_att_y, t9_hole, t9_hole_pos, t9_hole_top_rot, t9_hole_dia, t9_hole_len, t9_hole_margin, t9_hole_x, t9_hole_y, t9_hole_rot],
+    [t10_enable, t10_shape, t10_rotation, t10_width_or_main_diameter, t10_height_or_top_diameter, t10_corner_radius, t10_attach, t10_attach_pos, t10_att_dia, t10_att_hole, t10_att_thick, t10_att_bevel, t10_att_hole_bevel, t10_att_overlap, t10_att_x, t10_att_y, t10_hole, t10_hole_pos, t10_hole_top_rot, t10_hole_dia, t10_hole_len, t10_hole_margin, t10_hole_x, t10_hole_y, t10_hole_rot]
+];
+
+// Filters out any tags where enable == false
+production_batch = [ for (p = raw_batch) if (p[0]) p ];
+batch_count = len(production_batch);
+
+// ============================================================
+// DYNAMIC DIMENSION EXTRACTORS
+// ============================================================
+
+function degcos(a) = cos(a);
+function degsin(a) = sin(a);
+
+function get_w(p) = 
+    p[1] == "oval" ? max(p[3], p[4]) :
+    p[1] == "square" || p[1] == "rectangle" ? p[3] : p[3];
+
+function get_h(p) = 
+    p[1] == "oval" ? (15 + p[4]/2 + p[3]/2) : 
+    p[1] == "square" || p[1] == "rectangle" ? p[4] : p[3];
+
+function body_half_width(p) = (get_w(p) / 2) + bevel_radius;
+function body_half_height(p) = (get_h(p) / 2) + bevel_radius;
+
+function resolved_attach_x(p) =
+    p[7] == "manual"       ? p[14] :
+    p[7] == "right_center" ?  (body_half_width(p) + p[8]/2 - p[13]) :
+    p[7] == "left_center"  ? -(body_half_width(p) + p[8]/2 - p[13]) : 0;
+
+function resolved_attach_y(p) =
+    p[7] == "manual"        ? p[15] :
+    p[7] == "top_center"    ?  (body_half_height(p) + p[8]/2 - p[13]) :
+    p[7] == "bottom_center" ? -(body_half_height(p) + p[8]/2 - p[13]) : 0;
+
+function resolved_hole_x(p) =
+    p[17] == "manual"       ? p[22] :
+    p[17] == "right_center" ?  (body_half_width(p) - p[21] - p[19]/2) :
+    p[17] == "left_center"  ? -(body_half_width(p) - p[21] - p[19]/2) : 0;
+
+function resolved_hole_y(p) =
+    p[17] == "manual"        ? p[23] :
+    p[17] == "top_center"    ?  (body_half_height(p) - p[21] - p[19]/2) :
+    p[17] == "bottom_center" ? -(body_half_height(p) - p[21] - p[19]/2) : 0;
+
+// Calculate width and height before rotation (including attachments)
+function local_max_w(p) = 
+    let (bw = body_half_width(p) * 2)
+    p[6] && (p[7] == "right_center" || p[7] == "left_center" || p[7] == "manual") ? bw + p[8] : bw;
+
+function local_max_h(p) = 
+    let (bh = body_half_height(p) * 2)
+    p[6] && (p[7] == "top_center" || p[7] == "bottom_center" || p[7] == "manual") ? bh + p[8] : bh;
+
+// Resolves the true bounding box after the individual tag is rotated
+function rotated_bbox_w(p) = abs(degcos(p[2])) * local_max_w(p) + abs(degsin(p[2])) * local_max_h(p);
+function rotated_bbox_h(p) = abs(degsin(p[2])) * local_max_w(p) + abs(degcos(p[2])) * local_max_h(p);
+
+
+// ============================================================
+// 2D & 3D GENERATORS
+// ============================================================
+
+module rounded_rectangle_2d(w, h, r) {
+    rr = min(r, min(w, h)/2 - 0.01);
+    hull() {
+        translate([-w/2 + rr, -h/2 + rr]) circle(r = rr, $fn=40);
+        translate([ w/2 - rr, -h/2 + rr]) circle(r = rr, $fn=40);
+        translate([-w/2 + rr,  h/2 - rr]) circle(r = rr, $fn=40);
+        translate([ w/2 - rr,  h/2 - rr]) circle(r = rr, $fn=40);
+    }
+}
+
+module shape_2d_core(p) {
+    if (p[1] == "oval") {
+        hull() { circle(r = p[3]/2, $fn=60); translate([0, 15]) circle(r = p[4]/2, $fn=60); }
+    } else if (p[1] == "square" || p[1] == "rectangle") {
+        // Now using p[5] dynamically for corner radius
+        rounded_rectangle_2d(p[3], p[4], p[5]);
+    } else if (p[1] == "circle" || p[1] == "hexagon") {
+        circle(d = p[3], $fn=p[1]=="hexagon"?6:60);
+    }
+}
+
+// 2D Offset generation (Rotates the entire assembly)
+module keychain_2d_silhouette(p) {
+    rotate([0, 0, p[2]]) {
+        union() {
+            shape_2d_core(p);
+            if (p[6]) {
+                translate([resolved_attach_x(p), resolved_attach_y(p)])
+                    circle(r = max(p[8]/2 - bevel_radius, 0.01), $fn=60);
+            }
+        }
+    }
+}
+
+// 3D Body generation (Rotates the entire assembly)
+module keychain_3d_body(p) {
+    rotate([0, 0, p[2]]) {
+        difference() {
+            union() {
+                // Main Body
+                minkowski() {
+                    linear_extrude(height = keychain_thickness) shape_2d_core(p);
+                    sphere(r = bevel_radius, $fn=30);
+                }
+                
+                // Attachment Ring
+                if (p[6]) {
+                    abr = p[11]; // external bevel radius
+                    inner_bevel = p[12]; // internal hole bevel radius
+                    
+                    // Match the target height of the main tag body unless the user specifically overrides it
+                    target_total_thickness = p[10] > 0 ? p[10] : (keychain_thickness + 2 * bevel_radius);
+                    
+                    // Calculate the cylinder required to span the distance inside the minkowski
+                    act = max(target_total_thickness - 2*abr, 0.01);
+                    z_align = abr - bevel_radius;
+                    r = p[9] / 2; // hole radius
+                    full_h = act + 2*abr + 2; 
+                    
+                    translate([resolved_attach_x(p), resolved_attach_y(p), z_align])
+                    difference() {
+                        minkowski() { cylinder(h = act, r = max(p[8]/2 - abr, 0.01), $fn=60); sphere(r = abr, $fn=30); }
+                        
+                        translate([0, 0, -abr - 1]) // Subtraction block positioned slightly below the ring
+                            union() {
+                                cylinder(h = full_h, r = r, $fn=40);
+                                
+                                // Only apply internal chamfers if enabled
+                                if (inner_bevel > 0) {
+                                    // Bottom chamfer
+                                    translate([0, 0, 1]) 
+                                        cylinder(h = inner_bevel, r1 = r + inner_bevel, r2 = r, $fn=40);
+                                    // Top chamfer
+                                    translate([0, 0, 1 + target_total_thickness - inner_bevel]) 
+                                        cylinder(h = inner_bevel, r1 = r, r2 = r + inner_bevel, $fn=40);
+                                }
+                            }
+                    }
+                }
+            }
+            
+            // Hanging Hole 
+            if (p[16]) {
+                hx = resolved_hole_x(p);
+                hy = resolved_hole_y(p);
+                ch = bevel_radius;
+                r = p[19] / 2;
+                h_len = p[20];
+                full_h = keychain_thickness + 2*ch + 2;
+                
+                translate([hx, hy, -ch - 1])
+                    rotate([0, 0, p[24]])
+                        union() {
+                            hull() for (dx = [-h_len/2, h_len/2]) translate([dx, 0, 0]) cylinder(h = full_h, r = r, $fn=40);
+                            hull() for (dx = [-h_len/2, h_len/2]) translate([dx, 0, 1]) cylinder(h = ch, r1 = r + ch, r2 = r, $fn=40);
+                            hull() for (dx = [-h_len/2, h_len/2]) translate([dx, 0, ch + 1 + keychain_thickness]) cylinder(h = ch, r1 = r, r2 = r + ch, $fn=40);
+                        }
+            }
+            
+            // NFC Hole
+            if (nfc_tag_hole) {
+                cylinder(h = nfc_tag_height, d = nfc_tag_diameter, $fn=60);
+            }
+        }
+    }
+}
+
+// ============================================================
+// EXACT BATCH GRID CALCULATION & RENDERING
+// ============================================================
+
+// 1. Find the maximum cell limits based on enabled tags & rotation bounds
+max_cell_w = batch_count > 0 ? max([for (p = production_batch) rotated_bbox_w(p)]) + cutout_tolerance * 2 : 0;
+max_cell_h = batch_count > 0 ? max([for (p = production_batch) rotated_bbox_h(p)]) + cutout_tolerance * 2 : 0;
+
+step_x = max_cell_w + grid_spacing;
+step_y = jig_interlocking ? (max_cell_h + grid_spacing) * jig_row_compression : (max_cell_h + grid_spacing);
+
+// 2. Determine max columns allowed by the physical printer plate
+limit_plate_w = (plate_size == "small") ? 333 : 335;
+max_cols_allowed = floor((limit_plate_w - grid_spacing) / step_x);
+
+// 3. Size the array width based on batch count, up to the printer limit
+actual_cols = batch_count > 0 ? min(batch_count, max_cols_allowed) : 1;
+
+// 4. Calculate exact rows required for this specific batch count
+function calc_rows(remaining, cols, interlock, current_row=0) =
+    remaining <= 0 ? current_row :
+    let(row_capacity = (interlock && current_row % 2 != 0) ? cols - 1 : cols)
+    calc_rows(remaining - row_capacity, cols, interlock, current_row + 1);
+
+actual_rows = batch_count > 0 ? calc_rows(batch_count, actual_cols, jig_interlocking) : 1;
+
+// 5. Build dynamic plate sizing strictly around the packed layout
+plate_w = (actual_cols * step_x) + grid_spacing;
+plate_h = (actual_rows * step_y) + grid_spacing + (jig_interlocking ? (max_cell_h * 0.134) : 0);
+
+start_x = -(actual_cols * step_x)/2 + step_x/2;
+start_y = (actual_rows * step_y)/2 - step_y/2;
+
+// Helper to linearly map a loop iteration (r, c) to the correct array index
+function get_idx(r, c, cols, interlock) =
+    let(
+        full_pairs = floor(r / 2),
+        pair_cap = interlock ? (2 * cols - 1) : (2 * cols),
+        even_row_offset = (r % 2 != 0) ? cols : 0
+    )
+    (full_pairs * pair_cap) + even_row_offset + c;
+
+module render_tags() {
+    if (batch_count > 0) {
+        for (r = [0 : actual_rows - 1]) {
+            is_staggered = jig_interlocking && (r % 2 != 0);
+            row_cols = is_staggered ? actual_cols - 1 : actual_cols;
+            x_shift = is_staggered ? (step_x / 2) : 0;
+            
+            for (c = [0 : row_cols - 1]) {
+                idx = get_idx(r, c, actual_cols, jig_interlocking);
+                if (idx < batch_count) {
+                    translate([start_x + (c * step_x) + x_shift, start_y - (r * step_y), 0])
+                        keychain_3d_body(production_batch[idx]);
+                }
+            }
+        }
+    } else {
+        echo("WARNING: No tags enabled.");
+    }
+}
+
+module render_jig() {
+    if (batch_count > 0) {
+        total_jig_h = jig_base_thickness + max(0.5, (keychain_thickness + bevel_radius*2) - tag_protrusion);
+        
+        difference() {
+            translate([0, 0, total_jig_h/2]) cube([plate_w, plate_h, total_jig_h], center=true);
+            
+            for (r = [0 : actual_rows - 1]) {
+                is_staggered = jig_interlocking && (r % 2 != 0);
+                row_cols = is_staggered ? actual_cols - 1 : actual_cols;
+                x_shift = is_staggered ? (step_x / 2) : 0;
+                
+                for (c = [0 : row_cols - 1]) {
+                    idx = get_idx(r, c, actual_cols, jig_interlocking);
+                    if (idx < batch_count) {
+                        // Item cutout
+                        translate([start_x + (c * step_x) + x_shift, start_y - (r * step_y), jig_base_thickness])
+                            linear_extrude(height = 10)
+                                offset(r = bevel_radius + cutout_tolerance, $fn=30)
+                                    keychain_2d_silhouette(production_batch[idx]);
+                    }
+                }
+            }
+            
+            // Extraction Grooves (dynamically sized to current plate width)
+            if (thumb_grooves) {
+                for (r = [0 : actual_rows - 1]) {
+                    translate([0, start_y - (r * step_y), jig_base_thickness - thumb_groove_depth + 50])
+                        cube([plate_w + 10, thumb_groove_width, 100], center=true);
+                }
+            }
+        }
+    }
+}
+
+// ============================================================
+// EXECUTION
+// ============================================================
+
+if (output_type == "tags") {
+    render_tags();
+} else if (output_type == "jig") {
+    render_jig();
+} else if (output_type == "combined") {
+    color("gray", 0.5) render_jig();
+    color("orange") translate([0, 0, jig_base_thickness + 0.1]) render_tags();
+}
