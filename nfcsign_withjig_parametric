@@ -1,0 +1,286 @@
+/*
+ * NFC L-Shaped Stand UV Printer Jig (Frame Optimized)
+ *
+ * Architecture Update: 
+ * - Dynamic Lip Protection: The honeycomb frame now calculates the trigonometric 
+ *   backward intrusion of angled feet. It dynamically shifts the hollow center 
+ *   away from the foot to guarantee the structural perimeter is never severed, 
+ *   regardless of foot length or angle.
+ * - True 333mm Bound & Centering: Firmly anchored to 333mm and centered.
+ */
+
+/* [Output Settings] */
+output_type = "combined"; // [stand:Single Stand, jig:Jig Plate, combined:Preview]
+
+/* [Frame Optimization] */
+// Hollows out the center of each sign cutout to save massive amounts of plastic
+frame_mode = true;
+// Width of the plastic lip left to support the face of the sign (mm)
+resting_lip = 4;
+
+/* [Jig Plate Settings] */
+plate_size = "large"; // [small:Small 1-Row, large:Large 2-Row]
+// Auto-calculate jig height based on foot length, or override manually
+auto_jig_height = true; 
+manual_jig_height = 50;
+
+/* [Jig Bed Tolerances] */
+cutout_tolerance = 0.4; // mm
+grid_spacing = 2; // mm
+tag_protrusion = 2.0; // mm
+
+/* [Main Sign Settings] */
+sign_width = 80;      
+sign_length = 100;      
+sign_thickness = 4;    
+foot_length = 45;      
+foot_thickness = 4;    
+foot_angle = 85;       
+rounding_radius = 1.5;
+
+/* [NFC Recess] */
+enable_nfc_recess = true;
+nfc_style = 0; // [0:Embedded Z-Center, 1:Surface Pocket, 2:Side-Loading Slot]
+nfc_tag_diameter = 26;
+nfc_tag_height = 1.25;
+nfc_tolerance = 0.4;   
+nfc_centered = true;
+nfc_offset_x = 0;
+nfc_offset_y = 0;
+
+/* [Advanced] */
+$fn = 40;              
+
+// ============================================================
+// INTERNAL BATCH ARRAY 
+// ============================================================
+raw_batch = [
+    [true, sign_width, sign_length, sign_thickness, foot_length, foot_thickness, foot_angle, rounding_radius, enable_nfc, nfc_style, nfc_centered, nfc_offset_x, nfc_offset_y],
+    [true, sign_width, sign_length, sign_thickness, foot_length, foot_thickness, foot_angle, rounding_radius, enable_nfc, nfc_style, nfc_centered, nfc_offset_x, nfc_offset_y],
+    [true, sign_width, sign_length, sign_thickness, foot_length, foot_thickness, foot_angle, rounding_radius, enable_nfc, nfc_style, nfc_centered, nfc_offset_x, nfc_offset_y],
+    [true, sign_width, sign_length, sign_thickness, foot_length, foot_thickness, foot_angle, rounding_radius, enable_nfc, nfc_style, nfc_centered, nfc_offset_x, nfc_offset_y],
+    [true, sign_width, sign_length, sign_thickness, foot_length, foot_thickness, foot_angle, rounding_radius, enable_nfc, nfc_style, nfc_centered, nfc_offset_x, nfc_offset_y],
+    [true, sign_width, sign_length, sign_thickness, foot_length, foot_thickness, foot_angle, rounding_radius, enable_nfc, nfc_style, nfc_centered, nfc_offset_x, nfc_offset_y],
+    [true, sign_width, sign_length, sign_thickness, foot_length, foot_thickness, foot_angle, rounding_radius, enable_nfc, nfc_style, nfc_centered, nfc_offset_x, nfc_offset_y],
+    [true, sign_width, sign_length, sign_thickness, foot_length, foot_thickness, foot_angle, rounding_radius, enable_nfc, nfc_style, nfc_centered, nfc_offset_x, nfc_offset_y]
+];
+
+production_batch = [ for (p = raw_batch) if (p[0]) p ];
+batch_count = len(production_batch);
+
+// ============================================================
+// MATH & SHAPE HELPERS
+// ============================================================
+
+function get_stand_w(p) = p[1];
+
+// ============================================================
+// 3D GENERATORS
+// ============================================================
+
+module stand_core(p, rot, is_cutout=false) {
+    W = p[1]; L = p[2]; T = p[3]; FL = p[4]; FT = p[5];
+    A = max(5, min(175, p[6]));
+    R = min(p[7], T/2 - 0.01, FT/2 - 0.01);
+    tol = is_cutout ? cutout_tolerance : 0;
+
+    Px = FL * cos(A) - FT * sin(A);
+    Py = T + FL * sin(A) + FT * cos(A);
+    X_bottom_outer = Px - (Py / sin(A)) * cos(A);
+    shift_x = -X_bottom_outer;
+
+    profile_points = [
+        [ shift_x + X_bottom_outer, 0 ],
+        [ shift_x + L, 0 ],
+        [ shift_x + L, T ],
+        [ shift_x + 0, T ],
+        [ shift_x + FL * cos(A), T + FL * sin(A) ],
+        [ shift_x + Px, Py ]
+    ];
+    
+    face_center_x = shift_x + (L / 2);
+
+    rotate([0, 0, rot]) {
+        multmatrix(m = [
+            [0,  0, 1, -W/2],
+            [1,  0, 0, -face_center_x],
+            [0, -1, 0, T],
+            [0,  0, 0, 1]
+        ])
+        translate([0, 0, -tol]) 
+        if (R > 0 && !is_cutout) {
+            translate([0, 0, R])
+            minkowski() {
+                linear_extrude(height = max(0.1, W - 2*R))
+                    offset(r = -R) polygon(profile_points);
+                sphere(r = R, $fn=20);
+            }
+        } else {
+            linear_extrude(height = W + 2*tol)
+                if (is_cutout) {
+                    offset(r = tol, $fn=16) polygon(profile_points);
+                } else {
+                    polygon(profile_points);
+                }
+        }
+    }
+}
+
+module single_stand(p, rot) {
+    difference() {
+        stand_core(p, rot, false);
+        if (p[8]) {
+            W = p[1]; L = p[2]; T = p[3]; FL = p[4]; FT = p[5]; 
+            A = max(5, min(175, p[6]));
+            Px = FL * cos(A) - FT * sin(A);
+            Py = T + FL * sin(A) + FT * cos(A);
+            X_bottom_outer = Px - (Py / sin(A)) * cos(A);
+            shift_x = -X_bottom_outer;
+            
+            face_center_x = shift_x + (L / 2);
+            d = nfc_tag_diameter + nfc_tolerance;
+            h = nfc_tag_height + nfc_tolerance;
+
+            rotate([0, 0, rot]) {
+                multmatrix(m = [
+                    [0,  0, 1, -W/2],
+                    [1,  0, 0, -face_center_x],
+                    [0, -1, 0, T],
+                    [0,  0, 0, 1]
+                ]) {
+                    x_pos = p[10] ? W / 2 : W / 2 + p[11];
+                    y_pos = p[10] ? face_center_x : face_center_x + p[12];
+
+                    if (p[9] == 0) {
+                        translate([x_pos, y_pos, (T - h) / 2]) cylinder(h = h, d = d, $fn = 40);
+                    } else if (p[9] == 1) {
+                        translate([x_pos, y_pos, T - h + 0.01]) cylinder(h = h, d = d, $fn = 40);
+                    } else if (p[9] == 2) {
+                        translate([x_pos, y_pos, (T - h) / 2]) cylinder(h = h, d = d, $fn = 40);
+                        translate([-1, y_pos - d/2, (T - h) / 2]) cube([x_pos + 1, d, h]);
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ============================================================
+// HIGH-DENSITY FRAME GENERATOR
+// ============================================================
+
+module generate_jig() {
+    num_rows = (plate_size == "small") ? 1 : 2;
+    plate_w = 333; // Anchored bound to match E1 Plate Width
+    
+    item_w = get_stand_w(production_batch[0]) + cutout_tolerance * 2;
+    step_x = item_w + grid_spacing;
+    actual_cols = floor((plate_w + grid_spacing) / step_x);
+    
+    L_face = production_batch[0][2];
+    plate_h = (L_face * num_rows) + (grid_spacing * max(0, num_rows - 1));
+    
+    A_calc = max(5, min(175, foot_angle));
+    foot_z_depth = sign_thickness + foot_length * sin(A_calc) + foot_thickness * cos(A_calc);
+    jig_total_height = auto_jig_height ? (foot_z_depth + 5) : manual_jig_height;
+
+    difference() {
+        translate([0, 0, jig_total_height/2]) cube([plate_w, plate_h, jig_total_height], center=true);
+        
+        if (batch_count > 0) {
+            start_x = -((actual_cols - 1) * step_x) / 2;
+
+            for (r = [0 : num_rows - 1]) {
+                for (c = [0 : actual_cols - 1]) {
+                    idx = r * actual_cols + c;
+                    
+                    if (idx < batch_count) {
+                        p = production_batch[idx];
+                        
+                        rot = (r == 1) ? 180 : 0;
+                        x_pos = start_x + (c * step_x);
+                        y_pos = (r == 1) ? (plate_h/2) - (L_face/2) : -(plate_h/2) + (L_face/2);
+                        z_pos_cutout = jig_total_height - (p[3] - tag_protrusion);
+                        
+                        // TRUE 3D CUTOUT
+                        translate([x_pos, y_pos, z_pos_cutout]) stand_core(p, rot, true);
+                        
+                        // DYNAMIC STRUCTURAL HOLLOW
+                        if (frame_mode) {
+                            hole_w = get_stand_w(p) - (2 * resting_lip);
+                            
+                            // Dynamic Lip Math: Calculates how far an angled foot bends backwards
+                            A_calc_h = max(5, min(175, p[6]));
+                            foot_intrusion = max(0, p[4] * cos(A_calc_h)) + cutout_tolerance;
+                            
+                            // Dynamically thickens the lip on the foot edge so it never gets cut
+                            dynamic_bottom_lip = max(resting_lip, foot_intrusion + 2);
+                            
+                            min_y = -L_face/2 + dynamic_bottom_lip;
+                            max_y = L_face/2 - resting_lip;
+                            
+                            hole_l = max_y - min_y;
+                            hole_center_y = (max_y + min_y) / 2;
+                            
+                            if (hole_w > 4 && hole_l > 4) {
+                                translate([x_pos, y_pos, 0])
+                                    rotate([0, 0, rot])
+                                        translate([0, hole_center_y, 0]) // Shifts hole away from foot
+                                            linear_extrude(height = jig_total_height * 3, center = true)
+                                                offset(r = 2, $fn = 16)
+                                                    square([hole_w - 4, hole_l - 4], center = true);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ============================================================
+// OUTPUT LOGIC
+// ============================================================
+
+if (output_type == "jig") {
+    generate_jig();
+} else if (output_type == "stand") {
+    single_stand(production_batch[0], 0);
+} else if (output_type == "combined") {
+    color("gray", 0.5) generate_jig();
+    
+    if (batch_count > 0) {
+        num_rows = (plate_size == "small") ? 1 : 2;
+        plate_w = 333; 
+        
+        item_w = get_stand_w(production_batch[0]) + cutout_tolerance * 2;
+        step_x = item_w + grid_spacing;
+        actual_cols = floor((plate_w + grid_spacing) / step_x);
+        
+        L_face = production_batch[0][2];
+        plate_h = (L_face * num_rows) + (grid_spacing * max(0, num_rows - 1));
+        
+        start_x = -((actual_cols - 1) * step_x) / 2;
+
+        A_calc = max(5, min(175, foot_angle));
+        foot_z_depth = sign_thickness + foot_length * sin(A_calc) + foot_thickness * cos(A_calc);
+        jig_total_height = auto_jig_height ? (foot_z_depth + 5) : manual_jig_height;
+
+        for (r = [0 : num_rows - 1]) {
+            for (c = [0 : actual_cols - 1]) {
+                idx = r * actual_cols + c;
+                
+                if (idx < batch_count) {
+                    p = production_batch[idx];
+                    rot = (r == 1) ? 180 : 0;
+                    
+                    x_pos = start_x + (c * step_x);
+                    y_pos = (r == 1) ? (plate_h/2) - (L_face/2) : -(plate_h/2) + (L_face/2);
+                    z_pos_final = jig_total_height - (p[3] - tag_protrusion);
+                    
+                    color("orange") translate([x_pos, y_pos, z_pos_final]) single_stand(p, rot);
+                }
+            }
+        }
+    }
+}
