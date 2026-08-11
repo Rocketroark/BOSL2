@@ -69,7 +69,7 @@ rectangle_corner_radius = 4;
 hexagon_diameter = 38;
 
 // Custom SVG body (used when keychain_shape = "custom_svg")
-body_svg_file = "default_body.svg"; // file
+body_svg_file = "default.svg"; // file
 body_svg_width = 40;
 body_svg_height = 50;
 
@@ -382,19 +382,20 @@ module keychain_body() {
 module single_keychain() {
     difference() {
         union() {
-            // Apply rotation to the whole body so the NFC offset correctly follows the rotation
+            // Apply rotation to the whole body
             rotate([0, 0, body_rotation]) 
-                difference() {
-                    // Only apply scale to the body outline, NOT the NFC tag hole
-                    scale([body_scale, body_scale, 1]) 
-                        keychain_body();
-                    
-                    // NFC tag hole stays perfectly matched to mm settings
-                    nfc_hole(); 
-                }
+                scale([body_scale, body_scale, 1]) 
+                    keychain_body();
+            
             attachment_circle_body();
         }
+        
         hanging_hole();
+        
+        // Ensure NFC tag hole is subtracted from the ENTIRE assembly
+        // so overlaps from the attachment circle do not fill it.
+        rotate([0, 0, body_rotation])
+            nfc_hole(); 
     }
 }
 
