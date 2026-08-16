@@ -9,10 +9,11 @@
  * - Stripped color/logo logic for streamlined use
  * - NFC mm constraint and Z-positioning fixed
  * - Total keychain thickness fixed to absolute mm values
+ * - FIXED: Bypassed MakerWorld logo caching and prevented Empty Top Level crash
  */
 
 /* [Output Settings] */
-output_type = "jig"; // [keychain:Single Keychain, jig:Jig Plate]
+output_type = "keychain"; // [keychain:Single Keychain, jig:Jig Plate]
 
 /* [Jig Plate Settings] */
 plate_size = "large"; // [small:Small (333x88), large:Large (335x320)]
@@ -35,7 +36,7 @@ jig_interlocking = true;
 jig_row_compression = 0.866; 
 
 /* [Body] */
-keychain_shape = "oval"; // [oval, square, circle, rectangle, hexagon, custom_svg]
+keychain_shape = "custom_svg"; // [oval, square, circle, rectangle, hexagon, custom_svg]
 
 // Rotate entire keychain body in XY (degrees)
 body_rotation = 0;
@@ -69,7 +70,7 @@ rectangle_corner_radius = 4;
 hexagon_diameter = 38;
 
 // Custom SVG body (used when keychain_shape = "custom_svg")
-body_svg_file = "default.svg"; // file
+body_svg_file = "default.svg"; //file
 body_svg_width = 40;
 body_svg_height = 50;
 
@@ -230,13 +231,17 @@ module keychain_2d_silhouette() {
                     circle(r = circle_diameter / 2, $fn=60);
                 } else if (keychain_shape == "hexagon") {
                     circle(d = hexagon_diameter, $fn=6);
-                } else if (keychain_shape == "custom_svg" && body_svg_file != "default_body.svg") {
-                    resize([body_svg_width, body_svg_height], auto = true) import(file = body_svg_file, center = true);
+                } else if (keychain_shape == "custom_svg") {
+                    if (body_svg_file == "upload_your_design.svg" || body_svg_file == "default.svg" || body_svg_file == "") {
+                        // Fallback shape so the script doesn't crash before a file is uploaded
+                        rounded_rectangle_2d(square_width, square_height, square_corner_radius);
+                    } else {
+                        resize([body_svg_width, body_svg_height], auto = true) import(file = body_svg_file, center = true);
+                    }
                 }
         
         if (attachment_circle_enabled) {
             translate([resolved_attach_x(), resolved_attach_y()])
-                // Reduced by safe_bevel_radius here because the jig generator's offset() adds it back universally
                 circle(r = max(attachment_circle_diameter/2 - safe_bevel_radius, 0.01), $fn=60);
         }
     }
@@ -300,15 +305,51 @@ module keychain_hexagon() {
 }
 
 module keychain_custom_svg() {
-    if (body_svg_file != "default_body.svg") {
-        minkowski() {
-            linear_extrude(height = core_thickness)
-                resize([body_svg_width, body_svg_height], auto = true)
-                    import(file = body_svg_file, center = true);
-            sphere(r = safe_bevel_radius, $fn=30);
-        }
+    if (body_svg_file == "upload_your_design.svg" || body_svg_file == "default.svg" || body_svg_file == "") {
+        // Renders a temporary square block until you use the file upload button
+        keychain_square();
     } else {
-        echo("Set body_svg_file to a valid SVG when keychain_shape = custom_svg");
+        // Fast Layered Bevel to avoid minkowski timeout on complex SVG vectors
+        steps = 8;
+        
+        // Bottom bevel
+        for (i = [0 : steps-1]) {
+            a1 = 90 * (i / steps);
+            a2 = 90 * ((i + 1) / steps);
+            z1 = -safe_bevel_radius * cos(a1);
+            z2 = -safe_bevel_radius * cos(a2);
+            h_step = z2 - z1;
+            r_off = safe_bevel_radius * sin(a1);
+            
+            translate([0, 0, z1])
+                linear_extrude(height = h_step + 0.002)
+                    offset(r = r_off, $fn=30)
+                        resize([body_svg_width, body_svg_height], auto = true)
+                            import(file = body_svg_file, center = true);
+        }
+        
+        // Core
+        translate([0, 0, 0])
+            linear_extrude(height = core_thickness + 0.002)
+                offset(r = safe_bevel_radius, $fn=30)
+                    resize([body_svg_width, body_svg_height], auto = true)
+                        import(file = body_svg_file, center = true);
+                        
+        // Top bevel
+        for (i = [0 : steps-1]) {
+            a1 = 90 * (i / steps);
+            a2 = 90 * ((i + 1) / steps);
+            z1 = core_thickness + safe_bevel_radius * sin(a1);
+            z2 = core_thickness + safe_bevel_radius * sin(a2);
+            h_step = z2 - z1;
+            r_off = safe_bevel_radius * cos(a1);
+            
+            translate([0, 0, z1])
+                linear_extrude(height = h_step + 0.002)
+                    offset(r = r_off, $fn=30)
+                        resize([body_svg_width, body_svg_height], auto = true)
+                            import(file = body_svg_file, center = true);
+        }
     }
 }
 
